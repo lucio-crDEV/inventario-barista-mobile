@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+  <title>Inventario Barista</title>
+
+  <link
+    rel="stylesheet"
+    href="./styles.css"
+  >
+</head>
+
+<body>
+
+  <main class="app">
+
+    <header class="app-header">
+
+      <div>
+        <h1>Inventario Barista</h1>
+
+        <p id="progress-text">
+          0 / 0 procesados
+        </p>
+      </div>
+
+    </header>
+
+
+    <section
+      id="progress-bar-container"
+      class="progress-bar-container"
+      aria-label="Progreso del inventario"
+    >
+      <div
+        id="progress-bar"
+        class="progress-bar"
+      ></div>
+    </section>
+
+
+    <section id="app-content">
+      <!-- Contenido generado por app.js -->
+    </section>
+
+  </main>
+
+
+  <!-- ======================================================
+       MODAL: NUEVO INVENTARIO
+       ====================================================== -->
+
+  <div
+    id="confirm-modal"
+    class="modal-backdrop"
+    hidden
+  >
+
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+    >
+
+      <div class="modal-icon">
+        !
+      </div>
+
+      <h2 id="confirm-modal-title">
+        ¿Comenzar un nuevo inventario?
+      </h2>
+
+      <p>
+        Se perderá
+        <strong>todo el progreso del inventario actual</strong>,
+        incluyendo cantidades, notas y estados.
+      </p>
+
+      <p>
+        Esta acción no se puede deshacer.
+      </p>
+
+      <div class="modal-actions">
+
+        <button
+          id="cancel-new-session"
+          class="button button-secondary"
+          type="button"
+        >
+          Cancelar
+        </button>
+
+        <button
+          id="confirm-new-session"
+          class="button button-danger"
+          type="button"
+        >
+          Sí, borrar progreso
+        </button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+
+</body>
+</html>

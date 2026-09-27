@@ -1,0 +1,973 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  color: #222;
+
+  background: #f5f5f5;
+
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+
+  margin: 0;
+
+  background: #f5f5f5;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.45;
+}
+
+
+/* ============================================================
+   APP
+   ============================================================ */
+
+.app {
+  width:
+    min(
+      calc(100% - 20px),
+      680px
+    );
+
+  margin: 0 auto;
+
+  padding:
+    calc(14px + env(safe-area-inset-top))
+    0
+    calc(28px + env(safe-area-inset-bottom));
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.app-header {
+  margin-bottom: 10px;
+}
+
+.app-header h1 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      1.25rem,
+      4.5vw,
+      1.5rem
+    );
+
+  line-height: 1.2;
+}
+
+#progress-text {
+  margin: 4px 0 0;
+
+  color: #666;
+
+  font-size: 0.82rem;
+}
+
+
+/* ============================================================
+   PROGRESO
+   ============================================================ */
+
+.progress-bar-container {
+  width: 100%;
+
+  height: 7px;
+
+  margin-bottom: 18px;
+
+  overflow: hidden;
+
+  background: #ddd;
+
+  border-radius: 999px;
+}
+
+.progress-bar {
+  width: 0;
+
+  height: 100%;
+
+  background: #222;
+
+  border-radius: inherit;
+
+  transition:
+    width 0.25s ease;
+}
+
+
+/* ============================================================
+   CONTEO
+   ============================================================ */
+
+.count-view {
+  display: grid;
+
+  gap: 11px;
+}
+
+.item-navigation-top {
+  display: grid;
+
+  gap: 7px;
+}
+
+.item-position {
+  color: #666;
+
+  font-size: 0.82rem;
+}
+
+.item-selector {
+  width: 100%;
+
+  min-height: 44px;
+
+  padding:
+    9px
+    34px
+    9px
+    11px;
+
+  border:
+    1px solid #ccc;
+
+  border-radius: 10px;
+
+  background: #fff;
+
+  color: #222;
+}
+
+.item-card {
+  min-width: 0;
+
+  padding:
+    clamp(
+      15px,
+      3.5vw,
+      19px
+    );
+
+  background: #fff;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 1px 4px
+    rgb(0 0 0 / 7%);
+}
+
+.item-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.item-heading {
+  min-width: 0;
+}
+
+.item-category {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #777;
+
+  font-size: 0.72rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
+}
+
+.item-card h2 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      1.1rem,
+      4.5vw,
+      1.3rem
+    );
+
+  line-height: 1.2;
+
+  overflow-wrap: anywhere;
+}
+
+.item-area {
+  margin: 4px 0 0;
+
+  color: #666;
+
+  font-size: 0.86rem;
+}
+
+
+/* ============================================================
+   ESTADOS
+   ============================================================ */
+
+.status-badge {
+  flex-shrink: 0;
+
+  padding:
+    5px 8px;
+
+  border-radius: 999px;
+
+  font-size: 0.7rem;
+
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #fce8e8;
+
+  color: #a61b1b;
+}
+
+.status-partial {
+  background: #fff1d6;
+
+  color: #8a5b00;
+}
+
+.status-counted {
+  background: #e5f4e8;
+
+  color: #1d6b2f;
+}
+
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+
+.field {
+  display: grid;
+
+  gap: 6px;
+
+  margin-top: 15px;
+}
+
+.field label {
+  font-size: 0.88rem;
+
+  font-weight: 650;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+
+  border:
+    1px solid #ccc;
+
+  border-radius: 10px;
+
+  background: #fff;
+
+  color: #222;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.field input {
+  min-height: 50px;
+
+  padding:
+    10px 12px;
+
+  font-size: 1.1rem;
+}
+
+.field textarea {
+  min-height: 76px;
+
+  padding:
+    10px 12px;
+
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus,
+.item-selector:focus {
+  border-color: #222;
+
+  box-shadow:
+    0 0 0 3px
+    rgb(0 0 0 / 7%);
+}
+
+.field small {
+  color: #777;
+
+  font-size: 0.76rem;
+}
+
+
+/* ============================================================
+   ACCIONES
+   ============================================================ */
+
+.count-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 8px;
+}
+
+.button {
+  width: 100%;
+
+  min-height: 46px;
+
+  padding:
+    10px 13px;
+
+  border-radius: 11px;
+
+  font-size: 0.9rem;
+
+  font-weight: 650;
+
+  transition:
+    transform 0.08s ease,
+    opacity 0.2s ease;
+}
+
+.button:active {
+  transform: scale(0.985);
+}
+
+.button-primary {
+  border: 0;
+
+  background: #222;
+
+  color: #fff;
+}
+
+.button-secondary {
+  border:
+    1px solid #ccc;
+
+  background: #fff;
+
+  color: #222;
+}
+
+.button-ghost {
+  border:
+    1px solid transparent;
+
+  background: transparent;
+
+  color: #555;
+}
+
+.button-danger {
+  border: 0;
+
+  background: #b42318;
+
+  color: #fff;
+}
+
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+
+.navigation-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr 1fr;
+
+  gap: 6px;
+}
+
+.navigation-grid .button {
+  min-height: 42px;
+
+  padding:
+    9px 7px;
+
+  font-size: 0.78rem;
+}
+
+
+/* ============================================================
+   FEEDBACK
+   ============================================================ */
+
+.feedback {
+  min-height: 18px;
+
+  margin: 0;
+
+  text-align: center;
+
+  font-size: 0.82rem;
+}
+
+.feedback-success {
+  color: #1d6b2f;
+}
+
+.feedback-error {
+  color: #a61b1b;
+}
+
+
+/* ============================================================
+   RESUMEN
+   ============================================================ */
+
+.summary-view {
+  display: grid;
+
+  gap: 13px;
+}
+
+.summary-header {
+  padding-bottom: 2px;
+}
+
+.summary-header h2 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      1.2rem,
+      4.8vw,
+      1.4rem
+    );
+}
+
+.summary-header p {
+  margin: 4px 0 0;
+
+  color: #666;
+
+  font-size: 0.84rem;
+}
+
+
+/* ============================================================
+   ESTADÍSTICAS
+   ============================================================ */
+
+.stats-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 7px;
+}
+
+.stat-card {
+  min-width: 0;
+
+  padding:
+    11px 8px;
+
+  background: #fff;
+
+  border-radius: 10px;
+
+  text-align: center;
+}
+
+.stat-card strong {
+  display: block;
+
+  font-size: 1.25rem;
+
+  line-height: 1.1;
+}
+
+.stat-card span {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 0.72rem;
+
+  white-space: nowrap;
+}
+
+.stat-pending span {
+  color: #a61b1b;
+}
+
+.stat-partial span {
+  color: #8a5b00;
+}
+
+.stat-counted span {
+  color: #1d6b2f;
+}
+
+
+/* ============================================================
+   ACORDEONES
+   ============================================================ */
+
+.accordion-list {
+  display: grid;
+
+  gap: 7px;
+}
+
+.accordion {
+  overflow: hidden;
+
+  background: #fff;
+
+  border-radius: 11px;
+}
+
+.accordion summary {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 8px;
+
+  min-height: 46px;
+
+  padding:
+    11px 13px;
+
+  cursor: pointer;
+
+  list-style: none;
+
+  font-size: 0.86rem;
+
+  font-weight: 650;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion summary::after {
+  content: "▸";
+
+  color: #888;
+
+  transition:
+    transform 0.15s ease;
+}
+
+.accordion[open]
+  summary::after {
+  transform:
+    rotate(90deg);
+}
+
+.section-count {
+  margin-left: auto;
+
+  color: #777;
+
+  font-size: 0.76rem;
+
+  font-weight: 500;
+}
+
+.accordion-content {
+  display: grid;
+
+  border-top:
+    1px solid #eee;
+}
+
+
+/* ============================================================
+   ITEMS DEL RESUMEN
+   ============================================================ */
+
+.summary-item-button {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  width: 100%;
+
+  min-height: 50px;
+
+  padding:
+    9px 13px;
+
+  border: 0;
+
+  border-bottom:
+    1px solid #eee;
+
+  background: #fff;
+
+  color: #222;
+
+  text-align: left;
+}
+
+.summary-item-button:last-child {
+  border-bottom: 0;
+}
+
+.summary-item-button:active {
+  background: #f7f7f7;
+}
+
+.summary-item-main {
+  min-width: 0;
+}
+
+.summary-item-main strong {
+  display: block;
+
+  overflow-wrap: anywhere;
+
+  font-size: 0.84rem;
+}
+
+.summary-item-main small {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #777;
+
+  font-size: 0.7rem;
+}
+
+.summary-item-value {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  flex-shrink: 0;
+
+  max-width: 42%;
+
+  color: #555;
+
+  font-size: 0.75rem;
+
+  text-align: right;
+}
+
+.summary-arrow {
+  color: #999;
+
+  font-size: 0.85rem;
+}
+
+.summary-empty {
+  margin: 0;
+
+  padding:
+    11px 13px;
+
+  color: #888;
+
+  font-size: 0.75rem;
+}
+
+
+/* ============================================================
+   RESPONSABLE
+   ============================================================ */
+
+.responsible-section {
+  padding:
+    13px;
+
+  background: #fff;
+
+  border-radius: 11px;
+}
+
+.section-heading h3 {
+  margin: 0;
+
+  font-size: 0.9rem;
+}
+
+.section-heading p {
+  margin: 3px 0 0;
+
+  color: #666;
+
+  font-size: 0.75rem;
+}
+
+
+/* ============================================================
+   ACCIONES DEL RESUMEN
+   ============================================================ */
+
+.summary-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 8px;
+}
+
+
+/* ============================================================
+   EMPTY
+   ============================================================ */
+
+.empty-state {
+  padding:
+    25px 18px;
+
+  background: #fff;
+
+  border-radius: 14px;
+
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+
+  font-size: 1.1rem;
+}
+
+.empty-state p {
+  color: #666;
+
+  font-size: 0.85rem;
+}
+
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+.modal-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: grid;
+
+  place-items: center;
+
+  padding:
+    calc(14px + env(safe-area-inset-top))
+    14px
+    calc(14px + env(safe-area-inset-bottom));
+
+  background:
+    rgb(0 0 0 / 45%);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal {
+  width:
+    min(
+      100%,
+      420px
+    );
+
+  padding:
+    20px;
+
+  background: #fff;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 15px 50px
+    rgb(0 0 0 / 20%);
+}
+
+.modal-icon {
+  display: grid;
+
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 10px;
+
+  border-radius: 50%;
+
+  background: #fff1d6;
+
+  color: #8a5b00;
+
+  font-size: 1.2rem;
+
+  font-weight: 800;
+}
+
+.modal h2 {
+  margin: 0;
+
+  font-size: 1.15rem;
+}
+
+.modal p {
+  margin: 9px 0 0;
+
+  color: #555;
+
+  font-size: 0.85rem;
+
+  line-height: 1.45;
+}
+
+.modal-actions {
+  display: grid;
+
+  gap: 8px;
+
+  margin-top: 18px;
+}
+
+
+/* ============================================================
+   PANTALLAS PEQUEÑAS
+   ============================================================ */
+
+@media (max-width: 380px) {
+
+  .app {
+    width:
+      calc(100% - 14px);
+  }
+
+  .count-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+  .navigation-grid {
+    grid-template-columns:
+      1fr 1fr 1fr;
+  }
+
+  .navigation-grid .button {
+    font-size: 0.73rem;
+  }
+
+  .summary-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+  .summary-item-value {
+    max-width: 38%;
+  }
+}
+
+
+/* ============================================================
+   PANTALLAS GRANDES
+   ============================================================ */
+
+@media (min-width: 700px) {
+
+  .app {
+    padding-top: 24px;
+  }
+
+  .count-actions {
+    max-width: 520px;
+  }
+
+  .summary-actions {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+}
