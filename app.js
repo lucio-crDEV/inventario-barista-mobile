@@ -1433,20 +1433,6 @@ function setupSummaryEvents() {
       shareSummary
     );
 
-
-  document
-    .querySelector(
-      "#continue-current-item"
-    )
-    .addEventListener(
-      "click",
-      () =>
-        openItem(
-          session.currentIndex
-        )
-    );
-
-
   document
     .querySelector(
       "#new-session"
