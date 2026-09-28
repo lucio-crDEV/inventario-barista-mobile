@@ -787,11 +787,14 @@ button:disabled {
 
 .summary-actions {
   display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.summary-actions .button:last-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 320px);
 }
 
 
@@ -872,22 +875,20 @@ button:disabled {
 
 .modal-icon {
   display: grid;
-
   place-items: center;
-
+  
   width: 42px;
   height: 42px;
-
-  margin-bottom: 10px;
-
+  
+  margin:
+    0 auto 10px;
+  
   border-radius: 50%;
-
+  
   background: #fff1d6;
-
   color: #8a5b00;
-
+  
   font-size: 1.2rem;
-
   font-weight: 800;
 }
 
