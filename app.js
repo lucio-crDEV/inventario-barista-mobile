@@ -1,7 +1,7 @@
 import { items } from "./data/items.js";
 
 const STORAGE_KEY =
-  "inventario-barista-session-v2";
+  "inventario-barra-session-v2";
 
 const appContent =
   document.querySelector("#app-content");
@@ -1499,7 +1499,7 @@ function generateSummaryText() {
 
   const lines = [
 
-    "INVENTARIO BARISTA",
+    "INVENTARIO BARRA",
 
     `Fecha: ${date}`,
 
@@ -1661,7 +1661,7 @@ async function shareSummary() {
     await navigator.share({
 
       title:
-        "Inventario Barista",
+        "Inventario Barra",
 
       text
     });
