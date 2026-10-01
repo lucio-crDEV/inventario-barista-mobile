@@ -821,7 +821,7 @@ function renderCurrentItem() {
           class="button button-ghost"
           type="button"
         >
-          Resumen
+          Ir a Resumen
         </button>
 
 
