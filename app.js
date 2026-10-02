@@ -1552,7 +1552,7 @@ function renderSummary() {
           type="button"
           ${session.responsible.trim() ? "" : "disabled"}
         >
-          Compartir
+          Enviar
         </button>
 
 
@@ -1896,7 +1896,7 @@ function generateSummaryText() {
   const date =
     new Date(
       session.date
-    ).toLocaleString(
+    ).toLocaleDateString(
       "es-CL"
     );
 
