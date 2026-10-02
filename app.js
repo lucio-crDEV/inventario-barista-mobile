@@ -854,12 +854,6 @@ function renderCategories() {
 
     <section class="categories-view">
 
-      <div class="categories-heading">
-        <h2>
-          Categorías
-        </h2>
-      </div>
-
 
       <div class="category-grid">
         ${categoryCards}
@@ -871,7 +865,7 @@ function renderCategories() {
         class="button button-ghost"
         type="button"
       >
-        Ir a Resumen
+        Ver Resumen
       </button>
 
 
@@ -1136,7 +1130,7 @@ function renderCurrentItem() {
           class="button button-secondary"
           type="button"
         >
-          Guardar avance
+         Guardar avance
         </button>
 
         <button
@@ -1144,7 +1138,7 @@ function renderCurrentItem() {
           class="button button-primary"
           type="button"
         >
-          Guardar como contado
+          Listo ✅
         </button>
 
       </div>
@@ -1308,7 +1302,7 @@ function renderSummary() {
   const title =
     isComplete
       ? "Inventario completo"
-      : "Resumen del inventario";
+      : "";
 
 
   const subtitle =
@@ -2015,7 +2009,7 @@ async function copySummary() {
 
 
     showSummaryFeedback(
-      "Resumen copiado al portapapeles."
+      "Resumen copiado."
     );
 
   } catch (error) {
