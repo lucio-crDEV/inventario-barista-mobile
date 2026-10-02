@@ -1,19 +1,19 @@
 export const items = [
   {
-    id: "cafe-descafeinado-capsulas",
-    name: "Café Descafeinado (capsulas)",
-    category: "Insumos",
-    area: "Barra",
-    unit: "UN",
-    order: 1,
-    active: true
-  },
-  {
     id: "cafe-grano",
     name: "Café grano",
     category: "Insumos",
     area: "Barra",
     unit: "Kg",
+    order: 1,
+    active: true
+  },
+  {
+    id: "cafe-descafeinado-capsulas",
+    name: "Café Descafeinado (capsulas)",
+    category: "Insumos",
+    area: "Barra",
+    unit: "UN",
     order: 2,
     active: true
   },
@@ -593,7 +593,7 @@ export const items = [
   },
   {
     id: "helado-frutilla-crema",
-    name: "Helado de frutilla crema",
+    name: "Helado Frutilla Crema",
     category: "Congelados",
     area: "Barra",
     unit: "Lt",
