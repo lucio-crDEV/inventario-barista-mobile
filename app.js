@@ -225,11 +225,17 @@ function getCategoryStats(categoryItems) {
     total,
     counted,
     partial,
-    percentage:
+    countedPercentage:
       total === 0
         ? 0
         : Math.round(
             (counted / total) * 100
+          ),
+    partialPercentage:
+      total === 0
+        ? 0
+        : Math.round(
+            (partial / total) * 100
           )
   };
 }
@@ -831,7 +837,11 @@ function renderCategories() {
             >
               <span
                 class="category-progress-value"
-                style="width: ${stats.percentage}%"
+                style="width: ${stats.countedPercentage}%"
+              ></span>
+              <span
+                class="category-progress-partial"
+                style="left: ${stats.countedPercentage}%; width: ${stats.partialPercentage}%"
               ></span>
             </span>
           </button>
@@ -1363,7 +1373,13 @@ function renderSummary() {
 
       <div class="stats-grid">
 
-        <div class="stat-card stat-pending">
+        <button
+          class="stat-card stat-pending"
+          type="button"
+          data-summary-section="pending"
+          aria-controls="summary-pending"
+          aria-expanded="false"
+        >
           <strong>
             ${stats.pending}
           </strong>
@@ -1371,10 +1387,16 @@ function renderSummary() {
           <span>
             🔴 Pendientes
           </span>
-        </div>
+        </button>
 
 
-        <div class="stat-card stat-partial">
+        <button
+          class="stat-card stat-partial"
+          type="button"
+          data-summary-section="partial"
+          aria-controls="summary-partial"
+          aria-expanded="false"
+        >
           <strong>
             ${stats.partial}
           </strong>
@@ -1382,10 +1404,16 @@ function renderSummary() {
           <span>
             ⚠️ Parciales
           </span>
-        </div>
+        </button>
 
 
-        <div class="stat-card stat-counted">
+        <button
+          class="stat-card stat-counted"
+          type="button"
+          data-summary-section="counted"
+          aria-controls="summary-counted"
+          aria-expanded="false"
+        >
           <strong>
             ${stats.counted}
           </strong>
@@ -1393,7 +1421,7 @@ function renderSummary() {
           <span>
             ✅ Contados
           </span>
-        </div>
+        </button>
 
       </div>
 
@@ -1402,8 +1430,8 @@ function renderSummary() {
 
 
         <details
+          id="summary-pending"
           class="accordion"
-          open
         >
 
           <summary>
@@ -1433,8 +1461,8 @@ function renderSummary() {
 
 
         <details
+          id="summary-partial"
           class="accordion"
-          open
         >
 
           <summary>
@@ -1463,7 +1491,10 @@ function renderSummary() {
         </details>
 
 
-        <details class="accordion">
+        <details
+          id="summary-counted"
+          class="accordion"
+        >
 
           <summary>
 
@@ -1721,6 +1752,43 @@ function renderSummaryRows(
 // ============================================================
 
 function setupSummaryEvents() {
+
+  document
+    .querySelectorAll(
+      ".stat-card[data-summary-section]"
+    )
+    .forEach(card => {
+
+      const section =
+        document.getElementById(
+          card.getAttribute("aria-controls")
+        );
+
+      if (!section) {
+        return;
+      }
+
+      card.addEventListener(
+        "click",
+        () => {
+          section.open = !section.open;
+          card.setAttribute(
+            "aria-expanded",
+            String(section.open)
+          );
+        }
+      );
+
+      section.addEventListener(
+        "toggle",
+        () => {
+          card.setAttribute(
+            "aria-expanded",
+            String(section.open)
+          );
+        }
+      );
+    });
 
   document
     .querySelector(
