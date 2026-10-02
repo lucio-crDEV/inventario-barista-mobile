@@ -82,6 +82,20 @@ button:disabled {
 
 .app-header {
   margin-bottom: 10px;
+
+  text-align: center;
+}
+
+.app-title-row {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 44px;
 }
 
 .app-header h1 {
@@ -103,6 +117,48 @@ button:disabled {
   color: #666;
 
   font-size: 0.82rem;
+
+  text-align: right;
+}
+
+.header-back-button {
+  position: absolute;
+
+  top: 50%;
+
+  left: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  max-width: 33%;
+
+  min-height: 44px;
+
+  padding: 6px 0;
+
+  transform: translateY(-50%);
+
+  border: 0;
+
+  background: transparent;
+
+  color: #555;
+
+  font-size: 0.76rem;
+
+  font-weight: 650;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+.header-back-button[hidden] {
+  display: none;
 }
 
 
@@ -111,11 +167,13 @@ button:disabled {
    ============================================================ */
 
 .progress-bar-container {
+  position: relative;
+
   width: 100%;
 
   height: 7px;
 
-  margin-bottom: 18px;
+  margin: 8px 0 4px;
 
   overflow: hidden;
 
@@ -125,16 +183,198 @@ button:disabled {
 }
 
 .progress-bar {
+  position: absolute;
+
+  top: 0;
+
+  left: 0;
+
   width: 0;
 
   height: 100%;
 
-  background: #222;
+  background: #218c4a;
 
   border-radius: inherit;
 
   transition:
+    left 0.25s ease,
     width 0.25s ease;
+}
+
+.progress-bar-partial {
+  background: #e5b52b;
+
+  transition:
+    left 0.25s ease,
+    width 0.25s ease;
+}
+
+
+/* ============================================================
+   CATEGORÍAS
+   ============================================================ */
+
+.categories-view {
+  display: grid;
+
+  gap: 14px;
+}
+
+.categories-heading h2 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      1.2rem,
+      4.8vw,
+      1.4rem
+    );
+}
+
+.categories-heading p {
+  margin: 4px 0 0;
+
+  color: #666;
+
+  font-size: 0.84rem;
+}
+
+.category-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+}
+
+.category-card {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+
+  min-height: 128px;
+
+  padding: 14px;
+
+  border:
+    1px solid #ddd;
+
+  border-radius: 14px;
+
+  background: #fff;
+
+  color: #222;
+
+  text-align: left;
+
+  box-shadow:
+    0 1px 4px
+    rgb(0 0 0 / 7%);
+
+  transition:
+    transform 0.08s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.category-card:active {
+  transform: scale(0.985);
+}
+
+.category-card-title {
+  overflow-wrap: anywhere;
+
+  font-size: 0.98rem;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+}
+
+.category-card-progress {
+  align-self: end;
+
+  margin-top: auto;
+
+  color: #555;
+
+  font-size: 0.76rem;
+
+  line-height: 1.35;
+}
+
+.category-progress-bar {
+  display: block;
+
+  width: 100%;
+
+  height: 6px;
+
+  margin-top: 9px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background: #e5e5e5;
+}
+
+.category-progress-value {
+  display: block;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #1d6b2f;
+
+  transition:
+    width 0.25s ease;
+}
+
+.back-button {
+  width: fit-content;
+
+  min-height: 38px;
+
+  padding: 7px 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #555;
+
+  font-size: 0.84rem;
+
+  font-weight: 650;
+
+  text-align: left;
+}
+
+.back-arrow {
+  flex-shrink: 0;
+
+  font-size: 1.2rem;
+
+  line-height: 1;
+}
+
+.category-card:focus-visible,
+.back-button:focus-visible,
+.header-back-button:focus-visible {
+  outline:
+    3px solid
+    rgb(0 0 0 / 18%);
+
+  outline-offset: 2px;
 }
 
 
@@ -149,15 +389,7 @@ button:disabled {
 }
 
 .item-navigation-top {
-  display: grid;
-
-  gap: 7px;
-}
-
-.item-position {
-  color: #666;
-
-  font-size: 0.82rem;
+  display: block;
 }
 
 .item-selector {
@@ -791,12 +1023,6 @@ button:disabled {
   gap: 8px;
 }
 
-.summary-actions .button:last-child {
-  grid-column: 1 / -1;
-  justify-self: center;
-  width: min(100%, 320px);
-}
-
 
 /* ============================================================
    EMPTY
@@ -940,11 +1166,6 @@ button:disabled {
 
   .navigation-grid .button {
     font-size: 0.73rem;
-  }
-
-  .summary-actions {
-    grid-template-columns:
-      1fr;
   }
 
   .summary-item-value {

@@ -282,7 +282,7 @@ inventario-barra-session-v2
 La sesión utiliza:
 
 ```text
-schemaVersion: 2
+schemaVersion: 3
 ```
 
 La sesión guarda, entre otros:
@@ -294,6 +294,8 @@ La sesión guarda, entre otros:
 - vista;
 - responsable;
 - conteos.
+
+La versión 3 abre las sesiones que estaban contando con la versión anterior en la cuadrícula de categorías. Conserva los conteos existentes.
 
 Esto es persistencia local.
 
@@ -343,16 +345,24 @@ No introducir login ni PIN como continuación natural de esta funcionalidad.
 
 # 14. Navegación
 
-La vista de conteo permite:
+El inventario comienza con una cuadrícula de categorías derivadas de los ítems activos. En teléfono se muestran dos categorías por fila y la cuadrícula se adapta al número de categorías disponible.
 
-- seleccionar un ítem;
-- ir al anterior;
-- ir al siguiente;
+Cada categoría muestra:
+
+- ítems contados / total de ítems;
+- ítems parciales cuando existen.
+
+Al seleccionar una categoría, la vista de conteo permite:
+
+- seleccionar un ítem de esa categoría;
+- ir al anterior o siguiente dentro de la misma categoría;
+- volver a las categorías mediante la flecha ubicada a la izquierda del título;
+- seleccionar un ítem desde un menú desplegable que ocupa todo el ancho;
 - ir al resumen.
 
-El último ítem puede llevar al resumen.
+Al guardar un ítem como contado o parcial, la aplicación avanza al siguiente ítem de la categoría. Al guardar el último ítem de esa categoría, vuelve a la cuadrícula. Si con el guardado ya no quedan ítems pendientes (incluidos los parciales), abre directamente el resumen. En el resumen, el botón `Ver categorías` permite volver a la cuadrícula; los ítems del resumen también se pueden abrir para editarlos dentro de su categoría.
 
-La acción central del flujo es recorrer el catálogo y registrar el conteo.
+La acción central del flujo es recorrer las categorías y registrar el conteo.
 
 ---
 
@@ -362,12 +372,12 @@ El progreso ya está implementado.
 
 Se representa mediante:
 
-- texto de procesados;
-- barra visual.
+- texto de ítems contados / total;
+- barra visual debajo del título y encima del texto.
 
-Un ítem `partial` o `counted` cuenta como procesado.
+El texto superior muestra los ítems `counted` sobre el total. La barra distingue los contados en verde, los parciales en amarillo y deja el espacio pendiente en gris claro. Los parciales también siguen visibles por separado en cada categoría y en el resumen.
 
-Por lo tanto:
+El resumen conserva la estadística de procesados, que suma parciales y contados:
 
 ```text
 processed = partial + counted
@@ -500,6 +510,8 @@ Determina si el ítem participa en el inventario actual.
 # 20. Categorías
 
 Las categorías son un trabajo activo del catálogo y ya están incorporadas en `data/items.js`.
+
+La aplicación las utiliza para organizar el inicio del conteo y limitar la navegación y el selector de ítems a la categoría elegida.
 
 No existe todavía una taxonomía definitiva aceptada como fuente única.
 

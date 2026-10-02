@@ -12,6 +12,16 @@ const progressText =
 const progressBar =
   document.querySelector("#progress-bar");
 
+const partialProgressBar =
+  document.querySelector(
+    "#progress-bar-partial"
+  );
+
+const headerBackButton =
+  document.querySelector(
+    "#header-back-to-categories"
+  );
+
 const confirmModal =
   document.querySelector("#confirm-modal");
 
@@ -38,7 +48,7 @@ let feedbackMessage = "";
 
 function createSession() {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
 
     id: createId(),
 
@@ -48,7 +58,7 @@ function createSession() {
 
     currentIndex: 0,
 
-    view: "count",
+    view: "categories",
 
     responsible: "",
 
@@ -84,11 +94,34 @@ function loadSession() {
     if (
       !parsed ||
       typeof parsed !== "object" ||
-      parsed.schemaVersion !== 2 ||
+      ![2, 3].includes(parsed.schemaVersion) ||
       !parsed.counts
     ) {
       return createSession();
     }
+
+    if (parsed.schemaVersion === 2) {
+
+      parsed.schemaVersion = 3;
+
+      if (parsed.view === "count") {
+        parsed.view = "categories";
+      }
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(parsed)
+      );
+    }
+
+
+    if (
+      !["categories", "count", "summary"]
+        .includes(parsed.view)
+    ) {
+      parsed.view = "categories";
+    }
+
 
     return parsed;
 
@@ -120,6 +153,93 @@ function getCurrentItem() {
   return activeItems[
     session.currentIndex
   ];
+}
+
+
+function getCategoryGroups() {
+
+  const groups = [];
+
+  const groupsByName = new Map();
+
+
+  for (const item of activeItems) {
+
+    let group =
+      groupsByName.get(
+        item.category
+      );
+
+
+    if (!group) {
+
+      group = {
+        name: item.category,
+        items: []
+      };
+
+      groupsByName.set(
+        item.category,
+        group
+      );
+
+      groups.push(group);
+    }
+
+
+    group.items.push(item);
+  }
+
+
+  return groups;
+}
+
+
+function getCategoryStats(categoryItems) {
+
+  let counted = 0;
+
+  let partial = 0;
+
+
+  for (const item of categoryItems) {
+
+    const count =
+      getCount(item.id);
+
+
+    if (count.status === "counted") {
+      counted++;
+    }
+
+    if (count.status === "partial") {
+      partial++;
+    }
+  }
+
+
+  const total = categoryItems.length;
+
+
+  return {
+    total,
+    counted,
+    partial,
+    percentage:
+      total === 0
+        ? 0
+        : Math.round(
+            (counted / total) * 100
+          )
+  };
+}
+
+
+function getCategoryItems(category) {
+  return activeItems.filter(
+    item =>
+      item.category === category
+  );
 }
 
 
@@ -168,20 +288,12 @@ function getStats() {
   const processed =
     partial + counted;
 
-  const percentage =
-    total === 0
-      ? 0
-      : Math.round(
-          (processed / total) * 100
-        );
-
   return {
     total,
     pending,
     partial,
     counted,
-    processed,
-    percentage
+    processed
   };
 }
 
@@ -384,21 +496,12 @@ function saveCurrentAs(status) {
   });
 
 
-  if (status === "counted") {
-
-    feedbackMessage =
-      "Conteo guardado.";
-
-    goToNextItem();
-
-    return;
-  }
-
-
   feedbackMessage =
-    "Avance guardado como parcial.";
+    status === "counted"
+      ? "Conteo guardado."
+      : "Avance guardado como parcial.";
 
-  render();
+  goToNextItem();
 }
 
 
@@ -430,13 +533,87 @@ function openItem(index) {
 
 function goToPreviousItem() {
 
-  if (
-    session.currentIndex <= 0
-  ) {
+  const item = getCurrentItem();
+
+  if (!item) {
     return;
   }
 
-  session.currentIndex--;
+  const categoryItems =
+    getCategoryItems(item.category);
+
+  const categoryIndex =
+    categoryItems.indexOf(item);
+
+
+  if (categoryIndex <= 0) {
+    return;
+  }
+
+  openItem(
+    activeItems.indexOf(
+      categoryItems[
+        categoryIndex - 1
+      ]
+    )
+  );
+}
+
+
+function goToNextItem() {
+
+  const item = getCurrentItem();
+
+  if (!item) {
+    return;
+  }
+
+  // Los parciales cuentan como procesados. Al guardar el último pendiente,
+  // el inventario queda completo y debe abrirse directamente el resumen.
+  if (getStats().pending === 0) {
+    openSummary();
+    return;
+  }
+
+  const categoryItems =
+    getCategoryItems(item.category);
+
+  const categoryIndex =
+    categoryItems.indexOf(item);
+
+
+  if (categoryIndex < categoryItems.length - 1) {
+
+    openItem(
+      activeItems.indexOf(
+        categoryItems[
+          categoryIndex + 1
+        ]
+      )
+    );
+
+    return;
+  }
+
+
+  openCategories();
+}
+
+
+function openCategory(category) {
+
+  const categoryItems =
+    getCategoryItems(category);
+
+
+  if (categoryItems.length === 0) {
+    return;
+  }
+
+  session.currentIndex =
+    activeItems.indexOf(
+      categoryItems[0]
+    );
 
   session.view =
     "count";
@@ -447,28 +624,10 @@ function goToPreviousItem() {
 }
 
 
-function goToNextItem() {
-
-  if (
-    session.currentIndex <
-    activeItems.length - 1
-  ) {
-
-    session.currentIndex++;
-
-    session.view =
-      "count";
-
-    saveSession();
-
-    render();
-
-    return;
-  }
-
+function openCategories() {
 
   session.view =
-    "summary";
+    "categories";
 
   saveSession();
 
@@ -477,6 +636,8 @@ function goToNextItem() {
 
 
 function openSummary() {
+
+  feedbackMessage = "";
 
   session.view =
     "summary";
@@ -543,11 +704,27 @@ function updateProgress() {
   const stats =
     getStats();
 
+  const countedPercentage =
+    stats.total === 0
+      ? 0
+      : (stats.counted / stats.total) * 100;
+
+  const partialPercentage =
+    stats.total === 0
+      ? 0
+      : (stats.partial / stats.total) * 100;
+
   progressText.textContent =
-    `${stats.processed} / ${stats.total} procesados`;
+    `${stats.counted} / ${stats.total} contados`;
 
   progressBar.style.width =
-    `${stats.percentage}%`;
+    `${countedPercentage}%`;
+
+  partialProgressBar.style.left =
+    `${countedPercentage}%`;
+
+  partialProgressBar.style.width =
+    `${partialPercentage}%`;
 }
 
 
@@ -558,6 +735,10 @@ function updateProgress() {
 function render() {
 
   updateProgress();
+
+  headerBackButton.hidden =
+    session.view !== "count" ||
+    activeItems.length === 0;
 
 
   if (activeItems.length === 0) {
@@ -578,7 +759,174 @@ function render() {
   }
 
 
+  if (
+    session.view === "categories"
+  ) {
+
+    renderCategories();
+
+    return;
+  }
+
+
   renderCurrentItem();
+}
+
+
+// ============================================================
+// CATEGORÍAS
+// ============================================================
+
+function renderCategories() {
+
+  const categoryGroups =
+    getCategoryGroups();
+
+  const currentFeedback =
+    feedbackMessage;
+
+  feedbackMessage = "";
+
+
+  const categoryCards =
+    categoryGroups
+      .map((group, index) => {
+
+        const stats =
+          getCategoryStats(group.items);
+
+        const partialText =
+          stats.partial > 0
+            ? ` · ${stats.partial} ${
+                stats.partial === 1
+                  ? "parcial"
+                  : "parciales"
+              }`
+            : "";
+
+        const progressLabel =
+          `${stats.counted} de ${stats.total} contados${partialText}`;
+
+
+        return `
+          <button
+            class="category-card"
+            type="button"
+            data-category-index="${index}"
+            aria-label="${escapeHtml(
+              group.name
+            )}: ${escapeHtml(progressLabel)}"
+          >
+            <span class="category-card-title">
+              ${escapeHtml(group.name)}
+            </span>
+
+            <span class="category-card-progress">
+              ${stats.counted} / ${stats.total} contados${partialText}
+            </span>
+
+            <span
+              class="category-progress-bar"
+              aria-hidden="true"
+            >
+              <span
+                class="category-progress-value"
+                style="width: ${stats.percentage}%"
+              ></span>
+            </span>
+          </button>
+        `;
+      })
+      .join("");
+
+
+  appContent.innerHTML = `
+
+    <section class="categories-view">
+
+      <div class="categories-heading">
+        <h2>
+          Categorías
+        </h2>
+
+        <p>
+          Elige una categoría para comenzar el conteo.
+        </p>
+      </div>
+
+
+      <div class="category-grid">
+        ${categoryCards}
+      </div>
+
+
+      <button
+        id="open-summary"
+        class="button button-ghost"
+        type="button"
+      >
+        Ir a Resumen
+      </button>
+
+
+      ${
+        currentFeedback
+          ? `
+            <p
+              class="feedback feedback-success"
+              aria-live="polite"
+            >
+              ${escapeHtml(currentFeedback)}
+            </p>
+          `
+          : ""
+      }
+
+    </section>
+  `;
+
+
+  setupCategoryEvents(categoryGroups);
+}
+
+
+function setupCategoryEvents(categoryGroups) {
+
+  document
+    .querySelectorAll(
+      ".category-card"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const index =
+            Number(
+              button.dataset.categoryIndex
+            );
+
+          const group =
+            categoryGroups[index];
+
+
+          if (group) {
+            openCategory(group.name);
+          }
+        }
+      );
+    });
+
+
+  document
+    .querySelector(
+      "#open-summary"
+    )
+    .addEventListener(
+      "click",
+      openSummary
+    );
 }
 
 
@@ -599,12 +947,19 @@ function renderCurrentItem() {
     getCount(item.id);
 
 
-  const currentNumber =
-    session.currentIndex + 1;
+  const categoryItems =
+    getCategoryItems(item.category);
+
+  const categoryIndex =
+    categoryItems.indexOf(item);
+
+  const isLastItem =
+    categoryIndex ===
+    categoryItems.length - 1;
 
 
   const selectorOptions =
-    activeItems
+    categoryItems
       .map((optionItem, index) => {
 
         const optionCount =
@@ -618,14 +973,16 @@ function renderCurrentItem() {
           );
 
         const selected =
-          index ===
-          session.currentIndex
+          optionItem.id ===
+          item.id
             ? "selected"
             : "";
 
         return `
           <option
-            value="${index}"
+            value="${activeItems.indexOf(
+              optionItem
+            )}"
             ${selected}
           >
             ${icon} ${index + 1}. ${escapeHtml(optionItem.name)}
@@ -684,15 +1041,10 @@ function renderCurrentItem() {
 
       <div class="item-navigation-top">
 
-        <div class="item-position">
-          Ítem ${currentNumber}
-          de ${activeItems.length}
-        </div>
-
         <select
           id="item-selector"
           class="item-selector"
-          aria-label="Seleccionar ítem"
+          aria-label="Seleccionar ítem de ${safeCategory}"
         >
           ${selectorOptions}
         </select>
@@ -809,7 +1161,7 @@ function renderCurrentItem() {
           id="previous-item"
           class="button button-ghost"
           type="button"
-          ${session.currentIndex === 0 ? "disabled" : ""}
+          ${categoryIndex === 0 ? "disabled" : ""}
         >
           ← Anterior
         </button>
@@ -829,7 +1181,11 @@ function renderCurrentItem() {
           class="button button-ghost"
           type="button"
         >
-          Siguiente →
+          ${
+            isLastItem
+              ? "Categorías →"
+              : "Siguiente →"
+          }
         </button>
 
       </div>
@@ -988,7 +1344,6 @@ function renderSummary() {
 
 
       <div class="summary-header">
-
         <div class="summary-title-row">
 
           <div>
@@ -1203,6 +1558,15 @@ function renderSummary() {
 
 
         <button
+          id="summary-back-to-categories"
+          class="button button-ghost"
+          type="button"
+        >
+          Ver categorías
+        </button>
+
+
+        <button
           id="new-session"
           class="button button-ghost"
           type="button"
@@ -1357,6 +1721,15 @@ function renderSummaryRows(
 // ============================================================
 
 function setupSummaryEvents() {
+
+  document
+    .querySelector(
+      "#summary-back-to-categories"
+    )
+    .addEventListener(
+      "click",
+      openCategories
+    );
 
   document
     .querySelectorAll(
@@ -1797,6 +2170,12 @@ function renderEmptyState() {
 // ============================================================
 
 function setupModalEvents() {
+
+  headerBackButton
+    .addEventListener(
+      "click",
+      openCategories
+    );
 
   cancelNewSessionButton
     .addEventListener(

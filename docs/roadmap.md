@@ -107,9 +107,11 @@ Prioridades:
 - controles táctiles;
 - lectura rápida;
 - ingreso claro de cantidades;
-- navegación;
+- navegación mediante cuadrícula dinámica de categorías y conteo dentro de cada categoría;
 - comprensión de estados;
 - mínima fricción.
+
+La cuadrícula muestra dos categorías por fila. Cada una indica los ítems contados sobre el total y los parciales por separado. Al guardar un ítem como contado o parcial, se avanza al siguiente dentro de la categoría. Al terminar una categoría, se vuelve a la cuadrícula; cuando ya no quedan pendientes, incluidos los parciales, se abre el resumen.
 
 ---
 

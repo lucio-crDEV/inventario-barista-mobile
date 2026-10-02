@@ -27,27 +27,45 @@
 
     <header class="app-header">
 
-      <div>
-        <h1>Inventario Barra</h1>
+      <div class="app-title-row">
+        <button
+          id="header-back-to-categories"
+          class="header-back-button"
+          type="button"
+          aria-label="Volver a categorías"
+          hidden
+        >
+          <span class="back-arrow" aria-hidden="true">
+            ←
+          </span>
 
-        <p id="progress-text">
-          0 / 0 procesados
-        </p>
+          <span>
+            Categorías
+          </span>
+        </button>
+
+        <h1>Inventario Barra</h1>
       </div>
 
+      <section
+        id="progress-bar-container"
+        class="progress-bar-container"
+        aria-label="Progreso: contados en verde, parciales en amarillo y pendientes en gris"
+      >
+        <div
+          id="progress-bar"
+          class="progress-bar"
+        ></div>
+        <div
+          id="progress-bar-partial"
+          class="progress-bar progress-bar-partial"
+        ></div>
+      </section>
+
+      <p id="progress-text">
+        0 / 0 contados
+      </p>
     </header>
-
-
-    <section
-      id="progress-bar-container"
-      class="progress-bar-container"
-      aria-label="Progreso del inventario"
-    >
-      <div
-        id="progress-bar"
-        class="progress-bar"
-      ></div>
-    </section>
 
 
     <section id="app-content">
