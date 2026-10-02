@@ -858,10 +858,6 @@ function renderCategories() {
         <h2>
           Categorías
         </h2>
-
-        <p>
-          Elige una categoría para comenzar el conteo.
-        </p>
       </div>
 
 
