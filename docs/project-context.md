@@ -1,216 +1,710 @@
-### `docs/project-context.md`
+# Contexto del proyecto — Inventario Barra
 
-# Contexto del proyecto
+## 1. Identidad
 
-Este documento reúne el contexto que un agente necesita para trabajar correctamente en el repositorio sin depender de la conversación histórica completa.
+**Nombre actual:** Inventario Barra
 
-## 1. Problema que se busca resolver
+**Tipo:** aplicación web móvil
 
-Brioche Bakery realiza un inventario semanal manual. El objetivo de este proyecto es construir una herramienta móvil sencilla que ayude a digitalizar ese conteo, empezando exclusivamente por Barra / Cafetería.
+**Proyecto:** ejercicio práctico para digitalizar el inventario semanal de Barra / Cafetería de Brioche Bakery.
 
-El proyecto es un ejercicio práctico que busca resolver primero el flujo útil y observable antes de desarrollar una plataforma de inventario completa.
+El objetivo no es construir inicialmente un sistema completo de gestión de inventario.
 
-## 2. Alcance actual
+El objetivo es resolver correctamente el flujo de inventario de Barra y aprender de su uso real.
 
-El MVP está limitado a Barra / Cafetería.
+---
 
-Quedan fuera del alcance actual, aunque pueden reconsiderarse más adelante:
+# 2. Problema que se busca resolver
 
-- Panadería.
-- Pastelería.
-- Cocina.
-- Copiaría u otras áreas operativas.
-- Integración con GetJusto.
-- Backend o base de datos.
-- Historial permanente de inventarios.
-- Cámara / reconocimiento visual.
-- Stock mínimo.
+El inventario requiere recorrer físicamente productos y registrar cantidades.
 
-No tratar estas exclusiones como prohibiciones permanentes. Son límites del MVP actual.
+La herramienta debe reducir la fricción del proceso y facilitar:
 
-## 3. Proceso de negocio conocido
+- navegación;
+- conteo;
+- seguimiento del avance;
+- revisión;
+- conservación del progreso;
+- generación del resumen.
 
-El inventario general se relaciona con el cierre semanal y con distintas áreas de operación. Se han mencionado estaciones como Terraza, Salón, Salón Privado y Línea / Armado.
+La interfaz debe adaptarse al trabajo real de quien realiza el inventario.
 
-La gestión de pedidos de proveedores pertenece a otro flujo y no forma parte del MVP de esta aplicación.
+---
 
-GetJusto es el POS / sistema de operación existente, pero el proyecto no busca integrarse con él en esta etapa.
+# 3. Contexto operativo
 
-Para este MVP, el detalle más importante es que el personal de Barra pueda realizar el conteo de forma clara, rápida y sin depender del sistema de proveedores ni del POS.
+El inventario semanal se realiza al cierre del domingo, alrededor de las 22:00.
 
-## 4. Secuencia de trabajo acordada
+El negocio cuenta con distintos sectores y flujos operativos.
 
-La evolución del proyecto sigue deliberadamente esta secuencia:
+Existen procesos separados para pedidos de proveedores y otros pedidos internos.
 
-1. Revisar los inventarios fuente y filtrar los elementos que corresponden a Barra / Cafetería.
-2. Construir un catálogo suficientemente útil para trabajar.
-3. Conseguir una versión funcional del flujo de inventario.
-4. Probarla y observar el uso real.
-5. Refinar después el catálogo y la experiencia de uso.
+La gestión de proveedores no forma parte de este proyecto.
 
-Este orden es importante. No se debe convertir una cuestión de clasificación todavía abierta en un bloqueo artificial del MVP.
+GetJusto es parte de la operación del negocio, pero no se integra con la aplicación en el alcance actual.
 
-## 5. Historia y decisiones relevantes
+El proyecto se concentra exclusivamente en el inventario de Barra.
 
-### 5.1 Alcance inicialmente imaginado
+---
 
-Al comienzo se contempló una solución más amplia, con varias áreas y varias funcionalidades futuras.
+# 4. Alcance actual
 
-### 5.2 Reducción del alcance
+El MVP trabaja únicamente con:
 
-Se decidió reducir deliberadamente el MVP a Barra / Cafetería para mantenerlo pequeño, abordable y útil.
+**Barra / Cafetería.**
 
-### 5.3 Trabajo con inventarios fuente
+No incluye actualmente:
 
-Se comenzó a filtrar los inventarios reales para identificar los ítems que corresponden a Barra. El catálogo actual deriva de ese trabajo y sigue sujeto a revisión.
+- Panadería;
+- Pastelería;
+- Cocina;
+- Coparía;
+- otras áreas operativas.
 
-### 5.4 Modelo inicial
+La decisión de reducir el alcance fue deliberada.
 
-En versiones anteriores se había considerado un modelo con campos como `category` y `area`. El catálogo actual volvió a incorporar `category` como una clasificación operativa acordada. `area` sigue sin formar parte del modelo.
+Primero se busca validar una solución concreta y pequeña.
 
-No deben recuperarse automáticamente campos históricos como requisitos actuales.
+---
 
-### 5.5 Prioridad: funcional primero
+# 5. Historia resumida
 
-La decisión fue trabajar primero en un flujo de inventario funcional. El refinamiento de la taxonomía del catálogo quedó como trabajo posterior.
+## 5.1 Estructura inicial
 
-### 5.6 Revisión de Fase 2
+El repositorio se inició el 7 de julio de 2026 como una estructura vacía.
 
-Las ideas agrupadas anteriormente como Fase 2 deben reevaluarse después de observar la utilidad real del MVP. No son compromisos irrevocables.
+## 5.2 Primer MVP
 
-## 6. Estado actual de la implementación
+El 27 de septiembre de 2026 se creó el primer MVP funcional.
 
-Estructura principal:
+Ese desarrollo estableció el motor del inventario:
 
-- `index.html`: estructura de la interfaz y elementos de soporte del flujo.
-- `styles.css`: presentación y comportamiento visual.
-- `app.js`: lógica principal de sesión, conteo, navegación, persistencia y resumen.
-- `data/items.js`: catálogo de productos.
+- sesión;
+- conteo;
+- estados;
+- navegación;
+- persistencia local;
+- resumen;
+- responsable;
+- copiar / compartir;
+- decimales.
 
-La aplicación es actualmente HTML + CSS + JavaScript vanilla, sin framework ni backend.
+## 5.3 Ajustes posteriores
 
-## 7. Sesión y persistencia
+El 28 de septiembre se eliminaron acciones innecesarias del resumen y se ajustó visualmente el modal de nuevo inventario.
 
-La aplicación utiliza una sesión local de inventario y guarda su estado mediante `localStorage`.
+El 30 de septiembre se cambió la denominación de:
 
-Esto permite conservar progreso entre recargas dentro del mismo navegador / dispositivo, pero no equivale a una base de datos, historial centralizado ni sincronización entre usuarios.
+`Inventario Barista`
 
-La sesión actual incluye, entre otros datos, identificador, fecha, índice actual, vista, responsable y conteos.
+a:
 
-## 8. Estados de conteo
+`Inventario Barra`
 
-Los estados funcionales actuales son:
+Ese cambio también actualizó:
 
-- `pending`: todavía no se ha registrado un conteo suficiente.
-- `partial`: existe un registro, pero sigue marcado como parcial.
-- `counted`: el ítem está marcado como contado.
+- título de la página;
+- encabezado;
+- título al compartir;
+- texto del resumen;
+- clave utilizada para `localStorage`.
 
-La interfaz utiliza iconografía para diferenciarlos visualmente.
+## 5.4 Catálogo
 
-No asumir cambios de semántica solo por preferencias de nomenclatura.
+El 1 de octubre se actualizó `data/items.js` con el catálogo operativo actual de Barra.
 
-## 9. Catálogo actual
+Ese cambio representa la transición desde un catálogo de prueba muy pequeño hacia el catálogo real utilizado para la siguiente etapa.
 
-`data/items.js` contiene actualmente el catálogo operativo del MVP.
+---
 
-Cada ítem tiene:
+# 6. Estado auditado
 
-- `id`: identificador estable del ítem.
-- `name`: nombre que se muestra al usuario.
-- `category`: agrupación operativa para el conteo.
-- `unit`: unidad actualmente asociada al ítem.
-- `order`: orden de presentación.
-- `active`: indica si el ítem participa actualmente.
+La versión de referencia utilizada para esta documentación corresponde al commit:
 
-El catálogo actual tiene 70 ítems activos y utiliza `order` del 1 al 70.
+`32b7fd5 — update items`
 
-### 9.1 `category`
+El repositorio auditado contiene:
 
-Las categorías operativas acordadas son:
+```text
+README.md
+app.js
+index.html
+styles.css
+data/items.js
+```
 
-- `Insumos`: cafés, descafeinados, preparados base, leches, crema vegetal, manjar, limón, balines y otros insumos de barra. Incluye el metabisulfito de sodio, usado para preparación.
-- `Tés e infusiones`: tés, infusiones, matcha, flor de Jamaica y té mariposa.
-- `Syrups`: los saborizantes líquidos, incluido el syrup de caramelo.
-- `Congelados`: pulpas, porciones de jugo, hielo, frutas congeladas y helados.
-- `Desechables`: vasos y tapas.
-- `Limpieza`: productos de aseo y mantención, como Cafiza, Rinza y bicarbonato.
+La estructura no requiere actualmente frameworks ni backend.
 
-La salsa de caramelo es un insumo separado del syrup de caramelo y se cuenta en `KG`.
+---
 
-### 9.2 `area`
+# 7. Arquitectura actual
 
-`area` fue parte de ideas / modelos anteriores, pero no es actualmente un campo presente en `data/items.js`.
+## `index.html`
 
-No asumir que debe reincorporarse al modelo sin una decisión explícita.
+Contiene:
 
-### 9.3 Nombres y unidades
+- estructura base;
+- encabezado;
+- progreso;
+- contenedor principal;
+- modal de confirmación para nuevo inventario;
+- carga de `app.js` como módulo.
 
-Los nombres actuales pueden conservar diferencias de ortografía, mayúsculas, abreviaturas o formato porque parte del catálogo todavía está en proceso de normalización.
+## `styles.css`
 
-Las unidades también pueden requerir revisión. Una futura normalización debe considerar cómo se realiza físicamente el conteo, no solo cómo queda más limpio el código.
+Contiene la presentación visual de:
 
-## 10. Discrepancia técnica conocida
+- aplicación;
+- navegación;
+- tarjeta de ítem;
+- estados;
+- campos;
+- botones;
+- feedback;
+- resumen;
+- modal;
+- comportamiento móvil.
 
-La aplicación ya consume `category`, que está presente en todos los ítems activos. Partes del código todavía esperan `area`, un campo que no forma parte del modelo actual.
+## `app.js`
 
-La necesidad real de `area` debe analizarse antes de reincorporarlo al catálogo.
+Contiene la lógica de:
 
-## 11. Flujo funcional actual
+- sesión;
+- persistencia;
+- estados;
+- cantidades;
+- navegación;
+- progreso;
+- renderizado;
+- resumen;
+- responsable;
+- copiar;
+- compartir;
+- nueva sesión.
 
-La aplicación trabaja sobre la lista de ítems activos ordenados por `order` y permite avanzar por el inventario, registrar cantidades y notas, cambiar estados, conservar el responsable y consultar un resumen.
+## `data/items.js`
 
-La implementación también dispone de acciones de copia / compartir y de creación de una nueva sesión.
+Contiene el catálogo operativo.
 
-## 12. Arquitectura actual y límites
+---
 
-La aplicación está diseñada como una página web pequeña y autocontenida.
+# 8. Motor de inventario
 
-No existe todavía:
+La Fase 1 está completada.
 
-- API propia.
-- servidor de aplicación.
-- autenticación real.
-- base de datos.
-- sincronización remota.
-- integración con sistemas externos.
+El motor actual dispone de:
 
-La arquitectura puede evolucionar cuando exista una necesidad demostrada, pero no se debe añadir infraestructura por anticipación.
+- `pending`;
+- `partial`;
+- `counted`;
+- `localStorage`;
+- navegación;
+- resumen;
+- responsable;
+- copiar;
+- compartir;
+- cantidades decimales.
 
-## 13. Principios de producto
+---
 
-### KISS
+# 9. Estados
 
-La solución debe ser lo más simple posible sin sacrificar utilidad.
+Los estados actuales son:
 
-### Mobile first
+### `pending`
 
-El flujo está pensado para uso desde teléfono en un contexto operativo, donde importan la lectura rápida, los controles grandes y la poca fricción.
+Ítem sin conteo completado.
 
-### Funcional antes que perfecto
+### `partial`
 
-Es preferible validar un flujo útil y luego refinarlo basándose en el uso real antes que intentar cerrar todos los detalles de datos desde el principio.
+Existe una cantidad registrada, pero el ítem todavía se considera parcialmente procesado.
 
-### No confundir futuro con requisito
+### `counted`
 
-Historial, cámara, stock mínimo, otras áreas e integraciones son ideas de evolución, no comportamientos que el agente deba implementar por defecto.
+El ítem se considera completamente contado.
 
-## 14. Pendientes actuales
+Visualmente se muestran como:
 
-Los temas abiertos más relevantes son:
+```text
+🔴 Pendiente
+🟡 Parcial
+🟢 Contado
+```
 
-- Revisar el catálogo contra los inventarios fuente.
-- Normalizar nombres visibles donde tenga sentido.
-- Revisar la semántica de ciertas unidades.
-- Determinar si `area` tiene utilidad real en el modelo final.
-- Revisar la experiencia de uso real.
-- Revisar qué partes del flujo conviene automatizar o probar.
+El motor utiliza los identificadores:
 
-Estos pendientes no tienen todos la misma urgencia ni todos bloquean el desarrollo funcional.
+```text
+pending
+partial
+counted
+```
 
-## 15. Cómo usar este documento
+---
 
-Este documento no es un contrato de requisitos inmutables. Es una memoria consolidada del proyecto.
+# 10. Cantidades y decimales
 
-Cuando una nueva decisión cambie el rumbo del proyecto, actualiza esta documentación para que el repositorio vuelva a representar la realidad.
+La aplicación acepta cantidades no negativas.
 
-Cuando solo cambie la implementación sin cambiar una decisión de producto, actualiza el estado correspondiente sin convertir automáticamente ese cambio en una nueva regla.
+La entrada admite tanto:
+
+```text
+1.4
+```
+
+como:
+
+```text
+1,4
+```
+
+El valor se normaliza internamente a número.
+
+La presentación utiliza formato `es-CL`.
+
+Actualmente se muestran hasta tres decimales.
+
+---
+
+# 11. Persistencia
+
+La aplicación utiliza:
+
+```text
+localStorage
+```
+
+La clave actual es:
+
+```text
+inventario-barra-session-v2
+```
+
+La sesión utiliza:
+
+```text
+schemaVersion: 2
+```
+
+La sesión guarda, entre otros:
+
+- `id`;
+- fecha;
+- inicio;
+- índice actual;
+- vista;
+- responsable;
+- conteos.
+
+Esto es persistencia local.
+
+No equivale a:
+
+- base de datos;
+- backend;
+- sincronización remota;
+- historial permanente.
+
+No existe actualmente un historial de sesiones anteriores.
+
+---
+
+# 12. Nueva sesión
+
+La acción de nuevo inventario solicita confirmación antes de eliminar la sesión actual.
+
+La eliminación afecta el progreso local, incluidos:
+
+- cantidades;
+- notas;
+- estados;
+- progreso.
+
+La acción no es reversible mediante un historial.
+
+Esto es consistente con que el historial esté descartado.
+
+---
+
+# 13. Responsable
+
+El inventario utiliza un campo de responsable.
+
+Su propósito es identificar a la persona que realiza y envía el inventario.
+
+El nombre se conserva en la sesión.
+
+El resumen compartido incluye el responsable.
+
+Esto **no es autenticación**.
+
+No introducir login ni PIN como continuación natural de esta funcionalidad.
+
+---
+
+# 14. Navegación
+
+La vista de conteo permite:
+
+- seleccionar un ítem;
+- ir al anterior;
+- ir al siguiente;
+- ir al resumen.
+
+El último ítem puede llevar al resumen.
+
+La acción central del flujo es recorrer el catálogo y registrar el conteo.
+
+---
+
+# 15. Progreso
+
+El progreso ya está implementado.
+
+Se representa mediante:
+
+- texto de procesados;
+- barra visual.
+
+Un ítem `partial` o `counted` cuenta como procesado.
+
+Por lo tanto:
+
+```text
+processed = partial + counted
+```
+
+Fase 2 no debe reconstruir el motor de progreso desde cero.
+
+La finalidad es revisar su presentación y comportamiento para el inventario real.
+
+---
+
+# 16. Feedback
+
+Existe feedback para acciones relevantes.
+
+Actualmente se utiliza para confirmar o comunicar, entre otras cosas:
+
+- guardado de conteo;
+- guardado parcial;
+- errores de cantidad;
+- copiado;
+- compartido.
+
+Fase 2 busca refinar este feedback según su utilidad real en teléfono.
+
+No hacerlo más llamativo simplemente por hacerlo.
+
+---
+
+# 17. Resumen
+
+El resumen actual presenta estadísticas de:
+
+- pendientes;
+- parciales;
+- contados.
+
+También agrupa los ítems por estado.
+
+Los ítems del resumen se pueden seleccionar para volver a editarlos.
+
+Cuando el inventario está completo, el resumen cambia su estado visual a:
+
+**Inventario completo**
+
+y comunica que todos los ítems están contabilizados.
+
+---
+
+# 18. Copiar y compartir
+
+El resumen puede:
+
+- copiarse al portapapeles;
+- compartirse mediante `navigator.share` cuando el dispositivo lo permite.
+
+La acción requiere que exista un responsable.
+
+El contenido compartido utiliza:
+
+**INVENTARIO BARRA**
+
+e incluye:
+
+- fecha;
+- responsable;
+- estadísticas;
+- detalle de los ítems;
+- cantidades;
+- unidades;
+- notas;
+- estado parcial cuando corresponde.
+
+---
+
+# 19. Catálogo actual
+
+La versión actual de `data/items.js` contiene:
+
+**68 ítems activos.**
+
+Los `order` actuales van del:
+
+`1 → 68`
+
+El modelo vigente contiene:
+
+```text
+id
+name
+unit
+order
+active
+```
+
+## Significado
+
+### `id`
+
+Identificador estable del producto.
+
+No debe cambiarse gratuitamente.
+
+### `name`
+
+Nombre visible del producto.
+
+Puede requerir normalización posterior.
+
+### `unit`
+
+Unidad con la que actualmente se registra el conteo.
+
+Debe revisarse respecto del proceso físico real.
+
+### `order`
+
+Orden de presentación del inventario.
+
+En Fase 2 debe avanzar hacia el orden físico real.
+
+### `active`
+
+Determina si el ítem participa en el inventario actual.
+
+---
+
+# 20. Categorías
+
+Las categorías son un trabajo activo del catálogo.
+
+No existe todavía una taxonomía definitiva aceptada como fuente única.
+
+Se ha trabajado una clasificación de forma separada al `items.js` actual, pero esa clasificación todavía no debe considerarse integrada al producto.
+
+La intención es:
+
+```text
+catálogo real
+    ↓
+organización razonable
+    ↓
+uso / revisión
+    ↓
+refinamiento
+```
+
+No completar categorías únicamente para satisfacer al código.
+
+La categoría debe tener sentido operativo y facilitar realmente la lectura o futura organización del inventario.
+
+---
+
+# 21. `area`
+
+`area` formó parte de modelos anteriores.
+
+Actualmente no existe en los objetos de `data/items.js`.
+
+No asumir que debe volver al modelo.
+
+Primero debe determinarse si realmente aporta valor dentro del alcance exclusivo de Barra.
+
+---
+
+# 22. Discrepancia técnica conocida
+
+Partes de `app.js` continúan accediendo a:
+
+```text
+item.category
+item.area
+```
+
+mientras los objetos actuales de `items.js` no contienen esas propiedades.
+
+Esto representa una discrepancia entre:
+
+- implementación heredada;
+- modelo actual del catálogo.
+
+Debe revisarse durante Fase 2.
+
+La solución no está predeterminada.
+
+No asumir automáticamente que la respuesta es volver a incorporar ambos campos.
+
+---
+
+# 23. Orden físico
+
+El orden actual está almacenado mediante `order`.
+
+El siguiente objetivo del catálogo es hacer que dicho orden coincida con el recorrido físico que se utiliza al inventariar Barra.
+
+El objetivo no es simplemente obtener un orden alfabético o visualmente bonito.
+
+Se busca:
+
+- menos desplazamiento;
+- menos búsqueda;
+- menos interrupción;
+- flujo más natural.
+
+---
+
+# 24. UX
+
+La aplicación está orientada a teléfono.
+
+Fase 2 debe llevar la interfaz a una versión adecuada para uso real.
+
+Las principales preocupaciones son:
+
+- controles fáciles de tocar;
+- lectura rápida;
+- entrada de cantidad clara;
+- navegación evidente;
+- feedback útil;
+- progreso visible;
+- poca fricción;
+- densidad de información adecuada.
+
+---
+
+# 25. Compactación visual
+
+Compactar significa aprovechar mejor el espacio disponible.
+
+No significa hacer todos los elementos pequeños.
+
+La optimización debe preservar:
+
+- legibilidad;
+- accesibilidad;
+- tamaño táctil;
+- comprensión.
+
+---
+
+# 26. Qué no debe inferirse del código
+
+El código actual puede contener restos de etapas anteriores.
+
+Especialmente:
+
+- propiedades `category`;
+- propiedades `area`;
+- decisiones de nomenclatura antiguas.
+
+La existencia de una referencia antigua no significa que la decisión de producto siga vigente.
+
+---
+
+# 27. Decisiones descartadas
+
+Actualmente están descartados:
+
+- historial;
+- DB;
+- cámara;
+- login;
+- PIN;
+- otras áreas.
+
+No son simplemente "pendientes".
+
+No deben reaparecer automáticamente como tareas.
+
+---
+
+# 28. Principios de producto
+
+## KISS
+
+Mantener la solución simple.
+
+## Mobile first
+
+El teléfono es el entorno principal de uso.
+
+## Funcional antes que perfecto
+
+Primero conseguir un flujo que funcione y pueda probarse.
+
+## Real antes que especulativo
+
+Las mejoras posteriores deben surgir del trabajo real.
+
+## No construir por posibilidad técnica
+
+Que algo pueda hacerse no significa que deba hacerse.
+
+---
+
+# 29. Regla de interpretación
+
+### Implementado
+
+Puede comprobarse en el código actual.
+
+### Decidido
+
+Existe una decisión explícita que sigue vigente.
+
+### Pendiente
+
+Existe una cuestión que requiere trabajo o definición.
+
+### Futuro
+
+Pertenece a una fase posterior.
+
+### Descartado
+
+Actualmente no debe implementarse.
+
+### Histórico
+
+Existió en una versión anterior pero no representa necesariamente el estado actual.
+
+---
+
+# 30. Principio final
+
+El producto debe evolucionar de forma incremental:
+
+```text
+hacerlo funcionar
+      ↓
+hacerlo adecuado para Barra
+      ↓
+probarlo en condiciones reales
+      ↓
+observar problemas
+      ↓
+mejorar lo que realmente importe
+```
+
+La complejidad debe aumentar únicamente cuando la utilidad lo justifique.
