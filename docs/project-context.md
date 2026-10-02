@@ -66,7 +66,7 @@ Se comenzó a filtrar los inventarios reales para identificar los ítems que cor
 
 ### 5.4 Modelo inicial
 
-En versiones anteriores se había considerado un modelo con campos como `category` y `area`. El modelo presente en `data/items.js` evolucionó y actualmente contiene `id`, `name`, `unit`, `order` y `active`.
+En versiones anteriores se había considerado un modelo con campos como `category` y `area`. El catálogo actual volvió a incorporar `category` como una clasificación operativa acordada. `area` sigue sin formar parte del modelo.
 
 No deben recuperarse automáticamente campos históricos como requisitos actuales.
 
@@ -117,17 +117,25 @@ Cada ítem tiene:
 
 - `id`: identificador estable del ítem.
 - `name`: nombre que se muestra al usuario.
+- `category`: agrupación operativa para el conteo.
 - `unit`: unidad actualmente asociada al ítem.
 - `order`: orden de presentación.
 - `active`: indica si el ítem participa actualmente.
 
-El catálogo actual tiene 68 ítems activos y utiliza `order` del 1 al 68.
+El catálogo actual tiene 70 ítems activos y utiliza `order` del 1 al 70.
 
 ### 9.1 `category`
 
-`category` es importante para una futura organización del catálogo, pero su clasificación todavía necesita refinamiento con los inventarios fuente y con el uso real.
+Las categorías operativas acordadas son:
 
-No inventar una taxonomía definitiva solo para rellenar el campo.
+- `Insumos`: cafés, descafeinados, preparados base, leches, crema vegetal, manjar, limón, balines y otros insumos de barra. Incluye el metabisulfito de sodio, usado para preparación.
+- `Tés e infusiones`: tés, infusiones, matcha, flor de Jamaica y té mariposa.
+- `Syrups`: los saborizantes líquidos, incluido el syrup de caramelo.
+- `Congelados`: pulpas, porciones de jugo, hielo, frutas congeladas y helados.
+- `Desechables`: vasos y tapas.
+- `Limpieza`: productos de aseo y mantención, como Cafiza, Rinza y bicarbonato.
+
+La salsa de caramelo es un insumo separado del syrup de caramelo y se cuenta en `KG`.
 
 ### 9.2 `area`
 
@@ -143,9 +151,9 @@ Las unidades también pueden requerir revisión. Una futura normalización debe 
 
 ## 10. Discrepancia técnica conocida
 
-Existe una discrepancia entre el modelo actual de `items.js` y partes del código que históricamente esperan propiedades que ya no están en todos los ítems, especialmente `category` y `area`.
+La aplicación ya consume `category`, que está presente en todos los ítems activos. Partes del código todavía esperan `area`, un campo que no forma parte del modelo actual.
 
-Esta discrepancia debe analizarse antes de concluir que alguno de esos campos debe volver al modelo. El objetivo es entender primero si la referencia en el código sigue siendo necesaria o es residuo de una versión anterior.
+La necesidad real de `area` debe analizarse antes de reincorporarlo al catálogo.
 
 ## 11. Flujo funcional actual
 
@@ -190,7 +198,6 @@ Historial, cámara, stock mínimo, otras áreas e integraciones son ideas de evo
 
 Los temas abiertos más relevantes son:
 
-- Refinar `category`.
 - Revisar el catálogo contra los inventarios fuente.
 - Normalizar nombres visibles donde tenga sentido.
 - Revisar la semántica de ciertas unidades.
@@ -207,4 +214,3 @@ Este documento no es un contrato de requisitos inmutables. Es una memoria consol
 Cuando una nueva decisión cambie el rumbo del proyecto, actualiza esta documentación para que el repositorio vuelva a representar la realidad.
 
 Cuando solo cambie la implementación sin cambiar una decisión de producto, actualiza el estado correspondiente sin convertir automáticamente ese cambio en una nueva regla.
-
