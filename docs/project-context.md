@@ -115,6 +115,10 @@ El 1 de octubre se actualizó `data/items.js` con el catálogo operativo actual 
 
 Ese cambio representa la transición desde un catálogo de prueba muy pequeño hacia el catálogo real utilizado para la siguiente etapa.
 
+## 5.5 Ajustes de resumen y responsable
+
+El 2 de octubre se simplificó la información secundaria del resumen cuando todavía hay ítems por completar y se compactó la sección del responsable. El campo ahora explica directamente quién debe ingresar su nombre y muestra `Nombre` como placeholder. También se acortó el mensaje de error de cantidad inválida.
+
 ---
 
 # 6. Estado auditado
@@ -256,6 +260,8 @@ como:
 ```text
 1,4
 ```
+
+El mensaje de error para una cantidad inválida es breve y no repite ejemplos de formato.
 
 El valor se normaliza internamente a número.
 

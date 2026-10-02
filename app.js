@@ -482,7 +482,7 @@ function saveCurrentAs(status) {
   ) {
 
     showFeedback(
-      "Ingresa una cantidad válida. Puedes usar 1,4 o 1.4."
+      "Ingresa una cantidad válida."
     );
 
     quantityInput?.focus();
@@ -1329,7 +1329,7 @@ function renderSummary() {
   const subtitle =
     isComplete
       ? "Todos los ítems están contabilizados."
-      : "Puedes tocar cualquier ítem para editarlo.";
+      : "";
 
 
   const pendingItems =
@@ -1524,43 +1524,22 @@ function renderSummary() {
 
       </section>
 
-
       <section class="responsible-section">
 
-        <div class="section-heading">
-
-          <h3>
-            Responsable
-          </h3>
-
-          <p>
-            Nombre de quien realiza y envía el inventario.
-          </p>
-
-        </div>
-
-
-        <div class="field">
-
+        <div class="section-heading field">
           <label for="responsible">
-            Nombre
+            Nombre de quien realiza y envía el inventario.
           </label>
-
           <input
             id="responsible"
             type="text"
             autocomplete="name"
             maxlength="80"
-            placeholder="Nombre del responsable"
+            placeholder="Nombre"
             value="${escapeHtml(
               session.responsible || ""
             )}"
           >
-
-          <small>
-            Se incluirá como firma en el resumen compartido.
-          </small>
-
         </div>
 
       </section>
