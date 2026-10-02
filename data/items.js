@@ -85,7 +85,7 @@ export const items = [
     name: "Syrup Esencia Amaretto 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 10,
     active: true
   },
@@ -94,7 +94,7 @@ export const items = [
     name: "Syrup Esencia Avellana 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 11,
     active: true
   },
@@ -103,7 +103,7 @@ export const items = [
     name: "Syrup Esencia Canela 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 12,
     active: true
   },
@@ -112,7 +112,7 @@ export const items = [
     name: "Syrup Esencia Caramelo 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 13,
     active: true
   },
@@ -121,7 +121,7 @@ export const items = [
     name: "Syrup Esencia Chai 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 14,
     active: true
   },
@@ -130,7 +130,7 @@ export const items = [
     name: "Syrup Esencia coco 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 15,
     active: true
   },
@@ -139,7 +139,7 @@ export const items = [
     name: "Syrup Esencia Menta 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 16,
     active: true
   },
@@ -148,7 +148,7 @@ export const items = [
     name: "Syrup Esencia Vainilla 504 (750cc)",
     category: "Syrups",
     area: "Barra",
-    unit: "UN",
+    unit: "CC",
     order: 17,
     active: true
   },
@@ -330,7 +330,7 @@ export const items = [
   {
     id: "flor-jamaica",
     name: "flor jamaica",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "KG",
     order: 37,
@@ -339,7 +339,7 @@ export const items = [
   {
     id: "te-dilmah",
     name: "Te Dilmah Caja 100 Un",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 38,
@@ -348,7 +348,7 @@ export const items = [
   {
     id: "te-mariposa",
     name: "te mariposa",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "KG",
     order: 39,
@@ -357,7 +357,7 @@ export const items = [
   {
     id: "te-mix-armonia-herbal",
     name: "Te Mix Armonía Herbal",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 40,
@@ -366,7 +366,7 @@ export const items = [
   {
     id: "te-mix-exhala-atardecer",
     name: "Te Mix Exhala Atardecer",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 41,
@@ -375,7 +375,7 @@ export const items = [
   {
     id: "te-mix-inhala-amanecer",
     name: "Te Mix Inhala Amanecer",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 42,
@@ -384,7 +384,7 @@ export const items = [
   {
     id: "te-mix-natural-peace",
     name: "Te Mix Natural Peace",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 43,
@@ -393,7 +393,7 @@ export const items = [
   {
     id: "te-mix-pausa-consiente",
     name: "Te Mix Pausa Consiente",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 44,
@@ -402,7 +402,7 @@ export const items = [
   {
     id: "te-mix-viaje-magico",
     name: "Te Mix Viaje Mágico",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 45,
@@ -411,7 +411,7 @@ export const items = [
   {
     id: "te-negro-hoja",
     name: "Te Negro hoja (kg)",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 46,
@@ -420,7 +420,7 @@ export const items = [
   {
     id: "te-verde-hoja",
     name: "Te Verde hoja (kg)",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
     order: 47,
@@ -514,7 +514,7 @@ export const items = [
     name: "Rinza",
     category: "Limpieza",
     area: "Barra",
-    unit: "UN",
+    unit: "ml",
     order: 57,
     active: true
   },
@@ -603,7 +603,7 @@ export const items = [
   {
     id: "matcha",
     name: "Matcha",
-    category: "Tés e infusiones",
+    category: "Te / Infusiones",
     area: "Barra",
     unit: "GR",
     order: 67,
