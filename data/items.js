@@ -15,7 +15,7 @@ export const items = [
     area: "Barra",
     unit: "UN",
     order: 2,
-    active: true
+    active: false
   },
   {
     id: "cafe-descafeinado-Kg",
@@ -544,7 +544,7 @@ export const items = [
     area: "Barra",
     unit: "Kg",
     order: 60,
-    active: true
+    active: false
   },
   {
     id: "crema-vegetal",

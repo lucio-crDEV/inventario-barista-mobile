@@ -1381,7 +1381,7 @@ function renderSummary() {
           </strong>
 
           <span>
-            ⚠️ Parciales
+            ⚠️ Por confirmar
           </span>
         </button>
 
@@ -1447,7 +1447,7 @@ function renderSummary() {
           <summary>
 
             <span>
-              ⚠️ Parciales
+              ⚠️ Por confirmar
             </span>
 
             <span class="section-count">
