@@ -641,10 +641,7 @@ function renderCurrentItem() {
   const safeCategory =
     escapeHtml(item.category);
 
-  // en caso de agregar mas areas mas adelante, por ahora no esta en el modelo de datos de data/items.js
-  // const safeArea = escapeHtml(item.area);
-
-  const safeArea = "Barra"
+  const safeArea = escapeHtml(item.area);
 
   const safeUnit =
     escapeHtml(item.unit);

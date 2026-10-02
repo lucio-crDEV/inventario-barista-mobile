@@ -447,17 +447,19 @@ e incluye:
 
 La versión actual de `data/items.js` contiene:
 
-**68 ítems activos.**
+**70 ítems activos.**
 
 Los `order` actuales van del:
 
-`1 → 68`
+`1 → 70`
 
 El modelo vigente contiene:
 
 ```text
 id
 name
+category
+area
 unit
 order
 active
@@ -497,11 +499,11 @@ Determina si el ítem participa en el inventario actual.
 
 # 20. Categorías
 
-Las categorías son un trabajo activo del catálogo.
+Las categorías son un trabajo activo del catálogo y ya están incorporadas en `data/items.js`.
 
 No existe todavía una taxonomía definitiva aceptada como fuente única.
 
-Se ha trabajado una clasificación de forma separada al `items.js` actual, pero esa clasificación todavía no debe considerarse integrada al producto.
+La clasificación todavía no constituye una taxonomía definitiva y puede evolucionar con el uso.
 
 La intención es:
 
@@ -523,37 +525,16 @@ La categoría debe tener sentido operativo y facilitar realmente la lectura o fu
 
 # 21. `area`
 
-`area` formó parte de modelos anteriores.
+Todos los ítems activos pertenecen actualmente al área `Barra`.
 
-Actualmente no existe en los objetos de `data/items.js`.
-
-No asumir que debe volver al modelo.
-
-Primero debe determinarse si realmente aporta valor dentro del alcance exclusivo de Barra.
+El campo se incluye en cada objeto de `data/items.js` para que la aplicación pueda mostrar el área. Si se incorporan otras áreas en el futuro, cada ítem deberá indicar la que corresponda.
 
 ---
 
 # 22. Discrepancia técnica conocida
 
-Partes de `app.js` continúan accediendo a:
+La discrepancia entre `app.js` y el catálogo por las propiedades `category` y `area` quedó resuelta: ambos campos están presentes en los objetos de `data/items.js`.
 
-```text
-item.category
-item.area
-```
-
-mientras los objetos actuales de `items.js` no contienen esas propiedades.
-
-Esto representa una discrepancia entre:
-
-- implementación heredada;
-- modelo actual del catálogo.
-
-Debe revisarse durante Fase 2.
-
-La solución no está predeterminada.
-
-No asumir automáticamente que la respuesta es volver a incorporar ambos campos.
 
 ---
 

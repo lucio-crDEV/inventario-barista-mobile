@@ -171,20 +171,16 @@ Preservar:
 
 ## 2.8 Resolver discrepancia del modelo
 
-**Estado: IDENTIFICADO**
+**Estado: ✅ RESUELTO**
 
-`app.js` todavía referencia:
+`app.js` referencia:
 
 ```text
 item.category
 item.area
 ```
 
-pero `data/items.js` actualmente no contiene esas propiedades.
-
-La solución debe determinarse durante Fase 2.
-
-No restaurar automáticamente campos antiguos sin justificar su utilidad actual.
+Ambas propiedades ya están presentes en cada ítem de `data/items.js`. Actualmente todos los ítems pertenecen al área `Barra`; la categorización sigue abierta a revisión y no se considera una taxonomía definitiva.
 
 ---
 

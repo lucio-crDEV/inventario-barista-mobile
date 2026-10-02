@@ -153,11 +153,7 @@ Especialmente:
 
 `category` es relevante para la evolución del catálogo, pero todavía no debe tratarse como una taxonomía cerrada.
 
-Se ha trabajado una clasificación de forma separada al código actual.
-
-No incorporar automáticamente esa clasificación ni crear una nueva solo para completar propiedades.
-
-Primero entender la intención del usuario y el estado del catálogo.
+La propiedad está presente en los ítems actuales. Sus valores pueden seguir evolucionando; no asumir que forman una taxonomía definitiva.
 
 ---
 
@@ -167,15 +163,15 @@ El modelo actualmente presente en `data/items.js` utiliza:
 
 - `id`
 - `name`
+- `category`
+- `area`
 - `unit`
 - `order`
 - `active`
 
-No asumir `category` ni `area` como propiedades vigentes del modelo actual.
-
 Si el código referencia propiedades que no existen en el modelo actual, tratarlo como una discrepancia a investigar.
 
-No restaurar automáticamente campos históricos.
+Actualmente todos los ítems pertenecen al área `Barra`. Si se incorporan otras áreas, asignar el valor correcto a cada ítem.
 
 ---
 
