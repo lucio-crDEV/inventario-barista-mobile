@@ -10,37 +10,37 @@ export const items = [
   },
   {
     id: "cafe-grano",
-    name: "Café grano 1k",
+    name: "Café grano",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 2,
     active: true
   },
   {
-    id: "cafe-descafeinado-kg",
-    name: "Café descafeinado KG",
+    id: "cafe-descafeinado-Kg",
+    name: "Café descafeinado Kg",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 3,
     active: true
   },
   {
     id: "chai-polvo",
-    name: "Chai En Polvo 504 (bolsa 1,8 kg)",
+    name: "Chai En Polvo 504 (bolsa 1,8 Kg)",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 4,
     active: true
   },
   {
     id: "chocolate-polvo",
-    name: "Chocolate en polvo 504 (bolsa 2 kg)",
+    name: "Chocolate en polvo 504 (bolsa 2 Kg)",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 5,
     active: true
   },
@@ -49,7 +49,7 @@ export const items = [
     name: "Chocolate Liquido",
     category: "Insumos",
     area: "Barra",
-    unit: "UN",
+    unit: "Kg",
     order: 6,
     active: true
   },
@@ -58,7 +58,7 @@ export const items = [
     name: "Salsa de caramelo",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 7,
     active: true
   },
@@ -67,7 +67,7 @@ export const items = [
     name: "Mashmellows",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "gr",
     order: 8,
     active: true
   },
@@ -76,7 +76,7 @@ export const items = [
     name: "Metafisulfito de sodio",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "gr",
     order: 9,
     active: true
   },
@@ -154,65 +154,65 @@ export const items = [
   },
 
   {
-    id: "pulpa-chirimoya-kg",
+    id: "pulpa-chirimoya-Kg",
     name: "Pulpa Chirimoya",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 18,
     active: true
   },
   {
-    id: "pulpa-frambuesa-kg",
+    id: "pulpa-frambuesa-Kg",
     name: "Pulpa Frambuesa",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 19,
     active: true
   },
   {
-    id: "pulpa-frutilla-kg",
+    id: "pulpa-frutilla-Kg",
     name: "Pulpa Frutilla",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 20,
     active: true
   },
   {
-    id: "pulpa-mango-kg",
+    id: "pulpa-mango-Kg",
     name: "Pulpa Mango",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 21,
     active: true
   },
   {
-    id: "pulpa-maracuya-s-pepas-kg",
+    id: "pulpa-maracuya-s-pepas-Kg",
     name: "Pulpa Maracuya S/Pepas",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 22,
     active: true
   },
   {
-    id: "pulpa-melon-kg",
+    id: "pulpa-melon-Kg",
     name: "Pulpa Melon",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 23,
     active: true
   },
   {
-    id: "pulpa-pina-kg",
+    id: "pulpa-pina-Kg",
     name: "Pulpa Piña",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 24,
     active: true
   },
@@ -283,46 +283,46 @@ export const items = [
 
   {
     id: "leche-sin-lactosa",
-    name: "Leche desc / sin lactosa 1 lt",
+    name: "Leche desc / sin lactosa 1 Lt",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 32,
     active: true
   },
   {
     id: "leche-entera",
-    name: "Leche entera 1 lt",
+    name: "Leche entera 1 Lt",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 33,
     active: true
   },
   {
     id: "leche-almendra",
-    name: "Leche vegetal almendra 1 lt",
+    name: "Leche vegetal almendra 1 Lt",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 34,
     active: true
   },
   {
     id: "leche-avena",
-    name: "Leche vegetal avena 1 lt",
+    name: "Leche vegetal avena 1 Lt",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 35,
     active: true
   },
   {
     id: "leche-soya",
-    name: "Leche Vegetal Soya 1 lt",
+    name: "Leche Vegetal Soya 1 Lt",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 36,
     active: true
   },
@@ -332,7 +332,7 @@ export const items = [
     name: "flor jamaica",
     category: "Te / Infusiones",
     area: "Barra",
-    unit: "KG",
+    unit: "gr",
     order: 37,
     active: true
   },
@@ -350,7 +350,7 @@ export const items = [
     name: "te mariposa",
     category: "Te / Infusiones",
     area: "Barra",
-    unit: "KG",
+    unit: "gr",
     order: 39,
     active: true
   },
@@ -410,7 +410,7 @@ export const items = [
   },
   {
     id: "te-negro-hoja",
-    name: "Te Negro hoja (kg)",
+    name: "Te Negro hoja (Kg)",
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
@@ -419,7 +419,7 @@ export const items = [
   },
   {
     id: "te-verde-hoja",
-    name: "Te Verde hoja (kg)",
+    name: "Te Verde hoja (Kg)",
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
@@ -505,7 +505,7 @@ export const items = [
     name: "Cafiza2",
     category: "Limpieza",
     area: "Barra",
-    unit: "KG",
+    unit: "gr",
     order: 56,
     active: true
   },
@@ -523,7 +523,7 @@ export const items = [
     name: "Bicarbonato",
     category: "Limpieza",
     area: "Barra",
-    unit: "GR",
+    unit: "gr",
     order: 58,
     active: true
   },
@@ -533,7 +533,7 @@ export const items = [
     name: "Limón Sutil",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 59,
     active: true
   },
@@ -542,7 +542,7 @@ export const items = [
     name: "Fruta congelada Arándano",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 60,
     active: true
   },
@@ -551,7 +551,7 @@ export const items = [
     name: "Crema Vegetal",
     category: "Insumos",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 61,
     active: true
   },
@@ -560,7 +560,7 @@ export const items = [
     name: "Helado Chocolate",
     category: "Congelados",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 62,
     active: true
   },
@@ -569,7 +569,7 @@ export const items = [
     name: "Helado Vainilla",
     category: "Congelados",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 63,
     active: true
   },
@@ -587,7 +587,7 @@ export const items = [
     name: "Manjar Colun",
     category: "Insumos",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 65,
     active: true
   },
@@ -596,7 +596,7 @@ export const items = [
     name: "Helado de frutilla crema",
     category: "Congelados",
     area: "Barra",
-    unit: "LT",
+    unit: "Lt",
     order: 66,
     active: true
   },
@@ -605,7 +605,7 @@ export const items = [
     name: "Matcha",
     category: "Te / Infusiones",
     area: "Barra",
-    unit: "GR",
+    unit: "gr",
     order: 67,
     active: true
   },
@@ -614,7 +614,7 @@ export const items = [
     name: "Frutillas congeladas",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 68,
     active: true
   },
@@ -624,16 +624,16 @@ export const items = [
     name: "Hielo cubos",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 69,
-    active: true
+    active: false
   },
   {
     id: "hielo-frappe",
     name: "Hielo frappe",
     category: "Congelados",
     area: "Barra",
-    unit: "KG",
+    unit: "Kg",
     order: 70,
     active: true
   },

@@ -119,6 +119,10 @@ Ese cambio representa la transición desde un catálogo de prueba muy pequeño h
 
 El 2 de octubre se simplificó la información secundaria del resumen cuando todavía hay ítems por completar y se compactó la sección del responsable. El campo ahora explica directamente quién debe ingresar su nombre y muestra `Nombre` como placeholder. También se acortó el mensaje de error de cantidad inválida.
 
+## 5.6 Ajustes de conteo y catálogo
+
+El 2 de octubre se compactó la tarjeta de conteo: categoría y área aparecen juntas, la unidad se muestra junto a `Cantidad` y se simplificaron los textos auxiliares de cantidad y nota. También se normalizaron nombres y unidades del catálogo y se desactivó `Hielo cubos`. En esta actualización cambiaron los `id` de `cafe-descafeinado` y varias pulpas congeladas para reflejar la escritura `Kg`.
+
 ---
 
 # 6. Estado auditado
@@ -463,7 +467,7 @@ e incluye:
 
 La versión actual de `data/items.js` contiene:
 
-**70 ítems activos.**
+**69 ítems activos.**
 
 Los `order` actuales van del:
 

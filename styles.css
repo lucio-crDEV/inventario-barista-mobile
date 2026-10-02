@@ -479,7 +479,7 @@ button:disabled {
 
   font-size: 0.72rem;
 
-  text-transform: uppercase;
+  text-transform: lowercase;
 
   letter-spacing: 0.04em;
 }

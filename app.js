@@ -1070,16 +1070,12 @@ function renderCurrentItem() {
           <div class="item-heading">
 
             <span class="item-category">
-              ${safeCategory}
+              ${safeCategory} · ${safeArea} 
             </span>
 
             <h2>
               ${safeName}
             </h2>
-
-            <p class="item-area">
-              ${safeArea}
-            </p>
 
           </div>
 
@@ -1100,7 +1096,7 @@ function renderCurrentItem() {
         <div class="field">
 
           <label for="quantity">
-            Cantidad
+            Cantidad (${safeUnit})
           </label>
 
           <input
@@ -1113,10 +1109,6 @@ function renderCurrentItem() {
             placeholder="0"
             value="${quantityValue}"
           >
-
-          <small>
-            Unidad: ${safeUnit}
-          </small>
 
         </div>
 
@@ -1131,12 +1123,9 @@ function renderCurrentItem() {
             id="note"
             rows="3"
             maxlength="300"
-            placeholder="Observación opcional"
+            placeholder="Opcional"
           >${safeNote}</textarea>
 
-          <small>
-            Máximo 300 caracteres
-          </small>
 
         </div>
 
