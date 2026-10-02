@@ -641,8 +641,10 @@ function renderCurrentItem() {
   const safeCategory =
     escapeHtml(item.category);
 
-  const safeArea =
-    escapeHtml(item.area);
+  // en caso de agregar mas areas mas adelante, por ahora no esta en el modelo de datos de data/items.js
+  // const safeArea = escapeHtml(item.area);
+
+  const safeArea = "Barra"
 
   const safeUnit =
     escapeHtml(item.unit);
@@ -1015,7 +1017,7 @@ function renderSummary() {
           </strong>
 
           <span>
-            📛 Pendientes
+            🔴 Pendientes
           </span>
         </div>
 
@@ -1055,7 +1057,7 @@ function renderSummary() {
           <summary>
 
             <span>
-              📛 Pendientes
+              🔴 Pendientes
             </span>
 
             <span class="section-count">
