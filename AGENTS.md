@@ -2,384 +2,70 @@
 
 ## Propósito
 
-Este repositorio contiene **Inventario Barra**, una aplicación web móvil para digitalizar el inventario semanal del área de Barra / Cafetería de Brioche Bakery.
+Este repositorio contiene una aplicación web móvil experimental e independiente para apoyar dos flujos operativos que fueron observados en un contexto de trabajo:
 
-Este archivo define **cómo debe trabajar un agente en este repositorio**.
+- **Inventario Barra**: inventario semanal del área de Barra / Cafetería.
+- **Pedido**: preparación de pedidos internos y generación de un mensaje para mensajería.
 
-Para entender el producto, sus decisiones y su planificación, consultar según necesidad:
+El proyecto es de carácter personal, experimental y educativo.
+
+No debe presentarse como software oficial de la empresa cuyo funcionamiento inspiró estos flujos.
+
+Este archivo define cómo debe trabajar un agente en el repositorio.
+
+Para producto, decisiones y planificación consultar:
 
 - `docs/project-context.md`
 - `docs/roadmap.md`
 
-No duplicar aquí todo el contexto del proyecto.
+No duplicar aquí todo el contexto del producto.
 
 ---
 
-## 1. Prioridad de información
+## 1. REGLA CRÍTICA: MARCA, IDENTIDAD Y PRESENTACIÓN
 
-Antes de modificar algo, distinguir entre:
+### Esta regla es obligatoria y no negociable.
 
-- instrucción explícita del usuario;
-- decisión vigente del proyecto;
-- implementación actual;
-- pendiente;
-- idea futura;
-- histórico;
-- descartado.
+Este proyecto **NO está autorizado a utilizar la marca, nombre comercial, identidad visual ni elementos de branding de la empresa que sirvió como contexto para desarrollar estos flujos**.
 
-Una decisión posterior reemplaza una decisión anterior.
+El usuario ha indicado expresamente que no posee derechos para utilizar esa marca y que el proyecto no es un producto oficial ni un desarrollo encargado por dicha empresa.
 
-Una idea futura no es un requisito actual.
+Por lo tanto, un agente **NO DEBE**:
 
-Un pendiente no implica una solución definida.
+- agregar el nombre de la empresa;
+- agregar variantes del nombre;
+- agregar formas como “La [marca]”;
+- agregar abreviaciones o nombres derivados que puedan confundirse con la marca;
+- agregar logotipos;
+- reproducir identidad visual corporativa;
+- incorporar colores, slogans o elementos gráficos destinados a hacer parecer oficial la aplicación;
+- presentar la aplicación como perteneciente, desarrollada para, autorizada por o respaldada por esa empresa;
+- utilizar el nombre de la empresa en la interfaz;
+- utilizarlo en títulos, textos, mensajes generados, metadata, `title`, `alt`, placeholders o contenido de prueba;
+- utilizarlo en nombres de archivos, componentes, variables o identificadores cuando eso implique branding;
+- agregarlo a documentación, README, comentarios o ejemplos salvo que sea estrictamente necesario para documentar contexto histórico y el usuario lo haya autorizado expresamente.
 
-Una funcionalidad descartada no debe reaparecer como sugerencia automática.
+### Regla de propagación
 
-Cuando exista contradicción entre código y documentación, identificarla antes de asumir cuál de los dos representa la intención correcta.
+Una vez corregido un nombre de marca existente, **ningún cambio futuro debe volver a introducirlo**.
 
----
+Si un requisito, mockup, referencia, texto heredado o código existente contiene la marca prohibida, el agente debe:
 
-## 2. Fase actual
+1. evitar reproducirla en código nuevo;
+2. mantener el comportamiento mediante un nombre neutral;
+3. señalar la existencia del elemento si afecta la tarea;
+4. no restaurarlo durante refactors, reescrituras o reorganizaciones.
 
-El proyecto está actualmente en:
+### Identidad neutral
 
-**FASE 2 — Inventario Barra**
+La aplicación debe mantenerse con una identidad genérica e independiente.
 
-Consultar `docs/roadmap.md` antes de implementar algo que pudiera pertenecer a una fase posterior.
+No inventar una nueva marca comercial para reemplazarla salvo decisión explícita del usuario.
 
-No adelantar por iniciativa propia:
-
-- PWA;
-- manifest;
-- instalación;
-- offline;
-- optimización post-uso;
-- mínimos;
-- bajo stock;
-- funcionalidades de V2.
-
----
-
-## 3. Alcance
-
-El producto actual está limitado a:
-
-**Barra / Cafetería.**
-
-No ampliar espontáneamente a:
-
-- Panadería;
-- Pastelería;
-- Cocina;
-- Coparía u otras áreas.
-
-Tampoco introducir espontáneamente:
-
-- historial;
-- base de datos;
-- backend;
-- cámara;
-- login;
-- PIN;
-- integración con GetJusto.
-
-Estas funcionalidades están actualmente fuera del alcance o descartadas. Solo deben volver a evaluarse mediante una decisión explícita.
-
----
-
-## 4. Estrategia del proyecto
-
-El proyecto sigue una evolución deliberadamente incremental:
+Cuando sea necesario mencionar el proyecto, utilizar términos funcionales o neutrales como:
 
 ```text
-FASE 1
-motor funcional
-    ↓
-FASE 2
 Inventario Barra
-    ↓
-FASE 3
-PWA
-    ↓
-FASE 4
-uso real → problemas reales
-    ↓
-FASE 5
-V2 si demuestra utilidad
-```
-
-La prioridad no es maximizar funcionalidades.
-
-La prioridad es obtener utilidad real con la menor complejidad necesaria.
-
----
-
-## 5. Fase 1 vs. Fase 2
-
-La Fase 1 está completada.
-
-La Fase 2 adapta y refina lo construido para el contexto real de Barra.
-
-No asumir que porque una función ya exista técnicamente está completamente cerrada para producto.
-
-Por ejemplo:
-
-- progreso ya existe → puede requerir refinamiento;
-- feedback ya existe → puede requerir refinamiento;
-- título `Inventario Barra` ya existe → no hay que volver a diseñarlo;
-- resumen ya existe → debe probarse y pulirse, no rehacerse sin necesidad.
-
----
-
-## 6. Catálogo
-
-`data/items.js` es la fuente canónica del catálogo **actual del repositorio**.
-
-Los `id` son identificadores estables.
-
-No cambiarlos gratuitamente.
-
-El catálogo continúa siendo parte del trabajo de Fase 2.
-
-Especialmente:
-
-- confirmar que los ítems correspondan a Barra;
-- revisar el orden físico;
-- revisar nombres;
-- revisar unidades;
-- trabajar la categorización.
-
-### Sobre `category`
-
-`category` es relevante para la evolución del catálogo, pero todavía no debe tratarse como una taxonomía cerrada.
-
-La propiedad está presente en los ítems actuales. Sus valores pueden seguir evolucionando; no asumir que forman una taxonomía definitiva.
-
----
-
-## 7. Modelo de datos
-
-El modelo actualmente presente en `data/items.js` utiliza:
-
-- `id`
-- `name`
-- `category`
-- `area`
-- `unit`
-- `order`
-- `active`
-
-Si el código referencia propiedades que no existen en el modelo actual, tratarlo como una discrepancia a investigar.
-
-Actualmente todos los ítems pertenecen al área `Barra`. Si se incorporan otras áreas, asignar el valor correcto a cada ítem.
-
----
-
-## 8. Principios de implementación
-
-Aplicar **KISS**.
-
-Preferir:
-
-- cambios pequeños;
-- soluciones simples;
-- comportamiento explícito;
-- reutilización razonable;
-- bajo acoplamiento innecesario.
-
-Mantener HTML + CSS + JavaScript vanilla mientras siga siendo suficiente.
-
-No introducir:
-
-- frameworks;
-- librerías;
-- bundlers;
-- backend;
-- nuevas capas arquitectónicas;
-
-sin una necesidad concreta y justificada.
-
-No hacer refactors grandes como efecto secundario de una tarea pequeña.
-
----
-
-## 9. Mobile first
-
-La aplicación se utiliza principalmente desde teléfono durante un inventario.
-
-Priorizar:
-
-- controles táctiles;
-- lectura rápida;
-- cantidades fáciles de introducir;
-- navegación clara;
-- estados reconocibles;
-- progreso comprensible;
-- poca fricción.
-
-La compactación visual debe aumentar la información útil visible sin perjudicar:
-
-- legibilidad;
-- tamaño de controles;
-- accesibilidad;
-- comprensión.
-
----
-
-## 10. Trabajo con el usuario
-
-El usuario está aprendiendo progresivamente programación, Git, terminales y agentes.
-
-Cuando introduzcas una herramienta, concepto o patrón probablemente nuevo:
-
-- explica brevemente qué es;
-- explica para qué sirve;
-- explica por qué se utiliza.
-
-No convertir tareas rutinarias en tutoriales extensos.
-
-### Tareas pequeñas
-
-Si la tarea está claramente definida, actuar directamente.
-
-### Tareas complejas
-
-Para cambios de:
-
-- arquitectura;
-- modelo de datos;
-- dependencias;
-- comportamiento importante;
-- refactors grandes;
-- migraciones;
-- alcance;
-
-explicar primero brevemente qué se entendió y cuál es el enfoque.
-
-Usar `/plan` cuando la tarea se beneficie realmente de una secuencia revisable.
-
-No pedir confirmación para cada paso interno.
-
----
-
-## 11. Ambigüedad
-
-Si existe una ambigüedad menor y una interpretación razonable no cambia materialmente el resultado, puede hacerse la suposición y comunicarla.
-
-Si la ambigüedad puede cambiar:
-
-- el producto;
-- el modelo;
-- la arquitectura;
-- los datos reales;
-- el alcance;
-
-no inventar una decisión.
-
-Señalar primero la incertidumbre relevante.
-
----
-
-## 12. Git
-
-Trabajar de forma conservadora con Git.
-
-Revisar `git status` cuando sea relevante.
-
-No sobrescribir cambios no relacionados del usuario.
-
-No ejecutar automáticamente operaciones destructivas como:
-
-- `git reset --hard`;
-- eliminación masiva;
-- limpieza destructiva;
-- descarte de cambios.
-
-No ejecutar automáticamente:
-
-- `git commit`;
-- `git push`.
-
-Commit y push requieren una solicitud explícita del usuario.
-
-Después de cambios relevantes, revisar:
-
-```text
-git diff
-git status
-```
-
----
-
-## 13. Validación
-
-Después de modificar código:
-
-1. revisar el diff;
-2. ejecutar las validaciones pertinentes;
-3. comprobar sintaxis cuando corresponda;
-4. probar el comportamiento afectado cuando sea posible.
-
-No afirmar que algo está verificado si no fue comprobado.
-
-Indicar claramente qué se validó y qué no pudo validarse.
-
----
-
-## 14. Dependencias y configuración
-
-No instalar dependencias únicamente por conveniencia.
-
-Antes de añadir una dependencia considerar:
-
-- necesidad real;
-- alternativas existentes;
-- complejidad añadida;
-- mantenimiento;
-- impacto sobre el proyecto.
-
-No modificar configuración global del sistema sin necesidad.
-
----
-
-## 15. Documentación
-
-Mantener la documentación pequeña y con responsabilidades claras:
-
-- `AGENTS.md` → reglas para el agente en este repo.
-- `docs/project-context.md` → contexto, decisiones, estado y cuestiones abiertas.
-- `docs/roadmap.md` → fases y secuencia de evolución.
-- `README.md` → entrada rápida para una persona.
-
-No crear un Markdown nuevo para cada cambio.
-
-Actualizar documentación cuando cambie realmente:
-
-- una decisión;
-- el alcance;
-- el estado importante;
-- el modelo;
-- la fase;
-- una cuestión abierta relevante.
-
-No modificar `AGENTS.md` por cambios normales del código.
-
----
-
-## 16. Documentación de OpenAI
-
-Cuando una tarea dependa de Codex, herramientas, configuración, CLI o APIs de OpenAI, usar documentación oficial actual cuando sea necesario.
-
-No asumir que una instrucción, opción o comportamiento antiguo sigue vigente sin verificarlo cuando la diferencia pueda importar.
-
----
-
-## 17. Regla de oro
-
-No construir por construir.
-
-El objetivo es que Inventario Barra resuelva correctamente un problema real con el mínimo nivel de complejidad necesario.
-
-**Primero utilidad.  
-Después evidencia.  
-Después mejoras justificadas.**
+Pedido
+Inventario
+Gestión de stock

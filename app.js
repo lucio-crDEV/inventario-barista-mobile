@@ -1,6 +1,6 @@
 /*
  * ============================================================
- * BRIOCHE — APLICACIÓN RAÍZ
+ * APLICACIÓN RAÍZ
  * ============================================================
  *
  * Este archivo contiene únicamente comportamiento global
