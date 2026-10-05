@@ -214,24 +214,13 @@ button:disabled {
 }
 
 
-.warehouse-subtitle {
-  margin:
-    3px 0 10px;
-
-  color: #666;
-
-  font-size: 0.79rem;
-
-  text-align: center;
-}
-
-
 /* ============================================================
    BÚSQUEDA
    ============================================================ */
 
 .warehouse-search-wrap {
   position: relative;
+  margin: .75rem 0;
 }
 
 
@@ -476,13 +465,7 @@ button:disabled {
    ============================================================ */
 
 .warehouse-zone-summary {
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  gap: 10px;
+  text-align: right;
 
   color: #666;
 

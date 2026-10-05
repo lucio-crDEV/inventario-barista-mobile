@@ -35,12 +35,6 @@ const pageTitle =
   );
 
 
-const pageSubtitle =
-  document.querySelector(
-    "#page-subtitle"
-  );
-
-
 const headerBack =
   document.querySelector(
     "#header-back"
@@ -611,10 +605,6 @@ function updateChrome() {
       "Pedido a Bodega";
 
 
-    pageSubtitle.textContent =
-      "Selecciona una zona o busca un producto.";
-
-
     headerBack.innerHTML = `
       <span aria-hidden="true">
         ←
@@ -647,10 +637,6 @@ function updateChrome() {
       "Pedido a Bodega";
 
 
-    pageSubtitle.textContent =
-      "Indica cuánto necesitas pedir.";
-
-
     headerBack.innerHTML = `
       <span aria-hidden="true">
         ←
@@ -676,18 +662,6 @@ function updateChrome() {
 
   pageTitle.textContent =
     "Pedido actual";
-
-
-  pageSubtitle.textContent =
-    selectedCount === 0
-
-      ? "Aún no hay productos seleccionados."
-
-      : `${selectedCount} ${
-          selectedCount === 1
-            ? "producto"
-            : "productos"
-        } seleccionados.`;
 
 
   headerBack.innerHTML = `
@@ -896,13 +870,6 @@ function renderZoneItems(zone) {
     <section class="warehouse-view">
 
       <div class="warehouse-zone-summary">
-
-        <span>
-          ${visibleItems.length}
-          de
-          ${zoneItems.length}
-          productos
-        </span>
 
         <span>
           ${selectedCount}
@@ -1343,10 +1310,7 @@ function renderSummary() {
 
       ? `
         <div class="warehouse-empty-state">
-
           Tu pedido todavía está vacío.
-          Puedes volver y agregar productos.
-
         </div>
       `
 
