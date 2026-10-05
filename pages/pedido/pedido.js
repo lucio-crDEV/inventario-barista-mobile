@@ -65,6 +65,11 @@ const currentOrderCount =
   );
 
 
+let storageWarning = false;
+
+let sessionNeedsSave = false;
+
+
 let session =
   loadSession();
 
@@ -128,9 +133,11 @@ function createId() {
 
 function loadSession() {
 
+  let saved;
+
   try {
 
-    const saved =
+    saved =
       localStorage.getItem(
         STORAGE_KEY
       );
@@ -142,40 +149,6 @@ function loadSession() {
     }
 
 
-    const parsed =
-      JSON.parse(saved);
-
-
-    if (
-      !parsed ||
-      typeof parsed !== "object" ||
-      parsed.schemaVersion !== 1
-    ) {
-
-      return createSession();
-    }
-
-
-    if (
-      !parsed.quantities ||
-      typeof parsed.quantities !== "object"
-    ) {
-
-      parsed.quantities = {};
-    }
-
-
-    if (
-      typeof parsed.responsible !==
-      "string"
-    ) {
-
-      parsed.responsible = "";
-    }
-
-
-    return parsed;
-
   } catch (error) {
 
     console.error(
@@ -183,8 +156,234 @@ function loadSession() {
       error
     );
 
+    storageWarning = true;
 
     return createSession();
+  }
+
+
+  let parsed;
+
+  try {
+
+    parsed = JSON.parse(saved);
+
+  } catch (error) {
+
+    console.error(
+      "No se pudo interpretar el pedido:",
+      error
+    );
+
+    sessionNeedsSave = true;
+
+    return createSession();
+  }
+
+
+  if (
+    !isPlainObject(parsed) ||
+    parsed.schemaVersion !== 1
+  ) {
+
+    sessionNeedsSave = true;
+
+    return createSession();
+  }
+
+
+  const normalized =
+    normalizeSession(parsed);
+
+
+  sessionNeedsSave =
+    JSON.stringify(normalized) !==
+    JSON.stringify(parsed);
+
+
+  return normalized;
+}
+
+
+function isPlainObject(value) {
+
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+  );
+}
+
+
+function normalizeSession(rawSession) {
+
+  const normalized = {
+    ...createSession(),
+    ...rawSession,
+    schemaVersion: 1
+  };
+
+
+  if (
+    typeof normalized.id !== "string" ||
+    normalized.id.length === 0
+  ) {
+
+    normalized.id = createId();
+  }
+
+
+  if (
+    typeof normalized.date !== "string" ||
+    Number.isNaN(Date.parse(normalized.date))
+  ) {
+
+    normalized.date = new Date().toISOString();
+  }
+
+
+  if (
+    typeof normalized.responsible !== "string"
+  ) {
+
+    normalized.responsible = "";
+  }
+
+
+  if (typeof normalized.searchTerm !== "string") {
+
+    normalized.searchTerm = "";
+  }
+
+
+  normalized.quantities =
+    normalizeQuantities(rawSession.quantities);
+
+
+  if (
+    !["zones", "items", "summary"].includes(
+      normalized.view
+    )
+  ) {
+
+    normalized.view = "zones";
+  }
+
+
+  if (
+    typeof normalized.zone !== "string" ||
+    !zones.includes(normalized.zone)
+  ) {
+
+    normalized.zone = null;
+  }
+
+
+  if (
+    normalized.view === "items" &&
+    normalized.zone === null
+  ) {
+
+    normalized.view = "zones";
+  }
+
+
+  if (normalized.view === "zones") {
+
+    normalized.zone = null;
+  }
+
+
+  return normalized;
+}
+
+
+function normalizeQuantities(quantities) {
+
+  if (!isPlainObject(quantities)) {
+
+    return {};
+  }
+
+
+  const catalogItemIds = new Set(
+    warehouseOrderItems.map(item => item.id)
+  );
+
+  const normalized = {};
+
+
+  for (const [itemId, quantity] of Object.entries(quantities)) {
+
+    if (
+      !catalogItemIds.has(itemId) ||
+      typeof quantity !== "number" ||
+      !Number.isFinite(quantity) ||
+      quantity <= 0
+    ) {
+
+      continue;
+    }
+
+
+    const rounded =
+      Math.round(quantity * 1000) / 1000;
+
+
+    if (Number.isFinite(rounded) && rounded > 0) {
+
+      normalized[itemId] = rounded;
+    }
+  }
+
+
+  return normalized;
+}
+
+
+function updateStorageWarning() {
+
+  const existing =
+    appContent.querySelector(
+      "#storage-warning"
+    );
+
+
+  if (!storageWarning) {
+
+    existing?.remove();
+
+    return;
+  }
+
+
+  const warning =
+    existing ||
+    document.createElement("p");
+
+
+  warning.id = "storage-warning";
+
+  warning.className =
+    "warehouse-empty-state";
+
+  warning.setAttribute(
+    "role",
+    "status"
+  );
+
+  warning.setAttribute(
+    "aria-live",
+    "polite"
+  );
+
+  warning.textContent =
+    "No se pudieron guardar los cambios en este dispositivo. Permanecerán disponibles mientras esta página esté abierta.";
+
+
+  if (!existing) {
+
+    appContent.prepend(warning);
   }
 }
 
@@ -203,10 +402,34 @@ function saveSession() {
     searchTerm;
 
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(session)
-  );
+  try {
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(session)
+    );
+
+    storageWarning = false;
+
+    sessionNeedsSave = false;
+
+    updateStorageWarning();
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "No se pudo guardar el pedido:",
+      error
+    );
+
+    storageWarning = true;
+
+    updateStorageWarning();
+
+    return false;
+  }
 }
 
 
@@ -331,11 +554,7 @@ function render() {
 
     renderSummary();
 
-    return;
-  }
-
-
-  if (
+  } else if (
     currentView === "items" &&
     currentZone
   ) {
@@ -344,21 +563,23 @@ function render() {
       currentZone
     );
 
-    return;
+  } else {
+
+    currentView =
+      "zones";
+
+
+    currentZone =
+      null;
+
+
+    saveSession();
+
+    renderZones();
   }
 
 
-  currentView =
-    "zones";
-
-
-  currentZone =
-    null;
-
-
-  saveSession();
-
-  renderZones();
+  updateStorageWarning();
 }
 
 
@@ -1621,6 +1842,12 @@ window.addEventListener(
     searchTerm =
       session.searchTerm ||
       "";
+
+
+    if (sessionNeedsSave) {
+
+      saveSession();
+    }
 
 
     render();

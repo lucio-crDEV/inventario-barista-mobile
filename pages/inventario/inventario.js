@@ -49,6 +49,11 @@ const activeItems = items
     );
 
 
+let storageWarning = false;
+
+let sessionNeedsSave = false;
+
+
 let session =
     loadSession();
 
@@ -101,12 +106,12 @@ function createId() {
 
 function loadSession() {
 
+    let saved;
+
     try {
 
-        const saved =
-            localStorage.getItem(
-                STORAGE_KEY
-            );
+        saved =
+            localStorage.getItem(STORAGE_KEY);
 
 
         if (!saved) {
@@ -115,61 +120,6 @@ function loadSession() {
         }
 
 
-        const parsed =
-            JSON.parse(saved);
-
-
-        if (
-            !parsed ||
-            typeof parsed !== "object" ||
-            ![2, 3].includes(
-                parsed.schemaVersion
-            ) ||
-            !parsed.counts
-        ) {
-
-            return createSession();
-        }
-
-
-        if (
-            parsed.schemaVersion === 2
-        ) {
-
-            parsed.schemaVersion = 3;
-
-
-            if (
-                parsed.view === "count"
-            ) {
-
-                parsed.view =
-                    "categories";
-            }
-
-
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(parsed)
-            );
-        }
-
-
-        if (
-            ![
-                "categories",
-                "count",
-                "summary"
-            ].includes(parsed.view)
-        ) {
-
-            parsed.view =
-                "categories";
-        }
-
-
-        return parsed;
-
     } catch (error) {
 
         console.error(
@@ -177,18 +127,271 @@ function loadSession() {
             error
         );
 
+        storageWarning = true;
 
         return createSession();
     }
+
+
+    let parsed;
+
+    try {
+
+        parsed = JSON.parse(saved);
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo interpretar la sesión:",
+            error
+        );
+
+        sessionNeedsSave = true;
+
+        return createSession();
+    }
+
+
+    if (
+        !isPlainObject(parsed) ||
+        ![2, 3].includes(parsed.schemaVersion)
+    ) {
+
+        sessionNeedsSave = true;
+
+        return createSession();
+    }
+
+
+    const originalSchemaVersion =
+        parsed.schemaVersion;
+
+
+    const normalized = {
+        ...createSession(),
+        ...parsed,
+        schemaVersion: 3
+    };
+
+
+    if (
+        originalSchemaVersion === 2 &&
+        normalized.view === "count"
+    ) {
+
+        normalized.view = "categories";
+    }
+
+
+    if (
+        typeof normalized.id !== "string" ||
+        normalized.id.length === 0
+    ) {
+
+        normalized.id = createId();
+    }
+
+
+    if (!isValidDateString(normalized.date)) {
+
+        normalized.date = new Date().toISOString();
+    }
+
+
+    if (!isValidDateString(normalized.startedAt)) {
+
+        normalized.startedAt = normalized.date;
+    }
+
+
+    if (
+        !Number.isInteger(normalized.currentIndex)
+    ) {
+
+        normalized.currentIndex = 0;
+    }
+
+
+    normalized.currentIndex = Math.min(
+        Math.max(normalized.currentIndex, 0),
+        Math.max(activeItems.length - 1, 0)
+    );
+
+
+    if (
+        ![
+            "categories",
+            "count",
+            "summary"
+        ].includes(normalized.view)
+    ) {
+
+        normalized.view = "categories";
+    }
+
+
+    if (typeof normalized.responsible !== "string") {
+
+        normalized.responsible = "";
+    }
+
+
+    normalized.counts =
+        normalizeCounts(normalized.counts);
+
+
+    sessionNeedsSave =
+        originalSchemaVersion !== 3 ||
+        JSON.stringify(normalized) !==
+            JSON.stringify(parsed);
+
+
+    return normalized;
+}
+
+
+function isPlainObject(value) {
+
+    return Boolean(
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value)
+    );
+}
+
+
+function isValidDateString(value) {
+
+    return typeof value === "string" &&
+        !Number.isNaN(Date.parse(value));
+}
+
+
+function normalizeCounts(counts) {
+
+    if (!isPlainObject(counts)) {
+
+        return {};
+    }
+
+
+    const catalogItemsById = new Map(
+        items.map(item => [item.id, item])
+    );
+
+    const normalizedCounts = {};
+
+
+    for (const [itemId, rawCount] of Object.entries(counts)) {
+
+        const item = catalogItemsById.get(itemId);
+
+
+        if (!item || !isPlainObject(rawCount)) {
+
+            continue;
+        }
+
+
+        const count = {
+            ...rawCount
+        };
+
+        const validStatus = [
+            "pending",
+            "partial",
+            "counted"
+        ].includes(count.status);
+
+        if (!validStatus) {
+
+            count.status = "pending";
+        }
+
+
+        if (
+            count.quantity !== null &&
+            (
+                typeof count.quantity !== "number" ||
+                !Number.isFinite(count.quantity) ||
+                count.quantity < 0
+            )
+        ) {
+
+            count.quantity = null;
+        }
+
+
+        if (
+            ["partial", "counted"].includes(count.status) &&
+            count.quantity === null
+        ) {
+
+            count.status = "pending";
+        }
+
+
+        if (typeof count.note !== "string") {
+
+            count.note = "";
+        }
+
+
+        if (typeof count.unit !== "string") {
+
+            count.unit = item.unit;
+        }
+
+
+        if (
+            count.countedAt !== null &&
+            typeof count.countedAt !== "string"
+        ) {
+
+            count.countedAt = null;
+        }
+
+
+        count.itemId = itemId;
+
+        normalizedCounts[itemId] = count;
+    }
+
+
+    return normalizedCounts;
 }
 
 
 function saveSession() {
 
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(session)
-    );
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(session)
+        );
+
+        storageWarning = false;
+
+        sessionNeedsSave = false;
+
+        updateStorageWarning();
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo guardar la sesión:",
+            error
+        );
+
+        storageWarning = true;
+
+        updateStorageWarning();
+
+        return false;
+    }
 }
 
 
@@ -910,9 +1113,21 @@ function startNewSession() {
     closeNewSessionConfirmation();
 
 
-    localStorage.removeItem(
-        STORAGE_KEY
-    );
+    try {
+
+        localStorage.removeItem(
+            STORAGE_KEY
+        );
+
+    } catch (error) {
+
+        console.error(
+            "No se pudo limpiar la sesión anterior:",
+            error
+        );
+
+        storageWarning = true;
+    }
 
 
     session =
@@ -987,37 +1202,67 @@ function render() {
         activeItems.length === 0;
 
 
-    if (
-        activeItems.length === 0
-    ) {
+    if (activeItems.length === 0) {
 
         renderEmptyState();
 
-        return;
-    }
-
-
-    if (
-        session.view === "summary"
-    ) {
+    } else if (session.view === "summary") {
 
         renderSummary();
 
-        return;
-    }
-
-
-    if (
-        session.view === "categories"
-    ) {
+    } else if (session.view === "categories") {
 
         renderCategories();
 
+    } else {
+
+        renderCurrentItem();
+    }
+
+
+    updateStorageWarning();
+}
+
+
+function updateStorageWarning() {
+
+    const existing =
+        appContent.querySelector(
+            "#storage-warning"
+        );
+
+
+    if (!storageWarning) {
+
+        existing?.remove();
+
         return;
     }
 
 
-    renderCurrentItem();
+    const warning =
+        existing ||
+        document.createElement("p");
+
+
+    warning.id = "storage-warning";
+
+    warning.className =
+        "feedback feedback-error";
+
+    warning.setAttribute(
+        "aria-live",
+        "polite"
+    );
+
+    warning.textContent =
+        "No se pudieron guardar los cambios en este dispositivo. Permanecerán disponibles mientras esta página esté abierta.";
+
+
+    if (!existing) {
+
+        appContent.prepend(warning);
+    }
 }
 
 
@@ -2533,7 +2778,7 @@ function showFeedback(
 
     const feedback =
         document.querySelector(
-            ".feedback"
+            ".feedback:not(#storage-warning)"
         );
 
 
@@ -2705,5 +2950,12 @@ function setupModalEvents() {
 // ============================================================
 
 setupModalEvents();
+
+
+if (sessionNeedsSave) {
+
+    saveSession();
+}
+
 
 render();
