@@ -231,7 +231,7 @@ button:disabled {
    ============================================================ */
 
 .warehouse-search-wrap {
-  display: block;
+  position: relative;
 }
 
 
@@ -246,7 +246,7 @@ button:disabled {
   min-height: 46px;
 
   padding:
-    10px 13px;
+    10px 48px 10px 13px;
 
   border:
     1px solid #ccc;
@@ -259,9 +259,45 @@ button:disabled {
 
   outline: none;
 
-  font-size: 0.94rem;
+  font-size: 16px;
 
   -webkit-appearance: none;
+}
+
+
+.warehouse-search-clear {
+  position: absolute;
+
+  top: 50%;
+
+  right: 3px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 42px;
+
+  min-height: 42px;
+
+  transform: translateY(-50%);
+
+  border: 0;
+
+  background: transparent;
+
+  color: #666;
+
+  font-size: 1.5rem;
+
+  line-height: 1;
+}
+
+
+.warehouse-search-clear[hidden] {
+  display: none;
 }
 
 

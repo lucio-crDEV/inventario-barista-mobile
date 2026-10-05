@@ -53,6 +53,12 @@ const globalSearch =
   );
 
 
+const clearSearchButton =
+  document.querySelector(
+    "#clear-search"
+  );
+
+
 const currentOrderButton =
   document.querySelector(
     "#current-order-button"
@@ -624,6 +630,10 @@ function updateChrome() {
       searchTerm;
 
 
+    clearSearchButton.hidden =
+      searchTerm.length === 0;
+
+
     return;
   }
 
@@ -656,6 +666,10 @@ function updateChrome() {
       searchTerm;
 
 
+    clearSearchButton.hidden =
+      searchTerm.length === 0;
+
+
     return;
   }
 
@@ -684,6 +698,10 @@ function updateChrome() {
 
 
   globalSearch.hidden =
+    true;
+
+
+  clearSearchButton.hidden =
     true;
 }
 
@@ -1758,6 +1776,14 @@ function setSearchTerm(
     value;
 
 
+  globalSearch.value =
+    searchTerm;
+
+
+  clearSearchButton.hidden =
+    searchTerm.length === 0;
+
+
   saveSession();
 
   render();
@@ -1806,6 +1832,18 @@ globalSearch.addEventListener(
     setSearchTerm(
       event.target.value
     );
+
+  }
+);
+
+
+clearSearchButton.addEventListener(
+  "click",
+  () => {
+
+    setSearchTerm("");
+
+    globalSearch.focus();
 
   }
 );
