@@ -65,6 +65,24 @@ const currentOrderCount =
   );
 
 
+const clearOrderModal =
+  document.querySelector(
+    "#clear-order-modal"
+  );
+
+
+const cancelClearOrderButton =
+  document.querySelector(
+    "#cancel-clear-order"
+  );
+
+
+const confirmClearOrderButton =
+  document.querySelector(
+    "#confirm-clear-order"
+  );
+
+
 let storageWarning = false;
 
 let sessionNeedsSave = false;
@@ -1460,6 +1478,20 @@ function renderSummary() {
           💬 Enviar por WhatsApp
         </button>
 
+
+        <button
+          id="clear-order"
+          class="
+            warehouse-button
+            warehouse-button-danger
+          "
+          type="button"
+          ${selected.length === 0 ? "disabled" : ""}
+          aria-label="Limpiar pedido completo"
+        >
+          🗑️ Limpiar pedido
+        </button>
+
       </div>
 
     </section>
@@ -1513,6 +1545,16 @@ function setupSummaryEvents() {
     .addEventListener(
       "click",
       sendWhatsApp
+    );
+
+
+  document
+    .querySelector(
+      "#clear-order"
+    )
+    .addEventListener(
+      "click",
+      openClearOrderConfirmation
     );
 
 
@@ -1620,6 +1662,120 @@ function setupSummaryEvents() {
 
       }
     );
+}
+
+
+// ============================================================
+// LIMPIAR PEDIDO
+// ============================================================
+
+function openClearOrderConfirmation() {
+
+  clearOrderModal.hidden =
+    false;
+
+
+  document.body.classList.add(
+    "modal-open"
+  );
+
+
+  confirmClearOrderButton.focus();
+}
+
+
+function closeClearOrderConfirmation() {
+
+  clearOrderModal.hidden =
+    true;
+
+
+  document.body.classList.remove(
+    "modal-open"
+  );
+}
+
+
+function clearCurrentOrder() {
+
+  closeClearOrderConfirmation();
+
+
+  try {
+
+    localStorage.removeItem(
+      STORAGE_KEY
+    );
+
+  } catch (error) {
+
+    console.error(
+      "No se pudo limpiar el pedido anterior:",
+      error
+    );
+
+    storageWarning = true;
+  }
+
+
+  session =
+    createSession();
+
+
+  currentView =
+    session.view;
+
+
+  currentZone =
+    session.zone;
+
+
+  searchTerm =
+    session.searchTerm;
+
+
+  saveSession();
+
+
+  render();
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+function setupClearOrderModalEvents() {
+
+  cancelClearOrderButton
+    .addEventListener(
+      "click",
+      closeClearOrderConfirmation
+    );
+
+
+  confirmClearOrderButton
+    .addEventListener(
+      "click",
+      clearCurrentOrder
+    );
+
+
+  clearOrderModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        clearOrderModal
+      ) {
+
+        closeClearOrderConfirmation();
+      }
+    }
+  );
 }
 
 
@@ -1813,6 +1969,21 @@ clearSearchButton.addEventListener(
 );
 
 
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Escape" &&
+      !clearOrderModal.hidden
+    ) {
+
+      closeClearOrderConfirmation();
+    }
+  }
+);
+
+
 currentOrderButton.addEventListener(
   "click",
   openSummary
@@ -1861,6 +2032,8 @@ window.addEventListener(
 // ============================================================
 // INICIALIZACIÓN
 // ============================================================
+
+setupClearOrderModalEvents();
 
 saveSession();
 

@@ -88,6 +88,76 @@
 
 
   <!-- ======================================================
+       MODAL: LIMPIAR PEDIDO
+       ====================================================== -->
+
+  <div
+    id="clear-order-modal"
+    class="modal-backdrop"
+    hidden
+  >
+
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="clear-order-modal-title"
+    >
+
+      <div
+        class="modal-icon"
+        aria-hidden="true"
+      >
+        !
+      </div>
+
+
+      <h2 id="clear-order-modal-title">
+        ¿Limpiar pedido actual?
+      </h2>
+
+
+      <p>
+        Se perderá
+        <strong>
+          todo el contenido del pedido actual
+        </strong>,
+        incluyendo cantidades y responsable.
+      </p>
+
+
+      <p>
+        Esta acción no se puede deshacer.
+      </p>
+
+
+      <div class="modal-actions">
+
+        <button
+          id="cancel-clear-order"
+          class="warehouse-button warehouse-button-secondary"
+          type="button"
+        >
+          Cancelar
+        </button>
+
+
+        <button
+          id="confirm-clear-order"
+          class="warehouse-button warehouse-button-danger"
+          type="button"
+        >
+          Sí, limpiar pedido
+        </button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- ======================================================
        PEDIDO ACTUAL
        ====================================================== -->
 
