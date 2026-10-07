@@ -65,6 +65,12 @@ const currentOrderCount =
   );
 
 
+const currentOrderBar =
+  document.querySelector(
+    ".warehouse-order-bar"
+  );
+
+
 const clearOrderModal =
   document.querySelector(
     "#clear-order-modal"
@@ -606,6 +612,10 @@ function render() {
 // ============================================================
 
 function updateChrome() {
+
+  currentOrderBar.hidden =
+    currentView === "summary";
+
 
   const selectedCount =
     getSelectedCount();
