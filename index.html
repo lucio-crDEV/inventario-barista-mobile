@@ -10,133 +10,219 @@
 
   <meta
     name="theme-color"
-    content="#ffffff"
+    content="#f5f5f5"
   >
 
-  <title>Inventario Barra</title>
+  <title>Servicio</title>
 
-  <link
-    rel="stylesheet"
-    href="./styles.css"
-  >
+  <style>
+    :root {
+      color-scheme: light;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+
+      padding:
+        32px 16px
+        calc(32px + env(safe-area-inset-bottom));
+    }
+
+    .home-header {
+      display: grid;
+      gap: 8px;
+
+      margin:
+        24px 0
+        24px;
+
+      text-align: center;
+    }
+
+    .home-brand {
+      margin: 0;
+
+      color: #777;
+
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    .home-header h1 {
+      margin: 0;
+
+      font-size:
+        clamp(
+          1.4rem,
+          5vw,
+          1.7rem
+        );
+
+      line-height: 1.2;
+    }
+
+    .home-actions {
+      display: grid;
+      gap: 12px;
+    }
+
+    .home-module-card {
+    text-align: center;
+      display: grid;
+      gap: 5px;
+
+      min-height: 132px;
+      padding: 18px;
+
+      border:
+        1px solid #ddd;
+
+      border-radius: 14px;
+
+      background: #fff;
+
+      color: #222;
+      text-decoration: none;
+
+      box-shadow:
+        0 2px 8px
+        rgb(0 0 0 / 6%);
+
+      transition:
+        transform 0.08s ease,
+        box-shadow 0.08s ease;
+    }
+
+    .home-module-card:active {
+      transform: scale(0.985);
+
+      box-shadow:
+        0 1px 4px
+        rgb(0 0 0 / 5%);
+    }
+
+    .home-module-card:focus-visible {
+      outline:
+        3px solid
+        rgb(0 0 0 / 15%);
+
+      outline-offset: 2px;
+    }
+
+    .home-module-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .home-module-title {
+      margin-top: 4px;
+
+      font-size: 1.05rem;
+      font-weight: 750;
+    }
+
+    .home-module-description {
+      color: #666;
+
+      font-size: 0.82rem;
+      line-height: 1.3;
+    }
+
+    @media (min-width: 560px) {
+      .home-actions {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
 </head>
 
 <body>
 
   <main class="app">
 
-    <header class="app-header">
+    <header class="home-header">
 
-      <div class="app-title-row">
-        <button
-          id="header-back-to-categories"
-          class="header-back-button"
-          type="button"
-          aria-label="Volver a categorías"
-          hidden
-        >
-          <span class="back-arrow" aria-hidden="true">
-            ←
-          </span>
-
-        </button>
-
-        <h1>Inventario Barra</h1>
-        
-      </div>
-
-      <section
-        id="progress-bar-container"
-        class="progress-bar-container"
-        aria-label="Progreso: contados en verde, parciales en amarillo y pendientes en gris"
-      >
-        <div
-          id="progress-bar"
-          class="progress-bar"
-        ></div>
-        <div
-          id="progress-bar-partial"
-          class="progress-bar progress-bar-partial"
-        ></div>
-      </section>
-
-      <p id="progress-text">
-        0 / 0 contados
+      <p class="home-brand">
+        SERVICIO
       </p>
+
+
     </header>
 
 
-    <section id="app-content">
-      <!-- Contenido generado por app.js -->
+    <section
+      class="home-actions"
+      aria-label="Módulos"
+    >
+
+      <a
+        class="home-module-card"
+        href="./pages/inventario/"
+      >
+
+        <span
+          class="home-module-icon"
+          aria-hidden="true"
+        >
+          📋
+        </span>
+
+        <span class="home-module-title">
+          Inventario Barra
+        </span>
+
+      </a>
+
+
+      <a
+        class="home-module-card"
+        href="./pages/pedido/"
+      >
+
+        <span
+          class="home-module-icon"
+          aria-hidden="true"
+        >
+          📦
+        </span>
+
+        <span class="home-module-title">
+          Pedido a Bodega
+        </span>
+
+      </a>
+
     </section>
 
   </main>
-
-
-  <!-- ======================================================
-       MODAL: NUEVO INVENTARIO
-       ====================================================== -->
-
-  <div
-    id="confirm-modal"
-    class="modal-backdrop"
-    hidden
-  >
-
-    <section
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-modal-title"
-    >
-
-      <div class="modal-icon">
-        !
-      </div>
-
-      <h2 id="confirm-modal-title">
-        ¿Comenzar un nuevo inventario?
-      </h2>
-
-      <p>
-        Se perderá
-        <strong>todo el progreso del inventario actual</strong>,
-        incluyendo cantidades, notas y estados.
-      </p>
-
-      <p>
-        Esta acción no se puede deshacer.
-      </p>
-
-      <div class="modal-actions">
-
-        <button
-          id="cancel-new-session"
-          class="button button-secondary"
-          type="button"
-        >
-          Cancelar
-        </button>
-
-        <button
-          id="confirm-new-session"
-          class="button button-danger"
-          type="button"
-        >
-          Sí, borrar progreso
-        </button>
-
-      </div>
-
-    </section>
-
-  </div>
-
-
-  <script
-    type="module"
-    src="./app.js"
-  ></script>
 
 </body>
 </html>
