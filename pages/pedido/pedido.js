@@ -632,13 +632,8 @@ function updateChrome() {
     pageTitle.textContent =
       "Pedido a Bodega";
 
-
-    headerBack.innerHTML = `
-      <span aria-hidden="true">
-        ←
-      </span>
-    `;
-
+    headerBack.hidden = 
+      true;
 
     globalSearch.hidden =
       false;
@@ -664,6 +659,8 @@ function updateChrome() {
       currentZone ||
       "Pedido a Bodega";
 
+    headerBack.hidden = 
+      false;
 
     headerBack.innerHTML = `
       <span aria-hidden="true">
@@ -691,6 +688,8 @@ function updateChrome() {
   pageTitle.textContent =
     "Pedido actual";
 
+    headerBack.hidden = 
+      false;
 
   headerBack.innerHTML = `
     <span aria-hidden="true">
@@ -1947,9 +1946,6 @@ headerBack.addEventListener(
       return;
     }
 
-
-    window.location.href =
-      "../../";
 
   }
 );
