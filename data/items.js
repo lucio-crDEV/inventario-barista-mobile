@@ -31,7 +31,7 @@ export const items = [
     name: "Chai En Polvo 504 (bolsa 1,8 Kg)",
     category: "Insumos",
     area: "Barra",
-    unit: "Kg",
+    unit: "gr",
     order: 4,
     active: true
   },
@@ -40,7 +40,7 @@ export const items = [
     name: "Chocolate en polvo 504 (bolsa 2 Kg)",
     category: "Insumos",
     area: "Barra",
-    unit: "Kg",
+    unit: "gr",
     order: 5,
     active: true
   },
@@ -152,7 +152,6 @@ export const items = [
     order: 17,
     active: true
   },
-
   {
     id: "pulpa-chirimoya-Kg",
     name: "Pulpa Chirimoya",
@@ -216,14 +215,49 @@ export const items = [
     order: 24,
     active: true
   },
-
+  {
+    id: "pulpa-naranja-Kg",
+    name: "Pulpa Naranja",
+    category: "Congelados",
+    area: "Barra",
+    unit: "Kg",
+    order: 25,
+    active: true
+  },
+  {
+    id: "porcion-naranja",
+    name: "PE PORCION JUGO NARANJA (EXTRA)",
+    category: "Congelados",
+    area: "Barra",
+    unit: "UN",
+    order: 26,
+    active: true
+  },
+  {
+    id: "porcion-primaveral",
+    name: "PE PORCION JUGO PRIMAVERAL (EXTRA)",
+    category: "Congelados",
+    area: "Barra",
+    unit: "UN",
+    order: 27,
+    active: true
+  },
+  {
+    id: "porcion-mancora",
+    name: "PE PORCION JUGO MANCORA (EXTRA)",
+    category: "Congelados",
+    area: "Barra",
+    unit: "UN",
+    order: 28,
+    active: true
+  },
   {
     id: "porcion-chirimoya",
     name: "PE PORCION JUGO CHIRIMOYA (EXTRA)",
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 25,
+    order: 29,
     active: true
   },
   {
@@ -232,7 +266,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 26,
+    order: 30,
     active: true
   },
   {
@@ -241,7 +275,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 27,
+    order: 31,
     active: true
   },
   {
@@ -250,7 +284,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 28,
+    order: 32,
     active: true
   },
   {
@@ -259,7 +293,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 29,
+    order: 33,
     active: true
   },
   {
@@ -268,7 +302,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 30,
+    order: 34,
     active: true
   },
   {
@@ -277,17 +311,16 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "UN",
-    order: 31,
+    order: 35,
     active: true
   },
-
   {
     id: "leche-sin-lactosa",
     name: "Leche desc / sin lactosa 1 Lt",
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 32,
+    order: 36,
     active: true
   },
   {
@@ -296,7 +329,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 33,
+    order: 37,
     active: true
   },
   {
@@ -305,7 +338,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 34,
+    order: 38,
     active: true
   },
   {
@@ -314,7 +347,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 35,
+    order: 39,
     active: true
   },
   {
@@ -323,17 +356,16 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 36,
+    order: 40,
     active: true
   },
-
   {
     id: "flor-jamaica",
     name: "flor jamaica",
     category: "Te / Infusiones",
     area: "Barra",
     unit: "gr",
-    order: 37,
+    order: 41,
     active: true
   },
   {
@@ -342,7 +374,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 38,
+    order: 42,
     active: true
   },
   {
@@ -351,7 +383,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "gr",
-    order: 39,
+    order: 43,
     active: true
   },
   {
@@ -360,7 +392,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 40,
+    order: 44,
     active: true
   },
   {
@@ -369,7 +401,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 41,
+    order: 45,
     active: true
   },
   {
@@ -378,7 +410,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 42,
+    order: 46,
     active: true
   },
   {
@@ -387,7 +419,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 43,
+    order: 47,
     active: true
   },
   {
@@ -396,7 +428,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 44,
+    order: 48,
     active: true
   },
   {
@@ -405,7 +437,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 45,
+    order: 49,
     active: true
   },
   {
@@ -414,7 +446,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 46,
+    order: 50,
     active: true
   },
   {
@@ -423,17 +455,16 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "UN",
-    order: 47,
+    order: 51,
     active: true
   },
-
   {
     id: "tapa-vaso-350-cc",
     name: "TAPA VASO 350 CC PLASTICO",
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 48,
+    order: 52,
     active: true
   },
   {
@@ -442,7 +473,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 49,
+    order: 53,
     active: true
   },
   {
@@ -451,7 +482,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 50,
+    order: 54,
     active: true
   },
   {
@@ -460,7 +491,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 51,
+    order: 55,
     active: true
   },
   {
@@ -469,7 +500,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 52,
+    order: 56,
     active: true
   },
   {
@@ -478,7 +509,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 53,
+    order: 57,
     active: true
   },
   {
@@ -487,7 +518,7 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 54,
+    order: 58,
     active: true
   },
   {
@@ -496,17 +527,16 @@ export const items = [
     category: "Desechables",
     area: "Barra",
     unit: "UN",
-    order: 55,
+    order: 59,
     active: true
   },
-
   {
     id: "cafiza2",
     name: "Cafiza2",
     category: "Limpieza",
     area: "Barra",
     unit: "gr",
-    order: 56,
+    order: 60,
     active: true
   },
   {
@@ -515,7 +545,7 @@ export const items = [
     category: "Limpieza",
     area: "Barra",
     unit: "ml",
-    order: 57,
+    order: 61,
     active: true
   },
   {
@@ -524,17 +554,16 @@ export const items = [
     category: "Limpieza",
     area: "Barra",
     unit: "gr",
-    order: 58,
+    order: 62,
     active: true
   },
-
   {
     id: "limon-sutil",
     name: "Limón Sutil",
     category: "Insumos",
     area: "Barra",
     unit: "Kg",
-    order: 59,
+    order: 63,
     active: true
   },
   {
@@ -543,8 +572,8 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Kg",
-    order: 60,
-    active: false
+    order: 64,
+    active: true
   },
   {
     id: "crema-vegetal",
@@ -552,7 +581,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Lt",
-    order: 61,
+    order: 65,
     active: true
   },
   {
@@ -561,7 +590,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Lt",
-    order: 62,
+    order: 66,
     active: true
   },
   {
@@ -570,7 +599,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Lt",
-    order: 63,
+    order: 67,
     active: true
   },
   {
@@ -579,7 +608,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "UN",
-    order: 64,
+    order: 68,
     active: true
   },
   {
@@ -588,7 +617,7 @@ export const items = [
     category: "Insumos",
     area: "Barra",
     unit: "Kg",
-    order: 65,
+    order: 69,
     active: true
   },
   {
@@ -597,7 +626,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Lt",
-    order: 66,
+    order: 70,
     active: true
   },
   {
@@ -606,7 +635,7 @@ export const items = [
     category: "Te / Infusiones",
     area: "Barra",
     unit: "gr",
-    order: 67,
+    order: 71,
     active: true
   },
   {
@@ -615,17 +644,16 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Kg",
-    order: 68,
+    order: 72,
     active: true
   },
-
   {
     id: "hielo-cubos",
     name: "Hielo cubos",
     category: "Congelados",
     area: "Barra",
     unit: "Kg",
-    order: 69,
+    order: 73,
     active: false
   },
   {
@@ -634,7 +662,7 @@ export const items = [
     category: "Congelados",
     area: "Barra",
     unit: "Kg",
-    order: 70,
+    order: 74,
     active: true
   },
 ];
