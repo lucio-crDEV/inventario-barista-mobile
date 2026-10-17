@@ -46,10 +46,10 @@ export const warehouseOrderItems = [
   { id: "jenjibre", name: "JENJIBRE", zone: "Barra", unit: "kg", order: 30, active: true },
   
   { id: "chai-polvo", name: "CHAI polvo", zone: "Barra", unit: "unidad", order: 31, active: true },
-  { id: "choco-polvo", name: "Choco polvo", zone: "Barra", unit: "unidad", order: 32, active: true },
+  { id: "choco-polvo", name: "Chocolate polvo", zone: "Barra", unit: "unidad", order: 32, active: true },
   { id: "monalisa-crema", name: "MONALISA crema", zone: "Barra", unit: "unidad", order: 33, active: true },
-  { id: "choco-blanco", name: "CHOCO blanco", zone: "Barra", unit: "unidad", order: 34, active: true },
-  { id: "choco-liquido", name: "CHOCO liquido", zone: "Barra", unit: "unidad", order: 35, active: true },
+  { id: "choco-blanco", name: "CHOCOLATE blanco", zone: "Barra", unit: "unidad", order: 34, active: true },
+  { id: "choco-liquido", name: "CHOCOLATE liquido", zone: "Barra", unit: "unidad", order: 35, active: true },
   { id: "caramelo-liquido", name: "CARAMELO liquido", zone: "Barra", unit: "unidad", order: 36, active: true },
   { id: "xantana-clara-huev", name: "XANTANA -CLARA HUEV", zone: "Barra", unit: "unidad", order: 37, active: true },
   { id: "oreo", name: "OREO", zone: "Barra", unit: "paquete", order: 38, active: true },
