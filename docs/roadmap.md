@@ -1,379 +1,48 @@
-# Roadmap — Inventario Barra
+# Roadmap — inventory-v2
 
-Este documento define la secuencia de evolución acordada para el producto.
+## Propósito
 
-Las fases son prioridades de desarrollo.
+Este roadmap corresponde a la evolución `inventory-v2`. No reutiliza como plan vigente las fases de la aplicación anterior **Inventario Barra**. Distingue la base ya visible en el checkout de trabajo que todavía necesita definición o implementación.
 
-Una funcionalidad perteneciente a una fase futura no debe adelantarse simplemente porque sea técnicamente posible.
+## Estado de referencia
 
----
+En el checkout auditado:
 
-# FASE 1 — Motor de inventario ✅
+- la aplicación raíz registra rutas independientes para Inventario y Pedido;
+- Inventario tiene un catálogo de áreas y un catálogo de productos cargado para Barra;
+- el módulo de inventario gestiona sesión local, vistas de categorías/conteo/resumen y persistencia con esquema 3;
+- las otras áreas están declaradas, pero no tienen productos en el catálogo importado actualmente;
+- la existencia de la ruta Pedido no demuestra que el módulo esté terminado.
 
-**Estado: COMPLETADA**
+## Líneas de trabajo
 
-Objetivo:
+### 1. Consolidar el inventario actual
 
-Construir el motor funcional básico del inventario.
+Usar el flujo existente con el catálogo presente y comprobar que las operaciones habituales sean coherentes: navegación, registro y edición de conteos, estados, resumen y recuperación de sesión local. Documentar problemas reproducibles y criterios de aceptación antes de ampliar alcance.
 
-Incluye:
+### 2. Definir el despliegue multiárea
 
-```text
-pending
-partial
-counted
-localStorage
-navegación
-resumen
-responsable
-copiar / compartir
-decimales
-```
+Las áreas declaradas son Barra, Línea + Armado + Copería, Panadería, Pastelería y Cocina. Antes de cargar áreas adicionales, confirmar catálogo, responsables, orden de recorrido y cualquier diferencia operativa que afecte el modelo o la experiencia. Implementar y verificar la separación por área de extremo a extremo; no darla por terminada por la mera presencia de `areas.js`.
 
-La Fase 1 establece la base funcional del producto.
+### 3. Aclarar el alcance de Pedido
 
----
+Mantener el trabajo de Pedido separado del inventario y revisar la línea `warehouse-order` para recuperar su contexto. Definir qué pertenece a `inventory-v2` y qué permanece en la rama de pedidos antes de unir o duplicar funcionalidades.
 
-# FASE 2 — Inventario Barra ← ACTUAL
+### 4. Evolucionar datos y persistencia con cuidado
 
-**Estado: EN DESARROLLO**
+Mantener identificadores estables y revisar compatibilidad al modificar catálogo o esquema de sesión. La implementación observada guarda datos en el navegador; necesidades de sincronización, historial o backend requieren una decisión de producto explícita y un plan de migración, no se deducen del almacenamiento local.
 
-Objetivo:
+## Dependencias y criterios de avance
 
-Convertir el motor existente en una herramienta realmente adecuada para el inventario de Barra.
+- El trabajo multiárea depende de datos reales por área y de una definición del proceso operativo.
+- Cambios de modelo o persistencia dependen de conocer cómo se conservarán las sesiones existentes.
+- Una línea se considera lista cuando su comportamiento está implementado, sus datos corresponden al alcance aprobado y los criterios acordados se verificaron en el flujo afectado.
+- No convertir preguntas abiertas en requisitos ni etiquetar como descartada una función sin decisión expresa.
 
----
+## Fuera de este roadmap hasta decisión explícita
 
-## 2.1 Catálogo real de Barra
+El código inspeccionado no basta para concluir compromisos sobre sincronización remota, historial central, autenticación, cámara, mínimos/bajo stock, integraciones externas o políticas de retención. No implementarlos por inferencia; recuperar la decisión del contexto del proyecto o consultarla cuando sea relevante.
 
-**Estado: EN DESARROLLO**
+## Mantenimiento
 
-Trabajar con los inventarios reales y asegurar que el catálogo corresponda efectivamente a Barra.
-
-Tareas:
-
-- revisar selección de productos;
-- depurar catálogo;
-- revisar nombres;
-- revisar unidades;
-- trabajar categorización.
-
-La clasificación de categorías todavía puede evolucionar.
-
-No bloquear el desarrollo funcional por no tener una taxonomía perfecta.
-
----
-
-## 2.2 Orden físico real
-
-**Estado: PENDIENTE / EN TRABAJO**
-
-Ajustar `order` para que represente el recorrido físico utilizado durante el inventario.
-
-Objetivos:
-
-- reducir desplazamientos;
-- reducir búsquedas;
-- hacer natural la secuencia.
-
-El orden físico tiene prioridad sobre un orden alfabético arbitrario.
-
----
-
-## 2.3 Título "Inventario Barra"
-
-**Estado: ✅ IMPLEMENTADO**
-
-La aplicación utiliza actualmente:
-
-**Inventario Barra**
-
-El cambio reemplazó la denominación anterior:
-
-`Inventario Barista`
-
-El cambio también se refleja en el resumen y en el nombre utilizado al compartir.
-
----
-
-## 2.4 UX móvil definitiva
-
-**Estado: EN DESARROLLO**
-
-Refinar la interfaz para uso real desde teléfono.
-
-Prioridades:
-
-- controles táctiles;
-- lectura rápida;
-- ingreso claro de cantidades;
-- navegación mediante cuadrícula dinámica de categorías y conteo dentro de cada categoría;
-- comprensión de estados;
-- mínima fricción.
-
-La cuadrícula muestra dos categorías por fila. Cada una indica los ítems contados sobre el total y los parciales por separado. Al guardar un ítem como contado o parcial, se avanza al siguiente dentro de la categoría. Al terminar una categoría, se vuelve a la cuadrícula; cuando ya no quedan pendientes, incluidos los parciales, se abre el resumen.
-
----
-
-## 2.5 Progreso
-
-**Estado: ✅ IMPLEMENTADO / REFINAMIENTO F2**
-
-Ya existe:
-
-- texto de progreso;
-- barra visual;
-- contador de procesados;
-- porcentaje.
-
-La Fase 2 busca determinar si esta presentación es adecuada para el uso real.
-
-No reconstruir innecesariamente el motor existente.
-
----
-
-## 2.6 Feedback
-
-**Estado: ✅ IMPLEMENTADO / REFINAMIENTO F2**
-
-Ya existe feedback para:
-
-- conteo guardado;
-- avance parcial;
-- errores;
-- copiar;
-- compartir;
-- otras acciones relevantes.
-
-Fase 2 busca refinarlo para que sea:
-
-- claro;
-- útil;
-- visible;
-- poco intrusivo.
-
----
-
-## 2.7 Compactación visual
-
-**Estado: EN DESARROLLO**
-
-Optimizar la densidad visual para mostrar más información útil en pantalla.
-
-No reducir tamaños indiscriminadamente.
-
-Preservar:
-
-- legibilidad;
-- accesibilidad;
-- controles táctiles;
-- comprensión.
-
----
-
-## 2.8 Resolver discrepancia del modelo
-
-**Estado: ✅ RESUELTO**
-
-`app.js` referencia:
-
-```text
-item.category
-item.area
-```
-
-Ambas propiedades ya están presentes en cada ítem de `data/items.js`. Actualmente todos los ítems pertenecen al área `Barra`; la categorización sigue abierta a revisión y no se considera una taxonomía definitiva.
-
----
-
-## 2.9 Pruebas con inventario completo
-
-**Estado: PENDIENTE**
-
-Probar el flujo con todos los ítems actuales de Barra.
-
-Verificar:
-
-- navegación;
-- orden;
-- cantidades;
-- decimales;
-- estados;
-- progreso;
-- feedback;
-- persistencia;
-- resumen;
-- copiar;
-- compartir;
-- nueva sesión;
-- comportamiento general con todo el catálogo.
-
-La prueba debe aproximarse al uso real.
-
----
-
-# FASE 3 — PWA
-
-**Estado: FUTURA**
-
-Objetivo:
-
-Convertir la versión estabilizada de Inventario Barra en una Progressive Web App.
-
-Incluye:
-
-```text
-manifest
-instalación
-offline
-```
-
-No adelantar esta fase mientras la experiencia principal de Barra continúe cambiando significativamente.
-
----
-
-# FASE 4 — Optimización post-uso real
-
-**Estado: FUTURA**
-
-Objetivo:
-
-Mejorar exclusivamente problemas observados durante inventarios reales.
-
-Regla:
-
-> **No optimizar por especulación. Optimizar problemas reales.**
-
-Las mejoras pueden surgir de:
-
-- pasos innecesarios;
-- errores frecuentes;
-- confusión;
-- problemas de navegación;
-- problemas de lectura;
-- problemas con cantidades;
-- problemas con persistencia;
-- problemas con PWA/offline;
-- otras fricciones observadas.
-
-No crear una lista cerrada de problemas antes de utilizarlos en la práctica.
-
----
-
-# FASE 5 — V2
-
-**Estado: FUTURA / CONDICIONADA A UTILIDAD**
-
-Objetivo:
-
-Incorporar únicamente funciones adicionales que demuestren utilidad real.
-
-Primeras ideas consideradas:
-
-```text
-mínimos
-bajo stock
-otras necesidades descubiertas
-```
-
-Estas ideas no forman parte del MVP actual.
-
-No implementarlas antes de su momento.
-
----
-
-# DESCARTADO
-
-Actualmente están fuera del proyecto:
-
-```text
-historial
-DB
-cámara
-login
-PIN
-otras áreas
-```
-
-No deben tratarse como pendientes.
-
-No deben reaparecer automáticamente en propuestas del agente.
-
-Solo pueden regresar mediante una decisión explícita posterior.
-
----
-
-# Secuencia global
-
-```text
-FASE 1 ✅
-Motor de inventario
-├── pending
-├── partial
-├── counted
-├── localStorage
-├── navegación
-├── resumen
-├── responsable
-├── copiar / compartir
-└── decimales
-
-        ↓
-
-FASE 2 ← ACTUAL
-Inventario Barra
-├── catálogo real de Barra
-├── orden físico real
-├── título "Inventario Barra" ✅
-├── UX móvil definitiva
-├── progreso → refinamiento
-├── feedback → refinamiento
-├── compactación visual
-├── resolver discrepancia del modelo
-└── pruebas con inventario completo
-
-        ↓
-
-FASE 3
-PWA
-├── manifest
-├── instalación
-└── offline
-
-        ↓
-
-FASE 4
-Optimización post-uso real
-└── solo problemas observados
-    durante inventarios reales
-
-        ↓
-
-FASE 5 — V2
-Funciones adicionales que demuestren utilidad
-├── mínimos
-├── bajo stock
-└── otras necesidades descubiertas
-```
-
----
-
-# Regla del roadmap
-
-La prioridad siempre sigue esta secuencia:
-
-**1. Hacer que funcione.**
-
-**2. Hacer que funcione bien para Barra.**
-
-**3. Probarlo en condiciones reales.**
-
-**4. Aprender de los problemas reales.**
-
-**5. Agregar solo aquello que demuestre utilidad.**
-
-Una fase futura puede cambiar, eliminarse o redefinirse si la experiencia real demuestra que ya no tiene sentido.
-
-El roadmap no es una obligación de construir todo.
-
-Es una guía de evolución.
+Revisa este roadmap cuando cambie una decisión o una dependencia. Mantén el plan centrado en el siguiente trabajo útil y en sus criterios observables. Recalcula el estado desde la rama y el código vigentes, no desde documentación histórica.

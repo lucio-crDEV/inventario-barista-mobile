@@ -1,14 +1,14 @@
-# Inventario Barra
+# inventory-v2
 
-MVP web móvil para digitalizar el inventario semanal del área de Barra / Cafetería de Brioche Bakery.
+Aplicación web modular para la evolución del sistema de inventario de Brioche Bakery. Este repositorio corresponde a la línea `inventory-v2`; no es la versión anterior de **Inventario Barra**.
 
-## Estado actual
+## Estado del checkout
 
-El proyecto está en desarrollo activo. La aplicación ya implementa el flujo base de inventario, con sesión local, estados de conteo, progreso, notas, responsable, resumen y persistencia mediante `localStorage`.
+El checkout auditado está en la rama `inventory-v2`. La aplicación raíz dirige a módulos separados de inventario y pedido. El módulo de inventario importa un catálogo y una lista de áreas desde `data/inventario/`, conserva una sesión local en `localStorage` y usa un esquema de sesión versión 3.
 
-El catálogo actual está en `data/items.js`.
+El catálogo actual contiene 74 registros: 72 activos y 2 inactivos. Los registros presentes pertenecen al área Barra. El catálogo de áreas declara cinco áreas, pero esa declaración por sí sola no implica que haya productos o un flujo completo para cada área.
 
-## Estructura
+## Estructura principal
 
 ```text
 .
@@ -18,22 +18,28 @@ El catálogo actual está en `data/items.js`.
 ├── index.html
 ├── styles.css
 ├── data/
-│   └── items.js
+│   └── inventario/
+│       ├── areas.js
+│       └── items/
+│           ├── index.js
+│           └── barra.js
+├── pages/
+│   ├── inventario/
+│   │   ├── index.html
+│   │   ├── inventario.css
+│   │   └── inventario.js
+│   └── pedido/
 └── docs/
     ├── project-context.md
     └── roadmap.md
 ```
 
-## Documentación para trabajar con Codex
+## Documentación
 
-- `AGENTS.md`: reglas generales que el agente debe seguir en este repositorio.
-- `docs/project-context.md`: contexto consolidado del producto y de la implementación.
-- `docs/roadmap.md`: secuencia de trabajo y posibles evoluciones.
+- `AGENTS.md`: reglas de trabajo en este repositorio.
+- `docs/project-context.md`: decisiones, estado observado y cuestiones abiertas.
+- `docs/roadmap.md`: orden de trabajo y criterios para avanzar.
 
-## Principio de desarrollo
+## Trabajo en el repositorio
 
-Primero se busca una versión funcional y útil del MVP. El refinamiento del catálogo —por ejemplo, categorías, nombres y unidades— se realiza después, utilizando lo aprendido durante el uso real.
-
-## Git
-
-Los cambios deben mantenerse pequeños y revisables. Revisa siempre `git diff` y `git status` antes de aceptar o publicar cambios.
+Comprueba la rama y `git status` antes de editar; revisa `git diff` después. No hagas commit ni push sin solicitud explícita. Consulta `AGENTS.md` para las instrucciones completas.

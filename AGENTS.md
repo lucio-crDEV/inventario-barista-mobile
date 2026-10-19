@@ -1,385 +1,58 @@
-# AGENTS.md
+# AGENTS.md — inventory-v2
 
 ## Propósito
 
-Este repositorio contiene **Inventario Barra**, una aplicación web móvil para digitalizar el inventario semanal del área de Barra / Cafetería de Brioche Bakery.
+Este repositorio desarrolla `inventory-v2`: una aplicación web modular para gestionar inventario y, en una rama de trabajo separada, pedidos internos. No confundirlo con la aplicación anterior **Inventario Barra** ni trasladar automáticamente a esta rama sus límites de producto o su roadmap.
 
-Este archivo define **cómo debe trabajar un agente en este repositorio**.
+Para conocer estado, decisiones y trabajo pendiente, consulta `docs/project-context.md` y `docs/roadmap.md`. Este archivo contiene reglas de trabajo, no una copia del contexto completo.
 
-Para entender el producto, sus decisiones y su planificación, consultar según necesidad:
+## Cómo interpretar el proyecto
 
-- `docs/project-context.md`
-- `docs/roadmap.md`
+Antes de actuar, separa explícitamente:
 
-No duplicar aquí todo el contexto del proyecto.
+- decisiones vigentes del usuario;
+- comportamiento comprobable en el código de esta rama;
+- trabajo pendiente o en exploración;
+- contexto histórico de otras ramas y versiones.
 
----
+El código muestra lo implementado, no necesariamente todas las decisiones de producto. La documentación expresa intención, pero puede quedar obsoleta. Si se contradicen, identifica la diferencia y no conviertas una inferencia en requisito.
 
-## 1. Prioridad de información
+## Ramas y alcance
 
-Antes de modificar algo, distinguir entre:
+El proyecto mantiene líneas de trabajo diferenciadas: `main` corresponde a la versión estable anterior de Inventario Barra; `warehouse-order` corresponde al trabajo de Pedido a Bodega; `inventory-v2` es la evolución del sistema de inventario. Comprueba la rama antes de tareas que dependan de esa separación y no mezcles cambios entre ramas por conveniencia.
 
-- instrucción explícita del usuario;
-- decisión vigente del proyecto;
-- implementación actual;
-- pendiente;
-- idea futura;
-- histórico;
-- descartado.
+`inventory-v2` ya tiene una estructura de áreas que declara Barra, Línea + Armado + Copería, Panadería, Pastelería y Cocina. En el catálogo que acompaña al checkout auditado, los productos cargados corresponden a Barra. No afirmes que las otras áreas tienen catálogo o flujo operativo completo solo porque aparezcan en `data/inventario/areas.js`.
 
-Una decisión posterior reemplaza una decisión anterior.
+El módulo de Pedido está separado del módulo de Inventario. No asumir que sus datos, flujos o decisiones son intercambiables.
 
-Una idea futura no es un requisito actual.
+## Inspección antes de editar
 
-Un pendiente no implica una solución definida.
+1. Lee las instrucciones aplicables y los archivos pertinentes.
+2. Revisa rama, estado de Git y diff existente antes de modificar.
+3. Inspecciona las rutas reales. No uses rutas, nombres de campos, claves de almacenamiento, versiones de esquema o cantidades del proyecto anterior sin verificarlas en este checkout.
+4. Protege cambios del usuario. No reemplaces archivos con cambios previos sin entenderlos.
+5. Si el alcance o una decisión de producto no está claro, continúa las comprobaciones independientes y pregunta solo cuando la respuesta cambie sustancialmente el resultado.
 
-Una funcionalidad descartada no debe reaparecer como sugerencia automática.
+## Implementación
 
-Cuando exista contradicción entre código y documentación, identificarla antes de asumir cuál de los dos representa la intención correcta.
+- Mantén cambios acotados al objetivo solicitado.
+- Sigue la estructura modular existente bajo `pages/` y `data/`.
+- Conserva HTML, CSS y JavaScript nativos mientras resuelvan el problema.
+- No incorpores áreas, catálogos, integraciones, persistencia remota o dependencias por anticipado.
+- Mantén identificadores y datos existentes salvo que el cambio solicitado los requiera.
+- Prioriza uso móvil, controles claros, lectura rápida y prevención de pérdida accidental de datos.
 
----
+## Git y entrega
 
-## 2. Fase actual
+- No ejecutes `commit`, `push`, `reset`, limpieza destructiva ni publicación salvo solicitud explícita.
+- Después de editar, revisa `git diff` y `git status`.
+- Ejecuta solo las validaciones pertinentes y solicitadas para el cambio. Describe con precisión qué se comprobó y qué no.
 
-El proyecto está actualmente en:
+## Documentación
 
-**FASE 2 — Inventario Barra**
+- `README.md`: entrada breve y estructura real del repositorio.
+- `docs/project-context.md`: contexto, decisiones, implementación observada y dudas abiertas.
+- `docs/roadmap.md`: prioridades, dependencias y criterios de avance.
+- `AGENTS.md`: reglas de trabajo para agentes.
 
-Consultar `docs/roadmap.md` antes de implementar algo que pudiera pertenecer a una fase posterior.
-
-No adelantar por iniciativa propia:
-
-- PWA;
-- manifest;
-- instalación;
-- offline;
-- optimización post-uso;
-- mínimos;
-- bajo stock;
-- funcionalidades de V2.
-
----
-
-## 3. Alcance
-
-El producto actual está limitado a:
-
-**Barra / Cafetería.**
-
-No ampliar espontáneamente a:
-
-- Panadería;
-- Pastelería;
-- Cocina;
-- Coparía u otras áreas.
-
-Tampoco introducir espontáneamente:
-
-- historial;
-- base de datos;
-- backend;
-- cámara;
-- login;
-- PIN;
-- integración con GetJusto.
-
-Estas funcionalidades están actualmente fuera del alcance o descartadas. Solo deben volver a evaluarse mediante una decisión explícita.
-
----
-
-## 4. Estrategia del proyecto
-
-El proyecto sigue una evolución deliberadamente incremental:
-
-```text
-FASE 1
-motor funcional
-    ↓
-FASE 2
-Inventario Barra
-    ↓
-FASE 3
-PWA
-    ↓
-FASE 4
-uso real → problemas reales
-    ↓
-FASE 5
-V2 si demuestra utilidad
-```
-
-La prioridad no es maximizar funcionalidades.
-
-La prioridad es obtener utilidad real con la menor complejidad necesaria.
-
----
-
-## 5. Fase 1 vs. Fase 2
-
-La Fase 1 está completada.
-
-La Fase 2 adapta y refina lo construido para el contexto real de Barra.
-
-No asumir que porque una función ya exista técnicamente está completamente cerrada para producto.
-
-Por ejemplo:
-
-- progreso ya existe → puede requerir refinamiento;
-- feedback ya existe → puede requerir refinamiento;
-- título `Inventario Barra` ya existe → no hay que volver a diseñarlo;
-- resumen ya existe → debe probarse y pulirse, no rehacerse sin necesidad.
-
----
-
-## 6. Catálogo
-
-`data/items.js` es la fuente canónica del catálogo **actual del repositorio**.
-
-Los `id` son identificadores estables.
-
-No cambiarlos gratuitamente.
-
-El catálogo continúa siendo parte del trabajo de Fase 2.
-
-Especialmente:
-
-- confirmar que los ítems correspondan a Barra;
-- revisar el orden físico;
-- revisar nombres;
-- revisar unidades;
-- trabajar la categorización.
-
-### Sobre `category`
-
-`category` es relevante para la evolución del catálogo, pero todavía no debe tratarse como una taxonomía cerrada.
-
-La propiedad está presente en los ítems actuales. Sus valores pueden seguir evolucionando; no asumir que forman una taxonomía definitiva.
-
----
-
-## 7. Modelo de datos
-
-El modelo actualmente presente en `data/items.js` utiliza:
-
-- `id`
-- `name`
-- `category`
-- `area`
-- `unit`
-- `order`
-- `active`
-
-Si el código referencia propiedades que no existen en el modelo actual, tratarlo como una discrepancia a investigar.
-
-Actualmente todos los ítems pertenecen al área `Barra`. Si se incorporan otras áreas, asignar el valor correcto a cada ítem.
-
----
-
-## 8. Principios de implementación
-
-Aplicar **KISS**.
-
-Preferir:
-
-- cambios pequeños;
-- soluciones simples;
-- comportamiento explícito;
-- reutilización razonable;
-- bajo acoplamiento innecesario.
-
-Mantener HTML + CSS + JavaScript vanilla mientras siga siendo suficiente.
-
-No introducir:
-
-- frameworks;
-- librerías;
-- bundlers;
-- backend;
-- nuevas capas arquitectónicas;
-
-sin una necesidad concreta y justificada.
-
-No hacer refactors grandes como efecto secundario de una tarea pequeña.
-
----
-
-## 9. Mobile first
-
-La aplicación se utiliza principalmente desde teléfono durante un inventario.
-
-Priorizar:
-
-- controles táctiles;
-- lectura rápida;
-- cantidades fáciles de introducir;
-- navegación clara;
-- estados reconocibles;
-- progreso comprensible;
-- poca fricción.
-
-La compactación visual debe aumentar la información útil visible sin perjudicar:
-
-- legibilidad;
-- tamaño de controles;
-- accesibilidad;
-- comprensión.
-
----
-
-## 10. Trabajo con el usuario
-
-El usuario está aprendiendo progresivamente programación, Git, terminales y agentes.
-
-Cuando introduzcas una herramienta, concepto o patrón probablemente nuevo:
-
-- explica brevemente qué es;
-- explica para qué sirve;
-- explica por qué se utiliza.
-
-No convertir tareas rutinarias en tutoriales extensos.
-
-### Tareas pequeñas
-
-Si la tarea está claramente definida, actuar directamente.
-
-### Tareas complejas
-
-Para cambios de:
-
-- arquitectura;
-- modelo de datos;
-- dependencias;
-- comportamiento importante;
-- refactors grandes;
-- migraciones;
-- alcance;
-
-explicar primero brevemente qué se entendió y cuál es el enfoque.
-
-Usar `/plan` cuando la tarea se beneficie realmente de una secuencia revisable.
-
-No pedir confirmación para cada paso interno.
-
----
-
-## 11. Ambigüedad
-
-Si existe una ambigüedad menor y una interpretación razonable no cambia materialmente el resultado, puede hacerse la suposición y comunicarla.
-
-Si la ambigüedad puede cambiar:
-
-- el producto;
-- el modelo;
-- la arquitectura;
-- los datos reales;
-- el alcance;
-
-no inventar una decisión.
-
-Señalar primero la incertidumbre relevante.
-
----
-
-## 12. Git
-
-Trabajar de forma conservadora con Git.
-
-Revisar `git status` cuando sea relevante.
-
-No sobrescribir cambios no relacionados del usuario.
-
-No ejecutar automáticamente operaciones destructivas como:
-
-- `git reset --hard`;
-- eliminación masiva;
-- limpieza destructiva;
-- descarte de cambios.
-
-No ejecutar automáticamente:
-
-- `git commit`;
-- `git push`.
-
-Commit y push requieren una solicitud explícita del usuario.
-
-Después de cambios relevantes, revisar:
-
-```text
-git diff
-git status
-```
-
----
-
-## 13. Validación
-
-Después de modificar código:
-
-1. revisar el diff;
-2. ejecutar las validaciones pertinentes;
-3. comprobar sintaxis cuando corresponda;
-4. probar el comportamiento afectado cuando sea posible.
-
-No afirmar que algo está verificado si no fue comprobado.
-
-Indicar claramente qué se validó y qué no pudo validarse.
-
----
-
-## 14. Dependencias y configuración
-
-No instalar dependencias únicamente por conveniencia.
-
-Antes de añadir una dependencia considerar:
-
-- necesidad real;
-- alternativas existentes;
-- complejidad añadida;
-- mantenimiento;
-- impacto sobre el proyecto.
-
-No modificar configuración global del sistema sin necesidad.
-
----
-
-## 15. Documentación
-
-Mantener la documentación pequeña y con responsabilidades claras:
-
-- `AGENTS.md` → reglas para el agente en este repo.
-- `docs/project-context.md` → contexto, decisiones, estado y cuestiones abiertas.
-- `docs/roadmap.md` → fases y secuencia de evolución.
-- `README.md` → entrada rápida para una persona.
-
-No crear un Markdown nuevo para cada cambio.
-
-Actualizar documentación cuando cambie realmente:
-
-- una decisión;
-- el alcance;
-- el estado importante;
-- el modelo;
-- la fase;
-- una cuestión abierta relevante.
-
-No modificar `AGENTS.md` por cambios normales del código.
-
----
-
-## 16. Documentación de OpenAI
-
-Cuando una tarea dependa de Codex, herramientas, configuración, CLI o APIs de OpenAI, usar documentación oficial actual cuando sea necesario.
-
-No asumir que una instrucción, opción o comportamiento antiguo sigue vigente sin verificarlo cuando la diferencia pueda importar.
-
----
-
-## 17. Regla de oro
-
-No construir por construir.
-
-El objetivo es que Inventario Barra resuelva correctamente un problema real con el mínimo nivel de complejidad necesario.
-
-**Primero utilidad.  
-Después evidencia.  
-Después mejoras justificadas.**
+Marca como pendiente lo que no esté implementado o decidido. Actualiza la documentación cuando cambie el estado o una decisión; no perpetúes cifras ni descripciones de versiones antiguas.
