@@ -14,8 +14,8 @@ export const areas = [
     active: true
   },
   {
-    id: "linea-armado",
-    name: "Línea + Armado",
+    id: "linea-armado-coperia",
+    name: "Línea + Armado + Coperia",
     order: 2,
     active: true
   },
