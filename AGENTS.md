@@ -40,6 +40,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - Conserva HTML, CSS y JavaScript nativos mientras resuelvan el problema.
 - No incorpores integraciones, persistencia remota o dependencias por anticipado. Las áreas y sus catálogos pertenecen al objetivo vigente.
 - Mantén identificadores y datos existentes salvo que el cambio solicitado los requiera.
+- Mantén separados los grupos para contar (`countCategory`) de la categoría y demás datos de salida (`exportCategory`, hoja, fila, ID y unidad). En Bodega / Principal, Cocina, Panadería y Pastelería los grupos prácticos se definen por fila en `data/inventario/items/`; cada fila de su hoja debe aparecer exactamente una vez. Reorganizar la pantalla nunca debe cambiar la referencia del Excel.
 - Prioriza uso móvil, controles claros, lectura rápida y prevención de pérdida accidental de datos.
 
 ## Git y entrega
@@ -53,6 +54,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - `README.md`: entrada breve y estructura real del repositorio.
 - `docs/project-context.md`: contexto, decisiones, implementación observada y dudas abiertas.
 - `docs/roadmap.md`: prioridades, dependencias y criterios de avance.
+- `docs/verification.md`: comandos, resultados comprobados y límites de las pruebas.
 - `AGENTS.md`: reglas de trabajo para agentes.
 
 Marca como pendiente lo que no esté implementado o decidido. Actualiza la documentación cuando cambie el estado o una decisión; no perpetúes cifras ni descripciones de versiones antiguas.

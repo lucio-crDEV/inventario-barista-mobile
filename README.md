@@ -18,4 +18,4 @@ python3 tests/workbook_contract.py
 node --check pages/inventario/inventario.js
 ```
 
-La primera prueba revisa cobertura, IDs, asignaciones por área y conversiones conocidas. La segunda compara las 1.151 filas de referencia con el Excel original sin modificarlo. Ambas son verificaciones del catálogo actual; todavía no prueban exportación ni sincronización, porque esas funciones no están implementadas.
+La primera prueba revisa cobertura, IDs, asignaciones por área, los grupos prácticos de Bodega / Principal y conversiones conocidas. La segunda compara las 1.151 filas de referencia con el Excel original sin modificarlo. Ambas son verificaciones del catálogo actual; todavía no prueban exportación ni sincronización, porque esas funciones no están implementadas.

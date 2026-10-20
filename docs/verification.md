@@ -16,9 +16,9 @@ node --check theme.js
 
 Resultados de esta revisión:
 
-- **Catálogo:** 6 pruebas aprobadas. Los 1.227 ítems tienen ID interno único; las 1.151 filas de las cinco hojas de conteo tienen al menos un vínculo; las áreas directas no duplican sus filas; Servicio cubre sus 295 filas y cada zona de Garzones contiene los mismos 16 productos de salida. Las equivalencias acordadas de chai y syrups se mantienen.
+- **Catálogo:** 7 pruebas aprobadas. Los 1.227 ítems tienen ID interno único; las 1.151 filas de las cinco hojas de conteo tienen al menos un vínculo; las áreas directas no duplican sus filas; Servicio cubre sus 295 filas y cada zona de Garzones contiene los mismos 16 productos de salida. La prueba específica de Principal comprueba sus 14 grupos, la asignación de sus 288 filas, nombres y unidades originales, factor de conversión 1 y la separación entre categoría de conteo y categoría de exportación para los dos atunes y el jamón. Las equivalencias acordadas de chai y syrups se mantienen.
 - **Contrato Excel:** 1.151 filas comparadas directamente con `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`; 0 diferencias en ID GetJusto, nombre, unidad y categoría. La prueba lee el libro y no lo modifica.
-- **Sintaxis:** las tres verificaciones JavaScript anteriores terminaron sin errores.
+- **Sintaxis:** las tres verificaciones JavaScript anteriores terminaron sin errores. En la revisión de Principal también pasaron `node --check data/inventario/items/principal.js` y `node --check data/inventario/items/index.js`.
 
 El catálogo conserva **18 ítems de Barra sin fila de exportación** y **2 conversiones pendientes**: Rinza (`ml` a `UN`) y Chocolate Líquido (`Kg` a `un`). Son bloqueos conocidos para una exportación automática completa, no fallos que deban resolverse inventando equivalencias. La planilla `archivos-externos/reuniones/dudas_inventario_por_area.xlsx` organiza las decisiones pendientes con el equipo.
 
@@ -35,6 +35,8 @@ Se usó un origen local aislado para no alterar los conteos abiertos en otras pe
 | Abrir Garzones → Zona privada | Entró directamente al primer ítem y mostró `0 / 16`, sin pantalla de categorías. |
 | Buscar `ajo kg` en el panel lateral | Se mostró solo el producto coincidente; el grupo pudo plegarse y siguió plegado al limpiar la búsqueda. |
 | Elegir «Nuevo inventario» | Se pidió confirmación antes de borrar; al confirmar, Cocina volvió a `0 / 171` en el origen de prueba. |
+
+En la revisión de Bodega / Principal se abrió un origen local aislado: la pantalla mostró **14 grupos y 0 / 288 contados**. «Carnes, aves y pescados» abrió sus tres productos en orden (Atun Coliseo, Atun Dorasol y Jamon Ahumado). Al confirmar cantidad `0` para el jamón, el grupo quedó en **1 / 3** y el área en **1 / 288**; el cero se registró como contado. Este conteo de prueba quedó solo en el navegador de ese origen local.
 
 ## Límites de lo comprobado
 

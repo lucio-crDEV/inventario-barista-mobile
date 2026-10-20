@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { items } from "../data/inventario/items/index.js";
 import { excelRows, serviceRows } from "../data/inventario/items/catalogo-excel.js";
+import { principalCountGroups } from "../data/inventario/items/principal.js";
 
 const rowKey = (sheet, row) => `${sheet}:${row}`;
 const referencedItems = items.filter(item => item.exportRow !== null);
@@ -37,6 +38,33 @@ test("las áreas directas cuentan cada fila una sola vez", () => {
     assert.equal(areaItems.length, excelRows[sheet].length, sheet);
     assert.equal(new Set(areaItems.map(item => item.exportRow)).size,
       excelRows[sheet].length, sheet);
+  }
+});
+
+test("Principal muestra grupos prácticos sin alterar las referencias del Excel", () => {
+  const principalItems = items.filter(item => item.areaId === "principal");
+  const rowGroups = new Map(principalCountGroups.flatMap((group, order) =>
+    group.rows.map(row => [row, { name: group.name, order }])));
+
+  assert.equal(principalCountGroups.length, 14);
+  assert.equal(rowGroups.size, excelRows.principal.length);
+  for (const item of principalItems) {
+    const group = rowGroups.get(item.exportRow);
+    const row = excelRows.principal.find(candidate => candidate[0] === item.exportRow);
+    assert.ok(group, `Fila ${item.exportRow} sin grupo de conteo`);
+    assert.ok(row, `${item.id}: fila inexistente en Principal`);
+    assert.equal(item.countCategory, group.name, item.id);
+    assert.equal(item.countCategoryOrder, group.order, item.id);
+    assert.equal(item.name, row[2], item.id);
+    assert.equal(item.unit, row[3], item.id);
+    assert.equal(item.toExportFactor, 1, item.id);
+  }
+
+  for (const row of [8, 9, 288]) {
+    const item = principalItems.find(candidate => candidate.exportRow === row);
+    assert.equal(item.countCategory, "Carnes, aves y pescados");
+    assert.equal(item.exportCategory,
+      row === 288 ? "Carnes y Aves" : "Abarrotes");
   }
 });
 
