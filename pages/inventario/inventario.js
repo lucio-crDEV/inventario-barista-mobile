@@ -980,6 +980,7 @@ function openItem(index) {
     saveSession();
 
     render();
+    window.scrollTo(0, 0);
 }
 
 
@@ -1117,6 +1118,7 @@ function openCategory(
     saveSession();
 
     render();
+    window.scrollTo(0, 0);
 }
 
 
@@ -1129,6 +1131,7 @@ function openCategories() {
     saveSession();
 
     render();
+    window.scrollTo(0, 0);
 }
 
 
@@ -1147,6 +1150,7 @@ function openSummary() {
     saveSession();
 
     render();
+    window.scrollTo(0, 0);
 
     if (savedFeedback) showToast(savedFeedback, savedTone);
 
@@ -1666,7 +1670,7 @@ function renderItemDrawer(currentItemId) {
         <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems" tabindex="-1">
           <div class="item-drawer-controls">
             <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
-            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado">×</button>
+            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
           </div>
           <div class="item-drawer-list" id="item-drawer-list">
             ${renderItemDrawerList(currentItemId)}
@@ -1975,7 +1979,11 @@ function setupItemDrawerEvents() {
                 drawer.setAttribute("aria-hidden", "false");
                 trigger.setAttribute("aria-expanded", "true");
                 document.body.classList.add("item-drawer-open");
-                search.focus({ preventScroll: true });
+                if (trigger.id === "header-open-item-drawer") {
+                    search.focus({ preventScroll: true });
+                } else {
+                    drawer.querySelector(".item-drawer-panel").focus({ preventScroll: true });
+                }
 
                 const current = drawer.querySelector(".item-drawer-link.is-current");
                 const currentGroup = current?.closest("details.item-drawer-group");
@@ -3171,11 +3179,12 @@ function setupModalEvents() {
         }
 
         if (event.key === "Tab" && drawer) {
-            const focusable = [...drawer.querySelectorAll("button:not([hidden]):not([tabindex='-1']), input:not([hidden])")]
-                .filter(element => !element.closest("[hidden]"));
+            const panel = drawer.querySelector(".item-drawer-panel");
+            const focusable = [...drawer.querySelectorAll("button:not([hidden]):not([tabindex='-1']), input:not([hidden]), summary")]
+                .filter(element => !element.closest("[hidden]") && element.getClientRects().length > 0);
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
-            if (event.shiftKey && document.activeElement === first) {
+            if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
                 event.preventDefault();
                 last.focus();
             } else if (!event.shiftKey && document.activeElement === last) {

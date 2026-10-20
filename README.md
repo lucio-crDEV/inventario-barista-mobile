@@ -6,9 +6,21 @@ La pantalla inicial abre Cocina, Panadería, Pastelería, Servicio o Bodega Prin
 
 Al abrir un grupo se muestra primero el siguiente ítem pendiente o con avance. «Sin stock» guarda explícitamente un cero como contado; «Guardar avance» y «Listo» conservan sus respectivos estados. El panel de ítems y el resumen permiten volver a cualquier producto.
 
+«Ver ítems» abre el panel sin activar el buscador ni el teclado móvil; la lupa del encabezado abre el mismo panel con la búsqueda enfocada. La navegación vuelve al inicio de la página al cambiar de vista o de producto. El selector claro/oscuro usa iconos SVG para mantener su apariencia en Android.
+
 Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 
 El conteo actual sigue guardándose en el navegador mediante `localStorage`. La sincronización entre teléfonos y la generación del Excel final son etapas pendientes. Revisa `docs/project-context.md`, `docs/roadmap.md`, `docs/propuesta-ux-colaboracion.md`, `docs/style-guide.md` y `docs/verification.md` para el estado, las etapas, las decisiones pendientes, el diseño y las comprobaciones realizadas. La planilla de dudas de reunión está en `archivos-externos/reuniones/`.
+
+## Vista local
+
+Desde la raíz del repositorio, inicia un servidor y mantenlo abierto mientras revisas la app:
+
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+Abre `http://127.0.0.1:8765/`. Si el navegador indica que se rechazó la conexión, comprueba que el servidor siga en ejecución.
 
 ## Comprobaciones locales
 
@@ -18,6 +30,8 @@ Con Node.js y Python 3 disponibles, desde la raíz del proyecto:
 node --test tests/catalog.test.mjs tests/summary-transition.test.mjs tests/work-selection.test.mjs
 python3 tests/workbook_contract.py
 node --check pages/inventario/inventario.js
+node --check theme.js
+git diff --check
 ```
 
 Las pruebas de Node revisan el catálogo, el indicador breve del resumen y la selección del siguiente ítem de trabajo. La prueba de Python compara las 1.151 filas de referencia con el Excel original sin modificarlo. Estas verificaciones no prueban exportación ni sincronización, porque esas funciones aún no están implementadas.

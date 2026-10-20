@@ -19,7 +19,6 @@
       const label = dark ? "Activar modo claro" : "Activar modo oscuro";
       button.setAttribute("aria-label", label);
       button.setAttribute("title", label);
-      button.querySelector("[aria-hidden]").textContent = dark ? "☀" : "☾";
     }
 
     const meta = document.querySelector('meta[name="theme-color"]');

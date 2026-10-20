@@ -30,6 +30,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - La base visual es gris con gradientes y superficies translúcidas. Rojo, amarillo y verde tienen significado funcional: pendiente o «Sin stock», avance y contado. Conserva las etiquetas de texto junto al color y el comportamiento de ambos temas. El detalle está en `docs/style-guide.md`.
 - «Sin stock» guarda cantidad cero como contado y marca `outOfStock`; el aviso de guardado es verde y dice «Sin stock guardado.». El ítem conserva su identificación roja. Un cero guardado con «Listo» no lleva esa marca.
 - Al volver a un grupo se prioriza el primer ítem pendiente o con avance. La barra superior de conteo mantiene «Anterior / Ver ítems / Siguiente» y el panel de ítems permite acceder también a los ya contados.
+- «Ver ítems» abre el panel sin enfocar el buscador ni activar el teclado móvil; la lupa del encabezado sí enfoca la búsqueda. La luna y el sol se dibujan con SVG para conservar su apariencia entre plataformas. Al cambiar de vista o de producto se vuelve al inicio de la página.
 - El indicador breve del resumen es decorativo: el contenido está disponible de inmediato, no intercepta interacción y se omite con movimiento reducido. Los avisos superiores duran cuatro segundos, no bloquean gestos y tienen alternativa opaca para transparencia reducida.
 - En `inventory-v2` no existen estados AM/PM ni el flujo de Pedido; verifica la rama correspondiente antes de cambiar esas funciones. No incluyas el nombre del empleador en textos de la app o documentación pública.
 

@@ -81,8 +81,22 @@ El aviso superior conserva el tinte funcional y el texto blanco: verde para los 
 
 La última comprobación pasó las **12 pruebas de Node**, el contrato de **1.151 filas**, la sintaxis de los módulos de Inventario y selección, y `git diff --check`. La apariencia del aviso más transparente queda pendiente de valoración visual en el navegador local.
 
+## Ajuste de navegación y tema del 20-10-2026
+
+El botón «Ver ítems» enfocaba directamente `#item-drawer-search`, lo que seleccionaba el campo y podía abrir el teclado en Android. Ahora enfoca el panel; la lupa del encabezado sigue enfocando el buscador. El recorrido con Tab permanece dentro del panel y Escape devuelve el foco al botón que lo abrió. Los iconos de luna y sol pasan de caracteres dependientes de la fuente del dispositivo a SVG; el centro del sol usa el mismo blanco que sus rayos en modo oscuro.
+
+La barra de navegación del conteo usa tres columnas iguales. Se ajustaron los espacios reservados para búsqueda y tema en el encabezado móvil, el centrado de la flecha de regreso y el comportamiento de títulos largos. Al abrir categorías, resumen o un nuevo producto, la página vuelve arriba para evitar quedar a mitad de una vista recién renderizada. El cierre del panel usa un icono vectorial centrado.
+
+Tras estos cambios pasaron **12 pruebas de Node**, el contrato de **1.151 filas**, la sintaxis de `theme.js` y `pages/inventario/inventario.js`, y `git diff --check`. Estas comprobaciones no simulan la apertura del teclado Android ni sustituyen una revisión visual y táctil en dispositivo; esa revisión sigue pendiente.
+
+La vista local usa el servidor indicado en `README.md`. En esta revisión se comprobó que `/pages/inventario/?area=panaderia` respondía con HTTP 200 después de iniciar el servidor. Un error previo de conexión se debía a que el servidor estaba apagado; esa comprobación HTTP no valida por sí sola el aspecto de la página.
+
+### Preparación de esta entrega
+
+Los cambios de esta ronda abarcan el foco del panel, el recorrido con teclado, el retorno al inicio al navegar, el reparto de la barra de tres acciones, los espacios del encabezado móvil y los iconos SVG de tema y cierre. Se actualizaron `AGENTS.md`, `README.md`, `docs/project-context.md`, `docs/style-guide.md` y este registro. No se cambiaron catálogos, conteos guardados, datos de salida ni el flujo de Pedido. Antes de subir la rama, ejecutar los comandos de «Pruebas repetibles» y revisar visualmente en Android el teclado, los iconos y los títulos largos; esa revisión en dispositivo no se ha realizado aquí.
+
 ## Incidente de navegación en Cloudflare Pages
 
 El despliegue del commit `41cfb35` publicó los archivos, pero la regla `_redirects` enviaba `/` a `/pages/inventario/`. Esa pantalla, cuando no recibía `?area=`, solo ofrecía «Ir al inicio», que volvía a `/` y repetía la redirección. Una URL directa con `?area=cocina` sí cargaba el catálogo.
 
-La corrección elimina esa redirección y muestra las cinco áreas activas cuando se abre `/pages/inventario/` sin parámetros. En la copia local se comprobó que `/` abre la portada, `/pages/inventario/` ofrece las cinco áreas, Cocina abre con sus 171 ítems y el botón «Volver» regresa a la portada. La corrección aún requiere subir la rama y esperar un nuevo despliegue para comprobarla en `inventario-local.pages.dev`.
+La corrección elimina esa redirección y muestra las cinco áreas activas cuando se abre `/pages/inventario/` sin parámetros. En la copia local se comprobó que `/` abre la portada, `/pages/inventario/` ofrece las cinco áreas, Cocina abre con sus 171 ítems y el botón «Volver» regresa a la portada. La verificación del despliegue público actual sigue pendiente; la comprobación local no demuestra su estado.

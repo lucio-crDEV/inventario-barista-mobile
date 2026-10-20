@@ -554,6 +554,8 @@ button:disabled {
 }
 
 .item-drawer-close {
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
   width: 44px;
   height: 44px;
@@ -562,6 +564,15 @@ button:disabled {
   color: #444;
   font-size: 1.8rem;
   line-height: 1;
+}
+
+.item-drawer-close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .item-drawer-search {
