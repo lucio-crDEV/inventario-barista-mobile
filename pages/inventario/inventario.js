@@ -1310,8 +1310,10 @@ function render() {
         session.view === "categories";
     document.querySelector("#header-open-item-drawer").hidden = !showSearch;
     document.querySelector(".app-title-row").classList.toggle("has-search", showSearch);
-    document.querySelector("#progress-bar-container").hidden = choosingScope;
-    progressText.hidden = choosingScope;
+    const isSummary = !choosingScope && session.view === "summary";
+    document.querySelector(".app-header").classList.toggle("is-summary", isSummary);
+    document.querySelector("#progress-bar-container").hidden = choosingScope || isSummary;
+    progressText.hidden = choosingScope || isSummary;
 
     if (!selectedArea) {
         renderScopeChooser("Selecciona un área", areas
@@ -2166,13 +2168,6 @@ function renderSummary() {
             ? "Inventario completo"
             : "Resumen del inventario";
 
-
-    const subtitle =
-        isComplete
-            ? "Todos los ítems están contabilizados."
-            : "Revisa pendientes, avances y productos contados.";
-
-
     const pendingItems =
         getItemsByStatus(
             "pending"
@@ -2206,11 +2201,6 @@ function renderSummary() {
               ${title}
             </h2>
 
-
-            <p>
-              ${subtitle}
-            </p>
-
           </div>
 
         </div>
@@ -2219,7 +2209,11 @@ function renderSummary() {
 
 
       <div class="summary-overview" aria-label="${completionPercent}% del inventario contabilizado">
-        <div class="summary-overview-ring" style="--completion: ${completionPercent}%" aria-hidden="true">
+        <div class="summary-overview-ring" aria-hidden="true">
+          <svg viewBox="0 0 76 76" focusable="false">
+            <circle cx="38" cy="38" r="34" />
+            <circle class="summary-ring-value" cx="38" cy="38" r="34" pathLength="100" stroke-dasharray="${completionPercent} 100" />
+          </svg>
           <span>${completionPercent}%</span>
         </div>
         <div class="summary-overview-copy">

@@ -8,7 +8,7 @@ Al abrir un grupo se muestra primero el siguiente ítem pendiente o con avance. 
 
 «Ver ítems» abre el panel sin activar el buscador ni el teclado móvil. Solo despliega la categoría del producto actual y deja ese producto a la vista; las demás categorías se pueden abrir manualmente. La lupa del encabezado abre el mismo panel con la búsqueda enfocada. La navegación vuelve al inicio de la página al cambiar de vista o de producto. El selector claro/oscuro usa iconos SVG para mantener su apariencia en Android.
 
-La interfaz usa azul hielo y cian en modo claro, y gris carbón en modo oscuro. El rojo indica pendiente y distingue el botón «Sin stock» antes de guardar; el ámbar indica avance y el verde identifica tanto un conteo normal como «Sin stock» ya guardado. Los avisos superiores usan esos colores sobre vidrio translúcido, duran cuatro segundos y entran y salen con movimiento vertical breve; respetan las preferencias de movimiento y transparencia reducidos.
+La interfaz usa blanco crema en modo claro y carbón profundo en modo oscuro, con acentos cian y superficies uniformes sin degradados. El rojo indica pendiente y distingue el botón «Sin stock» antes de guardar; el ámbar indica avance y el verde identifica tanto un conteo normal como «Sin stock» ya guardado. Los avisos superiores usan esos colores sobre vidrio translúcido, duran cuatro segundos y entran y salen con movimiento vertical breve; respetan las preferencias de movimiento y transparencia reducidos.
 
 Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 

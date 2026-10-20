@@ -22,13 +22,18 @@
     }
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = dark ? "#1d252a" : "#e8f5fa";
+    if (meta) meta.content = dark ? "#111315" : "#faf8f3";
   }
 
   applyTheme(savedTheme());
 
   document.addEventListener("DOMContentLoaded", () => {
     applyTheme(savedTheme());
+    document.addEventListener("click", event => {
+      const control = event.target.closest?.(".theme-toggle, .header-back-button, .header-search-button");
+      // Los toques no dejan foco persistente; el teclado conserva su indicador.
+      if (control && event.detail > 0) control.blur();
+    });
     document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
       const next = root.dataset.theme === "dark" ? "light" : "dark";
       try {

@@ -29,7 +29,7 @@ test("el resumen está disponible durante el acento breve y este se retira", () 
   let cleanup;
   const indicator = showSummaryTransition(container, {
     schedule(callback, delay) {
-      assert.equal(delay, 650);
+      assert.equal(delay, 800);
       cleanup = callback;
     }
   });
