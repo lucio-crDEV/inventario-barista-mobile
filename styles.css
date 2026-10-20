@@ -284,10 +284,6 @@ button:disabled {
     box-shadow 0.15s ease;
 }
 
-.category-card:active {
-  transform: scale(0.985);
-}
-
 .category-card-title {
   overflow-wrap: anywhere;
 
@@ -651,10 +647,6 @@ button:disabled {
     opacity 0.2s ease;
 }
 
-.button:active {
-  transform: scale(0.985);
-}
-
 .button-primary {
   border: 0;
 
@@ -957,10 +949,6 @@ button:disabled {
 
 .summary-item-button:last-child {
   border-bottom: 0;
-}
-
-.summary-item-button:active {
-  background: #f7f7f7;
 }
 
 .summary-item-main {

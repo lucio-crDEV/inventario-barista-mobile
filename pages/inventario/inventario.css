@@ -310,11 +310,6 @@ button:disabled {
 }
 
 
-.category-card:active {
-  transform:
-    scale(0.985);
-}
-
 .scope-card {
   min-height: 88px;
   justify-content: center;
@@ -660,10 +655,9 @@ button:disabled {
   text-align: left;
 }
 
-.item-drawer-link:hover,
 .item-drawer-link.is-current {
-  border-color: #bcbcbc;
-  background: rgb(230 230 230 / 52%);
+  border-color: transparent;
+  background: var(--ui-nav-active, rgb(230 230 230 / 52%));
 }
 
 .item-drawer-link.is-current {
@@ -945,11 +939,6 @@ button:disabled {
     opacity 0.2s ease;
 }
 
-
-.button:active {
-  transform:
-    scale(0.985);
-}
 
 
 .button-primary {
@@ -1257,10 +1246,6 @@ button:disabled {
   border-bottom: 0;
 }
 
-
-.summary-item-button:active {
-  background: #f7f7f7;
-}
 
 
 .summary-item-main {

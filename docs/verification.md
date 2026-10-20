@@ -149,3 +149,7 @@ En el origen aislado `127.0.0.1:8766` se revisaron dos ítems guardados «Sin st
 - En el navegador del origen aislado `127.0.0.1:8766` se revisaron Inicio en claro/oscuro, Resumen en claro/oscuro, conteo y panel. Los estilos calculados confirmaron los fondos nuevos y cero fondos con gradiente. Se comprobó la ocultación del progreso duplicado y su restauración al salir del resumen, y se mantuvo verde «Sin stock» guardado.
 - Tras pulsar el toggle y Volver se comprobó que no quedaban enfocados ni con contorno, ni había texto seleccionado. Tab enfocó Volver con contorno visible; Tab y Enter permitieron activar el toggle conservando su indicador de teclado. No se probó en un teléfono físico.
 - Las 12 pruebas de Node, `node --check` para Inventario y tema, y `git diff --check` pasaron. La expectativa de duración del indicador se actualizó al valor vigente de 800 ms del código. No se modificaron datos ni conteos del origen principal.
+
+### Realimentación de botones
+
+Se retiraron los cambios visuales de hover y pulsación de los botones, incluidos cambios de color, borde y escala. Se mantienen los estados de negocio (por ejemplo, categoría actual) y el contorno `:focus-visible` para teclado. La búsqueda de selectores `:hover` y `:active` en las hojas CSS no encontró reglas restantes.
