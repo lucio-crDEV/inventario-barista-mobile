@@ -13,7 +13,7 @@ Generar desde la app un inventario completo con la estructura de `inventarios_og
 
 La propuesta detallada de UX, colaboración y alternativas gratuitas está en `docs/propuesta-ux-colaboracion.md`. Es una propuesta para evaluar antes de implementar nuevas etapas. Las preguntas de reunión viven en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`.
 
-La cobertura del catálogo y el contrato de referencia del Excel tienen pruebas repetibles en `tests/`. La revisión de resultados y simulaciones está en `docs/verification.md`. El panel lateral, la búsqueda, sus categorías plegables, la cuadrícula móvil y el modo oscuro ya existen; la suma/resta por aportes, el trabajo entre teléfonos y la exportación siguen pendientes.
+La cobertura del catálogo y el contrato de referencia del Excel tienen pruebas repetibles en `tests/`. La revisión de resultados y simulaciones está en `docs/verification.md`. El panel lateral, la búsqueda, sus categorías plegables, la cuadrícula móvil, el modo oscuro y la guía visual de vidrio ya existen. El conteo distingue pendiente, avance, contado y «Sin stock» explícito; al reabrir un grupo prioriza el trabajo pendiente. Quedan pendientes la revisión visual e interacción táctil de los últimos ajustes en un teléfono, la suma/resta por aportes, el trabajo entre teléfonos y la exportación.
 
 ## Criterios de avance
 

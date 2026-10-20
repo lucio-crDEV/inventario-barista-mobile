@@ -974,30 +974,6 @@ button:disabled {
 
 
 /* ============================================================
-   NAVEGACIÓN
-   ============================================================ */
-
-.navigation-grid {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr 1fr;
-
-  gap: 8px;
-}
-
-
-.navigation-grid .button {
-  min-height: 42px;
-
-  padding:
-    9px 7px;
-
-  font-size: 0.78rem;
-}
-
-
-/* ============================================================
    FEEDBACK
    ============================================================ */
 
@@ -1572,29 +1548,6 @@ button:disabled {
     align-self: flex-start;
   }
 
-  .navigation-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #previous-item {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  #next-item {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  #open-summary {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
-  .navigation-grid .button {
-    min-height: 44px;
-    font-size: 0.82rem;
-  }
 }
 
 @media (max-width: 380px) {

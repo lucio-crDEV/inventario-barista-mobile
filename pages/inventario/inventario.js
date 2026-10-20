@@ -1,5 +1,7 @@
 import { areas, serviceSectors, garzonZones } from "../../data/inventario/areas.js";
 import { items } from "../../data/inventario/items/index.js";
+import { showSummaryTransition } from "./summary-transition.js";
+import { nextWorkIndex, isOutOfStockCount, feedbackToneForCount } from "./work-selection.js";
 
 
 const STORAGE_KEY =
@@ -86,6 +88,8 @@ let session =
 
 
 let feedbackMessage = "";
+let feedbackTone = "counted";
+let feedbackDismissTimer;
 
 
 // ============================================================
@@ -273,7 +277,9 @@ function loadSession() {
 
     if (normalized.scopeKey !== scopeKey) {
         normalized.scopeKey = scopeKey;
-        normalized.currentIndex = 0;
+        normalized.currentIndex = isGarzonZone
+            ? nextWorkIndex(activeItems, normalized.counts)
+            : 0;
         normalized.view = defaultView;
     }
 
@@ -366,6 +372,8 @@ function normalizeCounts(counts) {
 
             count.status = "pending";
         }
+
+        count.outOfStock = isOutOfStockCount(count);
 
 
         if (typeof count.note !== "string") {
@@ -769,7 +777,9 @@ function formatQuantity(value) {
 // ESTADOS
 // ============================================================
 
-function getStatusIcon(status) {
+function getStatusIcon(status, outOfStock = false) {
+
+    if (status === "counted" && outOfStock) return "🔴";
 
     switch (status) {
 
@@ -792,7 +802,9 @@ function getStatusIcon(status) {
 }
 
 
-function getStatusLabel(status) {
+function getStatusLabel(status, outOfStock = false) {
+
+    if (status === "counted" && outOfStock) return "Sin stock";
 
     switch (status) {
 
@@ -803,7 +815,7 @@ function getStatusLabel(status) {
 
         case "partial":
 
-            return "Parcial";
+            return "Avance";
 
 
         case "pending":
@@ -823,7 +835,8 @@ function registerCount({
     item,
     quantity,
     status,
-    note
+    note,
+    outOfStock = false
 }) {
 
     session.counts[item.id] = {
@@ -841,6 +854,8 @@ function registerCount({
 
         status,
 
+        outOfStock,
+
         note,
 
         countedAt:
@@ -856,7 +871,7 @@ function registerCount({
 // GUARDAR ACTUAL
 // ============================================================
 
-function saveCurrentAs(status) {
+function saveCurrentAs(status, { outOfStock = false } = {}) {
 
     const item =
         getCurrentItem();
@@ -881,7 +896,7 @@ function saveCurrentAs(status) {
 
 
     const quantity =
-        quantityInput
+        outOfStock ? 0 : quantityInput
             ? parseQuantity(
                 quantityInput.value
             )
@@ -918,14 +933,20 @@ function saveCurrentAs(status) {
 
         status,
 
-        note
+        note,
+
+        outOfStock
     });
 
 
     feedbackMessage =
-        status === "counted"
+        outOfStock
+            ? "Sin stock guardado."
+            : status === "counted"
             ? "Conteo guardado."
-            : "Avance guardado como parcial.";
+            : "Avance guardado.";
+
+    feedbackTone = feedbackToneForCount(status, outOfStock);
 
 
     goToNextItem();
@@ -1085,7 +1106,7 @@ function openCategory(
 
     session.currentIndex =
         activeItems.indexOf(
-            categoryItems[0]
+            categoryItems[nextWorkIndex(categoryItems, session.counts)]
         );
 
 
@@ -1113,7 +1134,10 @@ function openCategories() {
 
 function openSummary() {
 
+    const savedFeedback = feedbackMessage;
+    const savedTone = feedbackTone;
     feedbackMessage = "";
+    feedbackTone = "counted";
 
 
     session.view =
@@ -1123,6 +1147,12 @@ function openSummary() {
     saveSession();
 
     render();
+
+    if (savedFeedback) showToast(savedFeedback, savedTone);
+
+    showSummaryTransition(appContent, {
+        reducedMotion: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    });
 }
 
 
@@ -1187,6 +1217,7 @@ function startNewSession() {
 
 
     feedbackMessage = "";
+    feedbackTone = "counted";
 
 
     render();
@@ -1262,6 +1293,10 @@ function render() {
     const choosingScope = !selectedArea ||
         (selectedArea.id === "servicio" && !selectedSector) ||
         (selectedSector?.id === "garzones" && !selectedZone);
+    const showSearch = !choosingScope && activeItems.length > 0 &&
+        session.view === "categories";
+    document.querySelector("#header-open-item-drawer").hidden = !showSearch;
+    document.querySelector(".app-title-row").classList.toggle("has-search", showSearch);
     document.querySelector("#progress-bar-container").hidden = choosingScope;
     progressText.hidden = choosingScope;
 
@@ -1274,14 +1309,16 @@ function render() {
                 url: `?area=${encodeURIComponent(area.id)}`
             })));
     } else if (selectedArea.id === "servicio" && !selectedSector) {
-        renderScopeChooser("Sectores de Servicio", serviceSectors.map(sector => ({
+        renderScopeChooser("", serviceSectors.map(sector => ({
             name: sector.name,
             url: `?area=servicio&sector=${encodeURIComponent(sector.id)}`
         })));
     } else if (selectedSector?.id === "garzones" && !selectedZone) {
-        renderScopeChooser("Zonas de Garzones", garzonZones.map(zone => ({
+        renderScopeChooser("Zonas", garzonZones.map(zone => ({
             name: zone.name,
-            url: `?area=servicio&sector=garzones&zone=${encodeURIComponent(zone.id)}`
+            url: `?area=servicio&sector=garzones&zone=${encodeURIComponent(zone.id)}`,
+            items: items.filter(item => item.active && item.areaId === "servicio"
+                && item.sectorId === "garzones" && item.zoneId === zone.id)
         })));
     } else if (activeItems.length === 0) {
 
@@ -1302,6 +1339,7 @@ function render() {
 
 
     updateStorageWarning();
+    scheduleFeedbackDismissal();
 }
 
 
@@ -1352,15 +1390,28 @@ function updateStorageWarning() {
 // ============================================================
 
 function renderScopeChooser(title, options) {
+    const hasProgress = options.some(option => option.items);
     appContent.innerHTML = `
-      <section class="categories-view">
-        <div class="categories-heading"><h2>${escapeHtml(title)}</h2></div>
+      <section class="categories-view scope-view ${hasProgress ? "scope-view-zones" : ""}">
+        ${title ? `<div class="categories-heading"><h2>${escapeHtml(title)}</h2></div>` : ""}
         <div class="category-grid">
-          ${options.map(option => `
-            <a class="category-card scope-card" href="${option.url}">
+          ${options.map(option => {
+            const stats = option.items ? getCategoryStats(option.items) : null;
+            const partialText = stats?.partial
+                ? ` · ${stats.partial} ${stats.partial === 1 ? "avance" : "avances"}`
+                : "";
+            return `
+            <a class="category-card scope-card" href="${option.url}"
+              ${stats ? `aria-label="${escapeHtml(option.name)}: ${stats.counted} de ${stats.total} contados${partialText}"` : ""}>
               <span class="category-card-title">${escapeHtml(option.name)}</span>
+              ${stats ? `
+                <span class="category-card-progress">${stats.counted} / ${stats.total} contados${partialText}</span>
+                <span class="category-progress-bar" aria-hidden="true">
+                  <span class="category-progress-value" style="width: ${stats.countedPercentage}%"></span>
+                  <span class="category-progress-partial" style="left: ${stats.countedPercentage}%; width: ${stats.partialPercentage}%"></span>
+                </span>` : ""}
             </a>
-          `).join("")}
+          `;}).join("")}
         </div>
       </section>`;
 }
@@ -1378,8 +1429,11 @@ function renderCategories() {
     const currentFeedback =
         feedbackMessage;
 
+    const currentTone = feedbackTone;
+
 
     feedbackMessage = "";
+    feedbackTone = "counted";
 
 
     const categoryCards =
@@ -1396,8 +1450,8 @@ function renderCategories() {
                     const partialText =
                         stats.partial > 0
                             ? ` · ${stats.partial} ${stats.partial === 1
-                                ? "parcial"
-                                : "parciales"
+                                ? "avance"
+                                : "avances"
                             }`
                             : "";
 
@@ -1474,6 +1528,8 @@ function renderCategories() {
         ${categoryCards}
       </div>
 
+      ${renderItemDrawer(null)}
+
 
       <button
         id="open-summary"
@@ -1487,8 +1543,8 @@ function renderCategories() {
       ${currentFeedback
             ? `
             <p
-              class="feedback feedback-success"
-              aria-live="polite"
+              class="feedback feedback-toast feedback-toast-${currentTone}"
+              role="status"
             >
               ${escapeHtml(
                 currentFeedback
@@ -1505,6 +1561,7 @@ function renderCategories() {
     setupCategoryEvents(
         categoryGroups
     );
+    setupItemDrawerEvents();
 }
 
 
@@ -1583,7 +1640,9 @@ function renderItemDrawerList(currentItemId) {
             <summary class="item-drawer-group-toggle">${escapeHtml(category)}</summary>`
         : '<section class="item-drawer-group" data-item-group>'}
         ${groupItems.map(({ item, index }) => {
-            const status = getCount(item.id).status;
+            const count = getCount(item.id);
+            const status = count.status;
+            const outOfStock = isOutOfStockCount(count);
             const isCurrent = item.id === currentItemId;
             return `
               <button
@@ -1592,12 +1651,29 @@ function renderItemDrawerList(currentItemId) {
                 data-item-index="${index}"
                 ${isCurrent ? 'aria-current="true"' : ""}
               >
-                <span class="item-drawer-status status-dot-${status}" aria-hidden="true"></span>
+                <span class="item-drawer-status status-dot-${outOfStock ? "out-of-stock" : status}" aria-hidden="true"></span>
                 <span class="item-drawer-name">${escapeHtml(item.name)}</span>
-                <span class="item-drawer-state">${getStatusLabel(status)}</span>
+                <span class="item-drawer-state">${getStatusLabel(status, outOfStock)}</span>
               </button>`;
         }).join("")}
       ${category ? "</details>" : "</section>"}`).join("");
+}
+
+function renderItemDrawer(currentItemId) {
+    return `
+      <div id="item-drawer" class="item-drawer" aria-hidden="true" inert>
+        <button class="item-drawer-backdrop" type="button" tabindex="-1" aria-label="Cerrar listado de ítems"></button>
+        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems" tabindex="-1">
+          <div class="item-drawer-controls">
+            <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
+            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado">×</button>
+          </div>
+          <div class="item-drawer-list" id="item-drawer-list">
+            ${renderItemDrawerList(currentItemId)}
+          </div>
+          <p id="item-drawer-empty" class="item-drawer-empty" hidden>No encontramos productos con ese nombre.</p>
+        </aside>
+      </div>`;
 }
 
 
@@ -1632,9 +1708,6 @@ function renderCurrentItem() {
     const isLastItem =
         categoryIndex ===
         categoryItems.length - 1;
-
-
-    const drawerItems = renderItemDrawerList(item.id);
 
 
     const safeName =
@@ -1676,21 +1749,26 @@ function renderCurrentItem() {
 
     const statusIcon =
         getStatusIcon(
-            count.status
+            count.status,
+            isOutOfStockCount(count)
         );
 
 
     const statusLabel =
         getStatusLabel(
-            count.status
+            count.status,
+            isOutOfStockCount(count)
         );
 
 
     const currentFeedback =
         feedbackMessage;
 
+    const currentTone = feedbackTone;
+
 
     feedbackMessage = "";
+    feedbackTone = "counted";
 
 
     appContent.innerHTML = `
@@ -1698,7 +1776,16 @@ function renderCurrentItem() {
     <section class="count-view">
 
 
-      <div class="item-navigation-top">
+      <div class="item-navigation-top" role="group" aria-label="Navegación de ítems">
+        <button
+          id="previous-item"
+          class="button button-ghost"
+          type="button"
+          ${categoryIndex === 0 ? "disabled" : ""}
+        >
+          ← Anterior
+        </button>
+
         <button
           id="open-item-drawer"
           class="item-drawer-trigger"
@@ -1711,21 +1798,20 @@ function renderCurrentItem() {
           </span>
           <span class="item-drawer-trigger-label">Ver ítems</span>
         </button>
+
+        <button
+          id="next-item"
+          class="button button-ghost"
+          type="button"
+        >
+          ${isLastItem
+            ? isGarzonZone ? "Resumen →" : "Categorías →"
+            : "Siguiente →"
+        }
+        </button>
       </div>
 
-      <div id="item-drawer" class="item-drawer" aria-hidden="true" inert>
-        <button class="item-drawer-backdrop" type="button" tabindex="-1" aria-label="Cerrar listado de ítems"></button>
-        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems" tabindex="-1">
-          <div class="item-drawer-controls">
-            <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
-            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado">×</button>
-          </div>
-          <div class="item-drawer-list" id="item-drawer-list">
-            ${drawerItems}
-          </div>
-          <p id="item-drawer-empty" class="item-drawer-empty" hidden>No encontramos productos con ese nombre.</p>
-        </aside>
-      </div>
+      ${renderItemDrawer(item.id)}
 
 
       <article class="item-card">
@@ -1751,7 +1837,7 @@ function renderCurrentItem() {
           <span
             class="
               status-badge
-              status-${count.status}
+              status-${isOutOfStockCount(count) ? "out-of-stock" : count.status}
             "
           >
             ${statusIcon}
@@ -1805,6 +1891,13 @@ function renderCurrentItem() {
 
       <div class="count-actions">
 
+        <button
+          id="save-out-of-stock"
+          class="button button-out-of-stock"
+          type="button"
+        >
+          Sin stock
+        </button>
 
         <button
           id="save-partial"
@@ -1820,26 +1913,14 @@ function renderCurrentItem() {
           class="button button-primary"
           type="button"
         >
-          Listo ✅
+          Listo
         </button>
 
 
       </div>
 
 
-      <div class="navigation-grid">
-
-
-        <button
-          id="previous-item"
-          class="button button-ghost"
-          type="button"
-          ${categoryIndex === 0 ? "disabled" : ""}
-        >
-          ← Anterior
-        </button>
-
-
+      <div class="summary-navigation">
         <button
           id="open-summary"
           class="button button-ghost"
@@ -1847,28 +1928,14 @@ function renderCurrentItem() {
         >
           Ir a Resumen
         </button>
-
-
-        <button
-          id="next-item"
-          class="button button-ghost"
-          type="button"
-        >
-          ${isLastItem
-            ? isGarzonZone ? "Ir a Resumen →" : "Categorías →"
-            : "Siguiente →"
-        }
-        </button>
-
-
       </div>
 
 
       ${currentFeedback
             ? `
             <p
-              class="feedback feedback-success"
-              aria-live="polite"
+              class="feedback feedback-toast feedback-toast-${currentTone}"
+              role="status"
             >
               ${escapeHtml(
                 currentFeedback
@@ -1891,33 +1958,39 @@ function renderCurrentItem() {
 // EVENTOS DEL CONTEO
 // ============================================================
 
-function setupCurrentItemEvents() {
+let lastItemDrawerTrigger = null;
+
+function setupItemDrawerEvents() {
 
     const drawer = document.querySelector("#item-drawer");
-    const trigger = document.querySelector("#open-item-drawer");
     const search = document.querySelector("#item-drawer-search");
 
-    trigger.addEventListener("click", () => {
-        drawer.classList.add("is-open");
-        drawer.inert = false;
-        drawer.setAttribute("aria-hidden", "false");
-        trigger.setAttribute("aria-expanded", "true");
-        document.body.classList.add("item-drawer-open");
-        drawer.querySelector(".item-drawer-panel").focus({ preventScroll: true });
+    document.querySelectorAll("#open-item-drawer, #header-open-item-drawer")
+        .forEach(trigger => {
+            if (trigger.hidden) return;
+            trigger.onclick = () => {
+                lastItemDrawerTrigger = trigger;
+                drawer.classList.add("is-open");
+                drawer.inert = false;
+                drawer.setAttribute("aria-hidden", "false");
+                trigger.setAttribute("aria-expanded", "true");
+                document.body.classList.add("item-drawer-open");
+                search.focus({ preventScroll: true });
 
-        const current = drawer.querySelector(".item-drawer-link.is-current");
-        const currentGroup = current?.closest("details.item-drawer-group");
-        if (currentGroup && !currentGroup.open) {
-            currentGroup.open = true;
-            collapsedItemDrawerGroups.delete(currentGroup.dataset.category);
-        }
-        if (current) {
-            const list = drawer.querySelector(".item-drawer-list");
-            const itemTop = current.getBoundingClientRect().top
-                - list.getBoundingClientRect().top + list.scrollTop;
-            list.scrollTop = itemTop - (list.clientHeight - current.offsetHeight) / 2;
-        }
-    });
+                const current = drawer.querySelector(".item-drawer-link.is-current");
+                const currentGroup = current?.closest("details.item-drawer-group");
+                if (currentGroup && !currentGroup.open) {
+                    currentGroup.open = true;
+                    collapsedItemDrawerGroups.delete(currentGroup.dataset.category);
+                }
+                if (current) {
+                    const list = drawer.querySelector(".item-drawer-list");
+                    const itemTop = current.getBoundingClientRect().top
+                        - list.getBoundingClientRect().top + list.scrollTop;
+                    list.scrollTop = itemTop - (list.clientHeight - current.offsetHeight) / 2;
+                }
+            };
+        });
 
     drawer.querySelector(".item-drawer-backdrop")
         .addEventListener("click", closeItemDrawer);
@@ -1967,6 +2040,15 @@ function setupCurrentItemEvents() {
 
         drawer.querySelector("#item-drawer-empty").hidden = visible !== 0;
     });
+}
+
+function setupCurrentItemEvents() {
+    setupItemDrawerEvents();
+
+    document.querySelector("#save-out-of-stock").addEventListener(
+        "click",
+        () => saveCurrentAs("counted", { outOfStock: true })
+    );
 
 
     document
@@ -2035,9 +2117,10 @@ function closeItemDrawer(restoreFocus = true) {
     drawer.setAttribute("aria-hidden", "true");
     document.body.classList.remove("item-drawer-open");
 
-    const trigger = document.querySelector("#open-item-drawer");
+    const trigger = lastItemDrawerTrigger;
     trigger?.setAttribute("aria-expanded", "false");
     if (restoreFocus) trigger?.focus();
+    lastItemDrawerTrigger = null;
 }
 
 
@@ -2059,13 +2142,13 @@ function renderSummary() {
     const title =
         isComplete
             ? "Inventario completo"
-            : "";
+            : "Resumen del inventario";
 
 
     const subtitle =
         isComplete
             ? "Todos los ítems están contabilizados."
-            : "";
+            : "Revisa pendientes, avances y productos contados.";
 
 
     const pendingItems =
@@ -2129,9 +2212,7 @@ function renderSummary() {
           </strong>
 
 
-          <span>
-            🔴 Pendientes
-          </span>
+          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🔴</span>Pendientes</span>
 
         </button>
 
@@ -2149,9 +2230,7 @@ function renderSummary() {
           </strong>
 
 
-          <span>
-            ⚠️ Por confirmar
-          </span>
+          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟡</span>Avance</span>
 
         </button>
 
@@ -2169,9 +2248,7 @@ function renderSummary() {
           </strong>
 
 
-          <span>
-            ✅ Contados
-          </span>
+          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟢</span>Contados</span>
 
         </button>
 
@@ -2189,9 +2266,7 @@ function renderSummary() {
 
           <summary>
 
-            <span>
-              🔴 Pendientes
-            </span>
+            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🔴</span>Pendientes</span>
 
 
             <span class="section-count">
@@ -2220,9 +2295,7 @@ function renderSummary() {
 
           <summary>
 
-            <span>
-              ⚠️ Por confirmar
-            </span>
+            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟡</span>Avance</span>
 
 
             <span class="section-count">
@@ -2251,9 +2324,7 @@ function renderSummary() {
 
           <summary>
 
-            <span>
-              ✅ Contados
-            </span>
+            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟢</span>Contados</span>
 
 
             <span class="section-count">
@@ -2418,7 +2489,7 @@ function renderSummaryRows(
                         count.quantity
                     )} ${escapeHtml(
                         item.unit
-                    )}`;
+                    )}${isOutOfStockCount(count) ? " · Sin stock" : ""}`;
 
             } else if (
                 count.status ===
@@ -2453,7 +2524,8 @@ function renderSummaryRows(
             <strong>
 
               ${getStatusIcon(
-                count.status
+                count.status,
+                isOutOfStockCount(count)
             )}
 
               ${escapeHtml(
@@ -2739,7 +2811,7 @@ function generateSummaryText() {
 
         `Pendientes: ${stats.pending}`,
 
-        `Parciales: ${stats.partial}`,
+        `Avances: ${stats.partial}`,
 
         `Contados: ${stats.counted}`,
 
@@ -2774,7 +2846,7 @@ function generateSummaryText() {
                 line +=
                     `${formatQuantity(
                         count.quantity
-                    )} ${item.unit}`;
+                    )} ${item.unit}${isOutOfStockCount(count) ? " (SIN STOCK)" : ""}`;
 
                 break;
 
@@ -2953,60 +3025,30 @@ function showSummaryFeedback(
 }
 
 
-function showFeedback(
-    message
-) {
-
-    const feedback =
-        document.querySelector(
-            ".feedback:not(#storage-warning)"
-        );
-
-
-    if (feedback) {
-
-        feedback.textContent =
-            message;
-
-        return;
+function scheduleFeedbackDismissal() {
+    clearTimeout(feedbackDismissTimer);
+    const toast = appContent.querySelector(".feedback-toast");
+    if (toast) {
+        feedbackDismissTimer = setTimeout(() => toast.remove(), 4000);
     }
+}
 
 
-    const countView =
-        document.querySelector(
-            ".count-view"
-        );
-
-
-    if (!countView) {
-
-        return;
+function showToast(message, tone = "counted") {
+    let feedback = appContent.querySelector(".feedback-toast");
+    if (!feedback) {
+        feedback = document.createElement("p");
+        appContent.prepend(feedback);
     }
+    feedback.className = `feedback feedback-toast feedback-toast-${tone}`;
+    feedback.setAttribute("role", tone === "error" ? "alert" : "status");
+    feedback.textContent = message;
+    scheduleFeedbackDismissal();
+}
 
 
-    const newFeedback =
-        document.createElement(
-            "p"
-        );
-
-
-    newFeedback.className =
-        "feedback feedback-error";
-
-
-    newFeedback.textContent =
-        message;
-
-
-    newFeedback.setAttribute(
-        "aria-live",
-        "polite"
-    );
-
-
-    countView.appendChild(
-        newFeedback
-    );
+function showFeedback(message) {
+    if (appContent.querySelector(".count-view")) showToast(message, "error");
 }
 
 

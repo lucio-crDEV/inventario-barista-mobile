@@ -4,7 +4,7 @@
 
 Este repositorio desarrolla `inventory-v2`: una aplicación web modular para gestionar inventario y, en una rama de trabajo separada, pedidos internos. No confundirlo con la aplicación anterior **Inventario Barra** ni trasladar automáticamente a esta rama sus límites de producto o su roadmap.
 
-Para conocer estado, decisiones y trabajo pendiente, consulta `docs/project-context.md` y `docs/roadmap.md`. Este archivo contiene reglas de trabajo, no una copia del contexto completo.
+Para conocer estado, decisiones y trabajo pendiente, consulta `docs/project-context.md` y `docs/roadmap.md`. Para cambios de interfaz, lee también `docs/style-guide.md` y `docs/verification.md`. Este archivo contiene reglas de trabajo, no una copia del contexto completo.
 
 ## Cómo interpretar el proyecto
 
@@ -24,6 +24,14 @@ El proyecto mantiene líneas de trabajo diferenciadas: `main` corresponde a la v
 El objetivo vigente de `inventory-v2` es contar Cocina, Panadería, Pastelería, Servicio y Bodega Principal, y generar el archivo `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` conservando su estructura, identificadores y datos de referencia; solo deben actualizarse las cantidades contadas. Servicio se cuenta en Barra, Armado/Línea/Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Los catálogos y la navegación pueden avanzar por etapas. No confundas una lista cargada con un flujo completo ni con sincronización entre teléfonos.
 
 El módulo de Pedido está separado del módulo de Inventario. No asumir que sus datos, flujos o decisiones son intercambiables.
+
+## Decisiones vigentes de interfaz en esta rama
+
+- La base visual es gris con gradientes y superficies translúcidas. Rojo, amarillo y verde tienen significado funcional: pendiente o «Sin stock», avance y contado. Conserva las etiquetas de texto junto al color y el comportamiento de ambos temas. El detalle está en `docs/style-guide.md`.
+- «Sin stock» guarda cantidad cero como contado y marca `outOfStock`; el aviso de guardado es verde y dice «Sin stock guardado.». El ítem conserva su identificación roja. Un cero guardado con «Listo» no lleva esa marca.
+- Al volver a un grupo se prioriza el primer ítem pendiente o con avance. La barra superior de conteo mantiene «Anterior / Ver ítems / Siguiente» y el panel de ítems permite acceder también a los ya contados.
+- El indicador breve del resumen es decorativo: el contenido está disponible de inmediato, no intercepta interacción y se omite con movimiento reducido. Los avisos superiores duran cuatro segundos, no bloquean gestos y tienen alternativa opaca para transparencia reducida.
+- En `inventory-v2` no existen estados AM/PM ni el flujo de Pedido; verifica la rama correspondiente antes de cambiar esas funciones. No incluyas el nombre del empleador en textos de la app o documentación pública.
 
 ## Inspección antes de editar
 
@@ -55,6 +63,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - `docs/project-context.md`: contexto, decisiones, implementación observada y dudas abiertas.
 - `docs/roadmap.md`: prioridades, dependencias y criterios de avance.
 - `docs/verification.md`: comandos, resultados comprobados y límites de las pruebas.
+- `docs/style-guide.md`: identidad visual, componentes, estados, tamaños y accesibilidad.
 - `AGENTS.md`: reglas de trabajo para agentes.
 
 Marca como pendiente lo que no esté implementado o decidido. Actualiza la documentación cuando cambie el estado o una decisión; no perpetúes cifras ni descripciones de versiones antiguas.
