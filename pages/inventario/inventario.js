@@ -1,4 +1,4 @@
-import { areas } from "../../data/inventario/areas.js";
+import { areas, serviceSectors, garzonZones } from "../../data/inventario/areas.js";
 import { items } from "../../data/inventario/items/index.js";
 
 
@@ -42,22 +42,38 @@ const confirmNewSessionButton =
     document.querySelector("#confirm-new-session");
 
 
+const params = new URLSearchParams(window.location.search);
+const selectedArea = areas.find(area => area.id === params.get("area"));
+const selectedSector = selectedArea?.id === "servicio"
+    ? serviceSectors.find(sector => sector.id === params.get("sector"))
+    : null;
+const selectedZone = selectedSector?.id === "garzones"
+    ? garzonZones.find(zone => zone.id === params.get("zone"))
+    : null;
+const scopeKey = [selectedArea?.id, selectedSector?.id, selectedZone?.id]
+    .filter(Boolean).join(":");
+const isGarzonZone = selectedSector?.id === "garzones" && Boolean(selectedZone);
+const defaultView = isGarzonZone ? "count" : "categories";
+
 function getAreaName(areaId) {
-
-    const area = areas.find(
-        area => area.id === areaId
-    );
-
-    return area?.name || areaId;
+    if (areaId === "servicio" && selectedSector) {
+        return selectedZone
+            ? `${selectedSector.name} · ${selectedZone.name}`
+            : selectedSector.name;
+    }
+    return areas.find(area => area.id === areaId)?.name || areaId;
 }
 
+function getCountCategory(item) {
+    return item.countCategory || item.category || "Sin categoría";
+}
 
 const activeItems = items
-    .filter(item => item.active)
-    .sort(
-        (a, b) =>
-            a.order - b.order
-    );
+    .filter(item => item.active
+        && item.areaId === selectedArea?.id
+        && (selectedArea?.id !== "servicio" || item.sectorId === selectedSector?.id)
+        && (selectedSector?.id !== "garzones" || item.zoneId === selectedZone?.id))
+    .sort((a, b) => a.order - b.order);
 
 
 let storageWarning = false;
@@ -91,7 +107,9 @@ function createSession() {
 
         currentIndex: 0,
 
-        view: "categories",
+        scopeKey,
+
+        view: defaultView,
 
         responsible: "",
 
@@ -237,9 +255,12 @@ function loadSession() {
         ].includes(normalized.view)
     ) {
 
-        normalized.view = "categories";
+        normalized.view = defaultView;
     }
 
+    if (isGarzonZone && normalized.view === "categories") {
+        normalized.view = "count";
+    }
 
     if (typeof normalized.responsible !== "string") {
 
@@ -250,6 +271,11 @@ function loadSession() {
     normalized.counts =
         normalizeCounts(normalized.counts);
 
+    if (normalized.scopeKey !== scopeKey) {
+        normalized.scopeKey = scopeKey;
+        normalized.currentIndex = 0;
+        normalized.view = defaultView;
+    }
 
     sessionNeedsSave =
         originalSchemaVersion !== 3 ||
@@ -348,8 +374,14 @@ function normalizeCounts(counts) {
         }
 
 
-        if (typeof count.unit !== "string") {
+        if (item.id === "chai-polvo" &&
+            count.unit?.toLowerCase() === "gr" &&
+            typeof count.quantity === "number") {
+            count.quantity /= 1000;
+            count.unit = "KG";
+        }
 
+        if (typeof count.unit !== "string") {
             count.unit = item.unit;
         }
 
@@ -430,22 +462,28 @@ function getCategoryGroups() {
         const item of activeItems
     ) {
 
+        const category =
+            getCountCategory(item);
+
         let group =
             groupsByName.get(
-                item.category
+                category
             );
 
 
         if (!group) {
 
             group = {
-                name: item.category,
+                name: category,
+                order: Number.isInteger(item.countCategoryOrder)
+                    ? item.countCategoryOrder
+                    : groups.length,
                 items: []
             };
 
 
             groupsByName.set(
-                item.category,
+                category,
                 group
             );
 
@@ -458,7 +496,7 @@ function getCategoryGroups() {
     }
 
 
-    return groups;
+    return groups.sort((a, b) => a.order - b.order);
 }
 
 
@@ -531,7 +569,7 @@ function getCategoryItems(
 
     return activeItems.filter(
         item =>
-            item.category === category
+            getCountCategory(item) === category
     );
 }
 
@@ -937,9 +975,7 @@ function goToPreviousItem() {
 
 
     const categoryItems =
-        getCategoryItems(
-            item.category
-        );
+        getNavigationItems(item);
 
 
     const categoryIndex =
@@ -994,9 +1030,7 @@ function goToNextItem() {
 
 
     const categoryItems =
-        getCategoryItems(
-            item.category
-        );
+        getNavigationItems(item);
 
 
     const categoryIndex =
@@ -1023,7 +1057,11 @@ function goToNextItem() {
     }
 
 
-    openCategories();
+    if (isGarzonZone) {
+        openSummary();
+    } else {
+        openCategories();
+    }
 }
 
 
@@ -1064,7 +1102,7 @@ function openCategory(
 function openCategories() {
 
     session.view =
-        "categories";
+        defaultView;
 
 
     saveSession();
@@ -1155,6 +1193,11 @@ function startNewSession() {
 }
 
 
+function getNavigationItems(item) {
+    return isGarzonZone ? activeItems : getCategoryItems(getCountCategory(item));
+}
+
+
 // ============================================================
 // PROGRESO
 // ============================================================
@@ -1208,13 +1251,33 @@ function render() {
 
     updateProgress();
 
+    const pageTitle = document.querySelector("#page-title");
+    if (pageTitle) {
+        pageTitle.textContent = selectedZone
+            ? `Garzones · ${selectedZone.name}`
+            : selectedSector?.name || selectedArea?.name || "Inventario";
+    }
+    headerBackButton.hidden = !selectedArea;
 
-    headerBackButton.hidden =
-        activeItems.length === 0 ||
-        session.view === "categories";
+    const choosingScope = !selectedArea ||
+        (selectedArea.id === "servicio" && !selectedSector) ||
+        (selectedSector?.id === "garzones" && !selectedZone);
+    document.querySelector("#progress-bar-container").hidden = choosingScope;
+    progressText.hidden = choosingScope;
 
-
-    if (activeItems.length === 0) {
+    if (!selectedArea) {
+        renderScopeChooser("Selecciona un área", [{ name: "Ir al inicio", url: "../../" }]);
+    } else if (selectedArea.id === "servicio" && !selectedSector) {
+        renderScopeChooser("Sectores de Servicio", serviceSectors.map(sector => ({
+            name: sector.name,
+            url: `?area=servicio&sector=${encodeURIComponent(sector.id)}`
+        })));
+    } else if (selectedSector?.id === "garzones" && !selectedZone) {
+        renderScopeChooser("Zonas de Garzones", garzonZones.map(zone => ({
+            name: zone.name,
+            url: `?area=servicio&sector=garzones&zone=${encodeURIComponent(zone.id)}`
+        })));
+    } else if (activeItems.length === 0) {
 
         renderEmptyState();
 
@@ -1222,7 +1285,7 @@ function render() {
 
         renderSummary();
 
-    } else if (session.view === "categories") {
+    } else if (session.view === "categories" && !isGarzonZone) {
 
         renderCategories();
 
@@ -1277,6 +1340,24 @@ function updateStorageWarning() {
     }
 }
 
+
+// ============================================================
+// SELECCIÓN DE SECTOR Y ZONA
+// ============================================================
+
+function renderScopeChooser(title, options) {
+    appContent.innerHTML = `
+      <section class="categories-view">
+        <div class="categories-heading"><h2>${escapeHtml(title)}</h2></div>
+        <div class="category-grid">
+          ${options.map(option => `
+            <a class="category-card scope-card" href="${option.url}">
+              <span class="category-card-title">${escapeHtml(option.name)}</span>
+            </a>
+          `).join("")}
+        </div>
+      </section>`;
+}
 
 // ============================================================
 // CATEGORÍAS
@@ -1477,6 +1558,43 @@ function setupCategoryEvents(
 // VISTA DE CONTEO
 // ============================================================
 
+const collapsedItemDrawerGroups = new Set();
+
+function renderItemDrawerList(currentItemId) {
+    const groups = new Map();
+
+    activeItems.forEach((item, index) => {
+        const category = isGarzonZone ? "" : getCountCategory(item);
+        if (!groups.has(category)) {
+            groups.set(category, []);
+        }
+        groups.get(category).push({ item, index });
+    });
+
+    return [...groups].map(([category, groupItems]) => `
+      ${category
+        ? `<details class="item-drawer-group" data-item-group data-category="${escapeHtml(category)}" ${collapsedItemDrawerGroups.has(category) ? "" : "open"}>
+            <summary class="item-drawer-group-toggle">${escapeHtml(category)}</summary>`
+        : '<section class="item-drawer-group" data-item-group>'}
+        ${groupItems.map(({ item, index }) => {
+            const status = getCount(item.id).status;
+            const isCurrent = item.id === currentItemId;
+            return `
+              <button
+                class="item-drawer-link${isCurrent ? " is-current" : ""}"
+                type="button"
+                data-item-index="${index}"
+                ${isCurrent ? 'aria-current="true"' : ""}
+              >
+                <span class="item-drawer-status status-dot-${status}" aria-hidden="true"></span>
+                <span class="item-drawer-name">${escapeHtml(item.name)}</span>
+                <span class="item-drawer-state">${getStatusLabel(status)}</span>
+              </button>`;
+        }).join("")}
+      ${category ? "</details>" : "</section>"}`).join("");
+}
+
+
 function renderCurrentItem() {
 
     const item =
@@ -1496,9 +1614,7 @@ function renderCurrentItem() {
 
 
     const categoryItems =
-        getCategoryItems(
-            item.category
-        );
+        getNavigationItems(item);
 
 
     const categoryIndex =
@@ -1512,47 +1628,7 @@ function renderCurrentItem() {
         categoryItems.length - 1;
 
 
-    const selectorOptions =
-        categoryItems
-            .map(
-                (optionItem, index) => {
-
-                    const optionCount =
-                        getCount(
-                            optionItem.id
-                        );
-
-
-                    const icon =
-                        getStatusIcon(
-                            optionCount.status
-                        );
-
-
-                    const selected =
-                        optionItem.id ===
-                            item.id
-                            ? "selected"
-                            : "";
-
-
-                    return `
-            <option
-              value="${activeItems.indexOf(
-                        optionItem
-                    )}"
-              ${selected}
-            >
-              ${icon}
-              ${index + 1}.
-              ${escapeHtml(
-                        optionItem.name
-                    )}
-            </option>
-          `;
-                }
-            )
-            .join("");
+    const drawerItems = renderItemDrawerList(item.id);
 
 
     const safeName =
@@ -1563,7 +1639,7 @@ function renderCurrentItem() {
 
     const safeCategory =
         escapeHtml(
-            item.category
+            getCountCategory(item)
         );
 
 
@@ -1583,6 +1659,16 @@ function renderCurrentItem() {
         escapeHtml(
             count.note || ""
         );
+
+    const outputHint = !item.exportRow
+        ? "Producto pendiente de vincular al Excel final."
+        : item.toExportFactor === null
+            ? `Conversión a ${item.exportUnit} pendiente de definir.`
+            : item.toExportFactor !== 1
+                ? item.toExportFactor === 1 / 750
+                    ? `750 cc = 1 ${item.exportUnit} en el Excel final`
+                    : `1.000 g = 1 ${item.exportUnit} en el Excel final`
+                : "";
 
 
     const quantityValue =
@@ -1618,15 +1704,33 @@ function renderCurrentItem() {
 
 
       <div class="item-navigation-top">
-
-        <select
-          id="item-selector"
-          class="item-selector"
-          aria-label="Seleccionar ítem de ${safeCategory}"
+        <button
+          id="open-item-drawer"
+          class="item-drawer-trigger"
+          type="button"
+          aria-controls="item-drawer"
+          aria-expanded="false"
         >
-          ${selectorOptions}
-        </select>
+          <span class="item-drawer-trigger-icon" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span class="item-drawer-trigger-label">Ver ítems</span>
+          <span class="item-drawer-trigger-count">${activeItems.indexOf(item) + 1} / ${activeItems.length}</span>
+        </button>
+      </div>
 
+      <div id="item-drawer" class="item-drawer" aria-hidden="true" inert>
+        <button class="item-drawer-backdrop" type="button" tabindex="-1" aria-label="Cerrar listado de ítems"></button>
+        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems">
+          <div class="item-drawer-controls">
+            <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
+            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado">×</button>
+          </div>
+          <div class="item-drawer-list" id="item-drawer-list">
+            ${drawerItems}
+          </div>
+          <p id="item-drawer-empty" class="item-drawer-empty" hidden>No encontramos productos con ese nombre.</p>
+        </aside>
       </div>
 
 
@@ -1639,9 +1743,7 @@ function renderCurrentItem() {
           <div class="item-heading">
 
             <span class="item-category">
-              ${safeCategory}
-              ·
-              ${safeArea}
+              ${isGarzonZone ? safeArea : `${safeCategory} · ${safeArea}`}
             </span>
 
 
@@ -1682,6 +1784,8 @@ function renderCurrentItem() {
             placeholder="0"
             value="${quantityValue}"
           >
+
+          ${outputHint ? `<p class="count-output-hint">${escapeHtml(outputHint)}</p>` : ""}
 
         </div>
 
@@ -1758,7 +1862,7 @@ function renderCurrentItem() {
           type="button"
         >
           ${isLastItem
-            ? "Categorías →"
+            ? isGarzonZone ? "Ir a Resumen →" : "Categorías →"
             : "Siguiente →"
         }
         </button>
@@ -1796,23 +1900,67 @@ function renderCurrentItem() {
 
 function setupCurrentItemEvents() {
 
-    document
-        .querySelector(
-            "#item-selector"
-        )
-        .addEventListener(
-            "change",
-            event => {
+    const drawer = document.querySelector("#item-drawer");
+    const trigger = document.querySelector("#open-item-drawer");
+    const search = document.querySelector("#item-drawer-search");
 
-                const index =
-                    Number(
-                        event.target.value
-                    );
+    trigger.addEventListener("click", () => {
+        drawer.classList.add("is-open");
+        drawer.inert = false;
+        drawer.setAttribute("aria-hidden", "false");
+        trigger.setAttribute("aria-expanded", "true");
+        document.body.classList.add("item-drawer-open");
+        search.focus();
+    });
 
+    drawer.querySelector(".item-drawer-backdrop")
+        .addEventListener("click", closeItemDrawer);
+    drawer.querySelector("#close-item-drawer")
+        .addEventListener("click", closeItemDrawer);
 
-                openItem(index);
+    drawer.querySelectorAll(".item-drawer-link").forEach(button => {
+        button.addEventListener("click", () => {
+            closeItemDrawer(false);
+            openItem(Number(button.dataset.itemIndex));
+        });
+    });
+
+    drawer.querySelectorAll(".item-drawer-group-toggle").forEach(toggle => {
+        toggle.addEventListener("click", () => {
+            const group = toggle.parentElement;
+            if (group.open) {
+                collapsedItemDrawerGroups.add(group.dataset.category);
+            } else {
+                collapsedItemDrawerGroups.delete(group.dataset.category);
             }
-        );
+        });
+    });
+
+    search.addEventListener("input", () => {
+        const query = search.value.trim().toLocaleLowerCase("es-CL")
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        let visible = 0;
+
+        drawer.querySelectorAll("[data-item-group]").forEach(group => {
+            let groupVisible = 0;
+            group.querySelectorAll(".item-drawer-link").forEach(button => {
+                const name = button.querySelector(".item-drawer-name").textContent
+                    .toLocaleLowerCase("es-CL").normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
+                button.hidden = !name.includes(query);
+                if (!button.hidden) groupVisible++;
+            });
+            group.hidden = groupVisible === 0;
+            if (group.tagName === "DETAILS") {
+                group.open = query
+                    ? groupVisible > 0
+                    : !collapsedItemDrawerGroups.has(group.dataset.category);
+            }
+            visible += groupVisible;
+        });
+
+        drawer.querySelector("#item-drawer-empty").hidden = visible !== 0;
+    });
 
 
     document
@@ -1869,6 +2017,21 @@ function setupCurrentItemEvents() {
             "click",
             openSummary
         );
+}
+
+
+function closeItemDrawer(restoreFocus = true) {
+    const drawer = document.querySelector("#item-drawer");
+    if (!drawer?.classList.contains("is-open")) return;
+
+    drawer.classList.remove("is-open");
+    drawer.inert = true;
+    drawer.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("item-drawer-open");
+
+    const trigger = document.querySelector("#open-item-drawer");
+    trigger?.setAttribute("aria-expanded", "false");
+    if (restoreFocus) trigger?.focus();
 }
 
 
@@ -2162,7 +2325,7 @@ function renderSummary() {
           class="button button-ghost"
           type="button"
         >
-          Ver categorías
+          ${isGarzonZone ? "Volver a los ítems" : "Ver categorías"}
         </button>
 
 
@@ -2297,7 +2460,7 @@ function renderSummaryRows(
             <small>
 
               ${escapeHtml(
-                item.category
+                getCountCategory(item)
             )}
 
               ·
@@ -2886,7 +3049,11 @@ function setupModalEvents() {
 
                 case "count":
 
-                    openCategories();
+                    if (isGarzonZone) {
+                        window.location.href = "?area=servicio&sector=garzones";
+                    } else {
+                        openCategories();
+                    }
 
                     break;
 
@@ -2901,10 +3068,13 @@ function setupModalEvents() {
                 case "categories":
 
                 default:
-
-                    window.location.href =
-                        "../../";
-
+                    if (selectedZone) {
+                        window.location.href = "?area=servicio&sector=garzones";
+                    } else if (selectedSector) {
+                        window.location.href = "?area=servicio";
+                    } else {
+                        window.location.href = "../../";
+                    }
                     break;
 
             }
@@ -2941,19 +3111,31 @@ function setupModalEvents() {
     );
 
 
-    document.addEventListener(
-        "keydown",
-        event => {
+    document.addEventListener("keydown", event => {
+        const drawer = document.querySelector("#item-drawer.is-open");
 
-            if (
-                event.key === "Escape" &&
-                !confirmModal.hidden
-            ) {
-
+        if (event.key === "Escape") {
+            if (drawer) {
+                closeItemDrawer();
+            } else if (!confirmModal.hidden) {
                 closeNewSessionConfirmation();
             }
         }
-    );
+
+        if (event.key === "Tab" && drawer) {
+            const focusable = [...drawer.querySelectorAll("button:not([hidden]):not([tabindex='-1']), input:not([hidden])")]
+                .filter(element => !element.closest("[hidden]"));
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+    });
 }
 
 

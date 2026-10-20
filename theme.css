@@ -1,0 +1,200 @@
+.home-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: 48px;
+}
+
+.app-title-row {
+  padding-inline: 48px;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 12px;
+  background: #ededed;
+  color: #555;
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  color: #ededed;
+  background: #1b1b1b;
+}
+
+html[data-theme="dark"] body {
+  background: #1b1b1b;
+}
+
+html[data-theme="dark"] .theme-toggle {
+  background: #242424;
+  color: #aaa;
+}
+
+html[data-theme="dark"] main > p,
+html[data-theme="dark"] :is(.categories-heading p, .category-card-progress, .count-output-hint, .back-button, .header-back-button, #progress-text, .item-category, .item-area, .field small, .summary-header p, .section-count, .summary-item-main small, .summary-item-value, .summary-arrow, .summary-empty, .section-heading p, .empty-state p, .modal p) {
+  color: #aaa;
+}
+
+html[data-theme="dark"] nav a,
+html[data-theme="dark"] :is(.category-card, .item-card, .stat-card, .accordion, .summary-item-button, .responsible-section, .empty-state, .modal) {
+  border-color: #353535;
+  background: #242424;
+  color: #ededed;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] nav a .arrow {
+  color: #aaa;
+}
+
+html[data-theme="dark"] :is(nav a, .category-card, .back-button, .header-back-button):focus-visible {
+  outline-color: #aaa;
+}
+
+html[data-theme="dark"] :is(.progress-bar-container, .category-progress-bar) {
+  background: #383838;
+}
+
+html[data-theme="dark"] .item-drawer-trigger {
+  border-color: #353535;
+  background: #242424;
+  color: #ededed;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .item-drawer-trigger-icon span {
+  background: #ccc;
+}
+
+html[data-theme="dark"] .item-drawer-trigger-count {
+  background: #363636;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .item-drawer-panel {
+  border-color: rgb(255 255 255 / 22%);
+  background: linear-gradient(145deg, rgb(65 65 65 / 42%), rgb(25 25 25 / 35%));
+  box-shadow: 0 8px 24px rgb(0 0 0 / 23%), inset 0 1px rgb(255 255 255 / 15%);
+}
+
+html[data-theme="dark"] .item-drawer-close,
+html[data-theme="dark"] .item-drawer-link {
+  color: #ededed;
+}
+
+html[data-theme="dark"] .item-drawer-search {
+  border-color: #666;
+  background: rgb(28 28 28 / 45%);
+  color: #ededed;
+}
+
+html[data-theme="dark"] .item-drawer-search::placeholder,
+html[data-theme="dark"] :is(.item-drawer-group-toggle, .item-drawer-state, .item-drawer-empty) {
+  color: #bbb;
+}
+
+html[data-theme="dark"] .item-drawer-group-toggle::after {
+  color: #aaa;
+}
+
+html[data-theme="dark"] .item-drawer-link {
+  background: rgb(45 45 45 / 30%);
+}
+
+html[data-theme="dark"] :is(.item-drawer-link:hover, .item-drawer-link.is-current) {
+  border-color: #777;
+  background: rgb(110 110 110 / 40%);
+}
+
+html[data-theme="dark"] :is(.field input, .field textarea) {
+  border-color: #424242;
+  background: #202020;
+  color: #ededed;
+}
+
+html[data-theme="dark"] :is(.field input, .field textarea)::placeholder {
+  color: #999;
+}
+
+html[data-theme="dark"] :is(.field input:focus, .field textarea:focus, .item-drawer-search:focus, .item-drawer-trigger:focus-visible, .item-drawer-close:focus-visible, .item-drawer-link:focus-visible) {
+  border-color: #aaa;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 13%);
+}
+
+html[data-theme="dark"] .button-primary {
+  background: #a7a7a7;
+  color: #1b1b1b;
+}
+
+html[data-theme="dark"] .button-secondary {
+  border-color: #444;
+  background: #242424;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .button-ghost {
+  color: #c2c2c2;
+}
+
+html[data-theme="dark"] .status-pending {
+  background: #472929;
+  color: #ffc0c0;
+}
+
+html[data-theme="dark"] .status-partial {
+  background: #453a23;
+  color: #ffe0a5;
+}
+
+html[data-theme="dark"] .status-counted {
+  background: #25402e;
+  color: #b9eac5;
+}
+
+html[data-theme="dark"] :is(.stat-pending span, .feedback-error) {
+  color: #ffb4b4;
+}
+
+html[data-theme="dark"] .stat-partial span {
+  color: #ffe0a5;
+}
+
+html[data-theme="dark"] :is(.stat-counted span, .feedback-success) {
+  color: #b9eac5;
+}
+
+html[data-theme="dark"] .accordion-content,
+html[data-theme="dark"] .summary-item-button {
+  border-color: #353535;
+}
+
+html[data-theme="dark"] .summary-item-button:active {
+  background: #303030;
+}
+
+html[data-theme="dark"] .modal-icon {
+  background: #453a23;
+  color: #ffe0a5;
+}

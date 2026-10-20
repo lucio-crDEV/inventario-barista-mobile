@@ -15,10 +15,13 @@
 
   <title>Inventario</title>
 
+  <script src="../../theme.js"></script>
+
   <link
     rel="stylesheet"
     href="./inventario.css"
   >
+  <link rel="stylesheet" href="../../theme.css">
 </head>
 
 <body>
@@ -33,7 +36,7 @@
           id="header-back-to-categories"
           class="header-back-button"
           type="button"
-          aria-label="Volver a áreas"
+          aria-label="Volver"
           hidden
         >
 
@@ -50,6 +53,8 @@
         <h1 id="page-title">
           Inventario
         </h1>
+
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" title="Activar modo oscuro"><span aria-hidden="true">☾</span></button>
 
       </div>
 
@@ -118,7 +123,7 @@
       <p>
         Se perderá
         <strong>
-          todo el progreso del inventario actual
+          todo el progreso del inventario actual en todas las áreas
         </strong>,
         incluyendo cantidades, notas y estados.
       </p>
