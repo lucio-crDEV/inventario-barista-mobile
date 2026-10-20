@@ -1727,7 +1727,7 @@ function renderCurrentItem() {
 
       <div id="item-drawer" class="item-drawer" aria-hidden="true" inert>
         <button class="item-drawer-backdrop" type="button" tabindex="-1" aria-label="Cerrar listado de ítems"></button>
-        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems">
+        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems" tabindex="-1">
           <div class="item-drawer-controls">
             <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
             <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado">×</button>
@@ -1916,7 +1916,7 @@ function setupCurrentItemEvents() {
         drawer.setAttribute("aria-hidden", "false");
         trigger.setAttribute("aria-expanded", "true");
         document.body.classList.add("item-drawer-open");
-        search.focus();
+        drawer.querySelector(".item-drawer-panel").focus({ preventScroll: true });
     });
 
     drawer.querySelector(".item-drawer-backdrop")

@@ -555,6 +555,7 @@ button:disabled {
   box-shadow: 0 6px 18px rgb(0 0 0 / 10%), inset 0 1px rgb(255 255 255 / 42%);
   transform: translateX(-105%);
   transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  outline: none;
 }
 
 .item-drawer.is-open .item-drawer-panel {
