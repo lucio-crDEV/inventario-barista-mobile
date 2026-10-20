@@ -2,11 +2,13 @@
 
 Aplicación web móvil para contar el inventario por área y generar, en una etapa posterior, el libro `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` con las cantidades nuevas y el resto de su estructura intacta.
 
-La pantalla inicial abre Cocina, Panadería, Pastelería, Servicio o Bodega Principal. Servicio se cuenta por Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Cocina, Panadería, Pastelería, Bodega y los sectores de Servicio salvo Garzones muestran categorías prácticas; al elegir una zona de Garzones se entra directamente a sus 16 ítems.
+La pantalla inicial muestra Bodega / Principal, Cocina, Panadería, Pastelería y Servicio. Servicio se cuenta por Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Cocina, Panadería, Pastelería, Bodega y los sectores de Servicio salvo Garzones muestran categorías prácticas; al elegir una zona de Garzones se entra directamente a sus 16 ítems.
 
 Al abrir un grupo se muestra primero el siguiente ítem pendiente o con avance. «Sin stock» guarda explícitamente un cero como contado; «Guardar avance» y «Listo» conservan sus respectivos estados. El panel de ítems y el resumen permiten volver a cualquier producto.
 
-«Ver ítems» abre el panel sin activar el buscador ni el teclado móvil; la lupa del encabezado abre el mismo panel con la búsqueda enfocada. La navegación vuelve al inicio de la página al cambiar de vista o de producto. El selector claro/oscuro usa iconos SVG para mantener su apariencia en Android.
+«Ver ítems» abre el panel sin activar el buscador ni el teclado móvil. Solo despliega la categoría del producto actual y deja ese producto a la vista; las demás categorías se pueden abrir manualmente. La lupa del encabezado abre el mismo panel con la búsqueda enfocada. La navegación vuelve al inicio de la página al cambiar de vista o de producto. El selector claro/oscuro usa iconos SVG para mantener su apariencia en Android.
+
+La interfaz usa azul hielo y cian en modo claro, y gris carbón en modo oscuro. El rojo indica pendiente o «Sin stock», el ámbar indica avance y el verde confirma un conteo. Los avisos superiores usan esos colores sobre vidrio translúcido, duran cuatro segundos y entran y salen con movimiento vertical breve; respetan las preferencias de movimiento y transparencia reducidos.
 
 Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 
@@ -35,3 +37,7 @@ git diff --check
 ```
 
 Las pruebas de Node revisan el catálogo, el indicador breve del resumen y la selección del siguiente ítem de trabajo. La prueba de Python compara las 1.151 filas de referencia con el Excel original sin modificarlo. Estas verificaciones no prueban exportación ni sincronización, porque esas funciones aún no están implementadas.
+
+## Envío de esta rama
+
+Los cambios de interfaz y documentación se preparan en `inventory-v2`. Después de revisar el commit local, el comando de envío es `git push origin inventory-v2`. El remoto usa SSH; se necesita una clave con acceso a `lucio-crDEV/inventario-barista-mobile` para ejecutar ese comando.

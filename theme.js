@@ -22,7 +22,7 @@
     }
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = dark ? "#1b1b1b" : "#e9e9ec";
+    if (meta) meta.content = dark ? "#1d252a" : "#e8f5fa";
   }
 
   applyTheme(savedTheme());

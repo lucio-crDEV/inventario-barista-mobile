@@ -90,6 +90,8 @@ let session =
 let feedbackMessage = "";
 let feedbackTone = "counted";
 let feedbackDismissTimer;
+let feedbackRemoveTimer;
+let newSessionReturnFocus = null;
 
 
 // ============================================================
@@ -1166,6 +1168,8 @@ function openSummary() {
 
 function openNewSessionConfirmation() {
 
+    newSessionReturnFocus = document.activeElement;
+
     confirmModal.hidden =
         false;
 
@@ -1175,11 +1179,11 @@ function openNewSessionConfirmation() {
     );
 
 
-    confirmNewSessionButton.focus();
+    cancelNewSessionButton.focus();
 }
 
 
-function closeNewSessionConfirmation() {
+function closeNewSessionConfirmation(restoreFocus = true) {
 
     confirmModal.hidden =
         true;
@@ -1188,12 +1192,17 @@ function closeNewSessionConfirmation() {
     document.body.classList.remove(
         "modal-open"
     );
+
+    if (restoreFocus && newSessionReturnFocus?.isConnected) {
+        newSessionReturnFocus.focus();
+    }
+    newSessionReturnFocus = null;
 }
 
 
 function startNewSession() {
 
-    closeNewSessionConfirmation();
+    closeNewSessionConfirmation(false);
 
 
     try {
@@ -1625,7 +1634,7 @@ function setupCategoryEvents(
 // VISTA DE CONTEO
 // ============================================================
 
-const collapsedItemDrawerGroups = new Set();
+const openItemDrawerGroups = new Set();
 
 function renderItemDrawerList(currentItemId) {
     const groups = new Map();
@@ -1640,7 +1649,7 @@ function renderItemDrawerList(currentItemId) {
 
     return [...groups].map(([category, groupItems]) => `
       ${category
-        ? `<details class="item-drawer-group" data-item-group data-category="${escapeHtml(category)}" ${collapsedItemDrawerGroups.has(category) ? "" : "open"}>
+        ? `<details class="item-drawer-group" data-item-group data-category="${escapeHtml(category)}" ${groupItems.some(({ item }) => item.id === currentItemId) ? "open" : ""}>
             <summary class="item-drawer-group-toggle">${escapeHtml(category)}</summary>`
         : '<section class="item-drawer-group" data-item-group>'}
         ${groupItems.map(({ item, index }) => {
@@ -1974,6 +1983,12 @@ function setupItemDrawerEvents() {
             if (trigger.hidden) return;
             trigger.onclick = () => {
                 lastItemDrawerTrigger = trigger;
+                const current = drawer.querySelector(".item-drawer-link.is-current");
+                const currentGroup = current?.closest("details.item-drawer-group");
+                openItemDrawerGroups.clear();
+                if (currentGroup) openItemDrawerGroups.add(currentGroup.dataset.category);
+                search.value = "";
+                search.dispatchEvent(new Event("input"));
                 drawer.classList.add("is-open");
                 drawer.inert = false;
                 drawer.setAttribute("aria-hidden", "false");
@@ -1985,17 +2000,13 @@ function setupItemDrawerEvents() {
                     drawer.querySelector(".item-drawer-panel").focus({ preventScroll: true });
                 }
 
-                const current = drawer.querySelector(".item-drawer-link.is-current");
-                const currentGroup = current?.closest("details.item-drawer-group");
-                if (currentGroup && !currentGroup.open) {
-                    currentGroup.open = true;
-                    collapsedItemDrawerGroups.delete(currentGroup.dataset.category);
-                }
                 if (current) {
                     const list = drawer.querySelector(".item-drawer-list");
                     const itemTop = current.getBoundingClientRect().top
                         - list.getBoundingClientRect().top + list.scrollTop;
-                    list.scrollTop = itemTop - (list.clientHeight - current.offsetHeight) / 2;
+                    list.scrollTop = Math.max(0, itemTop - 62);
+                } else {
+                    drawer.querySelector(".item-drawer-list").scrollTop = 0;
                 }
             };
         });
@@ -2016,9 +2027,9 @@ function setupItemDrawerEvents() {
         toggle.addEventListener("click", () => {
             const group = toggle.parentElement;
             if (group.open) {
-                collapsedItemDrawerGroups.add(group.dataset.category);
+                openItemDrawerGroups.delete(group.dataset.category);
             } else {
-                collapsedItemDrawerGroups.delete(group.dataset.category);
+                openItemDrawerGroups.add(group.dataset.category);
             }
         });
     });
@@ -2041,7 +2052,7 @@ function setupItemDrawerEvents() {
             if (group.tagName === "DETAILS") {
                 group.open = query
                     ? groupVisible > 0
-                    : !collapsedItemDrawerGroups.has(group.dataset.category);
+                    : openItemDrawerGroups.has(group.dataset.category);
             }
             visible += groupVisible;
         });
@@ -2141,6 +2152,9 @@ function renderSummary() {
     const stats =
         getStats();
 
+    const completionPercent =
+        stats.total ? Math.round(stats.counted / stats.total * 100) : 0;
+
 
     const isComplete =
         stats.pending === 0 &&
@@ -2201,6 +2215,18 @@ function renderSummary() {
 
         </div>
 
+      </div>
+
+
+      <div class="summary-overview" aria-label="${completionPercent}% del inventario contabilizado">
+        <div class="summary-overview-ring" style="--completion: ${completionPercent}%" aria-hidden="true">
+          <span>${completionPercent}%</span>
+        </div>
+        <div class="summary-overview-copy">
+          <strong>Avance del área</strong>
+          <span>${stats.counted} de ${stats.total} ítems contabilizados</span>
+          <span class="summary-overview-track" aria-hidden="true"><span style="width: ${completionPercent}%"></span></span>
+        </div>
       </div>
 
 
@@ -3035,9 +3061,19 @@ function showSummaryFeedback(
 
 function scheduleFeedbackDismissal() {
     clearTimeout(feedbackDismissTimer);
+    clearTimeout(feedbackRemoveTimer);
     const toast = appContent.querySelector(".feedback-toast");
     if (toast) {
-        feedbackDismissTimer = setTimeout(() => toast.remove(), 4000);
+        toast.classList.remove("is-leaving");
+        feedbackDismissTimer = setTimeout(() => {
+            if (!toast.isConnected) return;
+            if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+                toast.remove();
+                return;
+            }
+            toast.classList.add("is-leaving");
+            feedbackRemoveTimer = setTimeout(() => toast.remove(), 360);
+        }, 4000);
     }
 }
 
@@ -3051,6 +3087,9 @@ function showToast(message, tone = "counted") {
     feedback.className = `feedback feedback-toast feedback-toast-${tone}`;
     feedback.setAttribute("role", tone === "error" ? "alert" : "status");
     feedback.textContent = message;
+    feedback.style.animation = "none";
+    feedback.offsetHeight;
+    feedback.style.removeProperty("animation");
     scheduleFeedbackDismissal();
 }
 
@@ -3190,6 +3229,16 @@ function setupModalEvents() {
             } else if (!event.shiftKey && document.activeElement === last) {
                 event.preventDefault();
                 first.focus();
+            }
+        }
+
+        if (event.key === "Tab" && !confirmModal.hidden) {
+            if (event.shiftKey && document.activeElement === cancelNewSessionButton) {
+                event.preventDefault();
+                confirmNewSessionButton.focus();
+            } else if (!event.shiftKey && document.activeElement === confirmNewSessionButton) {
+                event.preventDefault();
+                cancelNewSessionButton.focus();
             }
         }
     });

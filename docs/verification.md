@@ -100,3 +100,33 @@ Los cambios de esta ronda abarcan el foco del panel, el recorrido con teclado, e
 El despliegue del commit `41cfb35` publicó los archivos, pero la regla `_redirects` enviaba `/` a `/pages/inventario/`. Esa pantalla, cuando no recibía `?area=`, solo ofrecía «Ir al inicio», que volvía a `/` y repetía la redirección. Una URL directa con `?area=cocina` sí cargaba el catálogo.
 
 La corrección elimina esa redirección y muestra las cinco áreas activas cuando se abre `/pages/inventario/` sin parámetros. En la copia local se comprobó que `/` abre la portada, `/pages/inventario/` ofrece las cinco áreas, Cocina abre con sus 171 ítems y el botón «Volver» regresa a la portada. La verificación del despliegue público actual sigue pendiente; la comprobación local no demuestra su estado.
+
+## Rediseño visual según referencia del 20-10-2026
+
+Se actualizó la guía de estilo con base azul hielo, acento cian y tarjetas tintadas por área; el modo oscuro usa un fondo gris carbón. Inicio conserva solo el toggle de tema en la esquina superior derecha, sin incorporar el engranaje de la referencia. El resumen incorpora un anillo calculado a partir de `contados / total`; no usa las cifras ilustrativas de la imagen.
+
+Se inspeccionaron visualmente Inicio en claro y oscuro a 1280 × 720 y Cocina en claro y oscuro a 534 × 804 mediante el navegador local. Se comprobó que las tarjetas, el toggle y los controles de conteo permanecen visibles, y que el resumen muestra 0 % para 0 de 171 ítems contados en la sesión observada. `git diff --check` terminó sin errores en esa primera revisión. La comprobación en un Android físico sigue pendiente.
+
+### Pruebas y simulación posterior
+
+- `node --test tests/catalog.test.mjs tests/summary-transition.test.mjs tests/work-selection.test.mjs`: **12 de 12 aprobadas**.
+- `python3 tests/workbook_contract.py`: **1.151 filas coinciden** en ID, nombre, unidad y categoría.
+- `node --check` de `app.js`, `theme.js`, `pages/inventario/inventario.js`, `pages/inventario/summary-transition.js` y `pages/inventario/work-selection.js`, más `git diff --check`: sin errores.
+- En un origen local temporal separado (`127.0.0.1:8766`) se abrió Inicio en ambos temas, se navegó a Cocina y se abrió «Ver ítems». El foco quedó en el panel, no en el buscador. La lupa del encabezado sí enfocó el buscador y filtrar «ajo kg» mostró el producto coincidente.
+- Se guardó `1,25` con nota como avance y se recuperaron ambos valores al volver al ítem. `-1` fue rechazado sin cambiar el progreso. «Listo» elevó el conteo a 1/171 y «Sin stock» a 2/171 con el aviso «Sin stock guardado.». El resumen mostró 169 pendientes, 2 contados y 1 %; el detalle de contados distinguió el cero «Sin stock».
+- «Nuevo inventario» pidió confirmación; cancelar conservó los datos y confirmar, solo en ese origen temporal, devolvió Cocina a 0/171. La simulación reveló que el foco inicial caía en la acción destructiva. Se corrigió para iniciar en «Cancelar», mantener Tab entre los dos botones y devolver el foco al botón de origen al cancelar. Esa secuencia se repitió en el navegador y funcionó.
+
+El origen temporal y su servidor se cerraron al terminar. Esta simulación no sustituye pruebas táctiles ni de teclado virtual en un Android físico; tampoco valida sincronización entre dispositivos ni exportación, funciones que aún no existen en esta rama.
+
+### Panel de ítems y aviso superior
+
+- El panel se modificó para abrir únicamente la categoría del producto actual, situar ese producto a la vista y mantener cerradas las demás. En una vista sin producto actual, todos los grupos comienzan cerrados. La búsqueda abre coincidencias y recupera la selección manual al vaciarse.
+- El aviso superior adopta los tintes claros de la guía visual, aumenta a 64 px de alto como mínimo y 420 px de ancho máximo, y usa entrada vertical y salida vertical tras cuatro segundos. Respeta movimiento y transparencia reducidos. El panel lateral usa una transición de 340 ms.
+- `node --check pages/inventario/inventario.js` y `git diff --check`: sin errores. `node --test tests/catalog.test.mjs tests/summary-transition.test.mjs tests/work-selection.test.mjs`: **12 de 12 aprobadas**. `python3 tests/workbook_contract.py`: **1.151 filas coinciden** en ID, nombre, unidad y categoría.
+- En el navegador local, Cocina mostró solo «Verduras y frutas» desplegado con «AJI AMARILLO» visible al abrir «Ver ítems»; los otros siete grupos aparecieron cerrados y el foco quedó en el panel. Buscar «ajo kg» mostró la coincidencia; al limpiar volvió la apertura exclusiva de la categoría actual. Abrir otra categoría manualmente, cerrar y reabrir el panel volvió a dejar solo la categoría actual desplegada. En un origen de prueba separado, «Guardar avance» mostró el aviso ámbar «Avance guardado.» y este se retiró automáticamente; «Sin stock» en modo oscuro mostró el aviso verde «Sin stock guardado.» y elevó el progreso a 1/171. El conteo de prueba no alteró el origen principal.
+
+### Preparación de Git para envío
+
+La entrega reúne el rediseño azul hielo/cian y gris carbón, el anillo de progreso del resumen, la mejora del foco de la confirmación, la apertura selectiva del panel y el aviso ampliado con entrada y salida vertical. Se actualizaron `README.md`, `AGENTS.md`, `docs/project-context.md` y `docs/style-guide.md` para reflejar el comportamiento vigente. No se modificaron los catálogos ni el libro original.
+
+Se repitieron las **12 pruebas de Node**, el contrato de **1.151 filas**, la sintaxis de los cinco módulos JavaScript usados en la app y `git diff --check`; todo pasó. Antes del commit, la rama local `inventory-v2` y su referencia local `origin/inventory-v2` apuntaban al mismo commit `d0a97bf`. No se pudo consultar el estado remoto en vivo: SSH rechazó la clave pública y HTTPS solicitó credenciales. Por ello el próximo `push` requiere acceso a GitHub y, si la rama remota avanzó, una integración previa de esos cambios. No se ejecutó `push`.

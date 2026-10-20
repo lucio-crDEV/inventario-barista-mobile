@@ -1,36 +1,47 @@
 # Guía de estilo UX/UI — inventory-v2
 
-## Alcance e identidad
+## Dirección visual
 
-La interfaz sirve al conteo rápido en teléfono. Su identidad actual usa grises neutros, gradientes CSS y superficies translúcidas. Los efectos de vidrio aportan profundidad; los datos y controles se leen sobre fondos suficientemente sólidos. Esta guía describe la rama `inventory-v2` y no define el módulo separado de Pedido.
+La referencia de cinco pantallas entregada el 20 de octubre de 2026 define una interfaz móvil clara, compacta y luminosa: base azul hielo, acento cian, tarjetas de color suave, iconos de trazo simple y progreso visible. El modo oscuro conserva esa jerarquía sobre un **gris carbón**; el cian ilumina controles y progreso sin volver azul el fondo. Se usa CSS nativo y tipografía del sistema.
 
-## Fundamentos visuales
+La imagen es una referencia de diseño, no una fuente de cantidades, nombres de productos ni funciones nuevas. Esta rama mantiene sus cinco áreas y los flujos existentes de Servicio, ítems, resumen, envío y confirmación. No se incorpora el engranaje ni una pantalla de ajustes. En el encabezado, el único control de tema es el toggle claro/oscuro situado arriba a la derecha; la lupa de búsqueda existente aparece únicamente donde su función ya está disponible.
 
-Los tokens compartidos viven en `theme.css`. La misma escala se usa en Inicio, áreas, sectores, categorías, ítems, resumen y modal. El modo oscuro cambia los valores del token sin cambiar la estructura de las vistas.
+## Tokens
+
+Los valores aplicados viven en `theme.css`. Las dos páginas cargan esa hoja después de sus estilos base y `theme.js` actualiza el color de la barra del navegador.
 
 | Uso | Claro | Oscuro |
 | --- | --- | --- |
-| Texto principal | `#242429` | `#ededed` |
-| Texto secundario | `#5d5e66` | `#b8b8b8` |
-| Fondo base | Gradiente `#f2f2f4` → `#dedee2` | Gradiente carbón `#252525` → `#1b1b1b` |
-| Superficie de tarjeta | Gradiente blanco y gris claro translúcidos | Gradiente de grises `#313131` → `#222222` translúcidos |
-| Acción principal | Gradiente gris oscuro translúcido | Gradiente gris claro `#c4c4c4` → `#9d9d9d` translúcido |
-| Borde de tarjetas | Gris al 17 % | Blanco al 7 % |
+| Fondo | Gradiente `#edf9fc` → `#dceef6` | Gradiente gris carbón `#283137` → `#1b2227` |
+| Texto principal | `#142b4d` | `#f0f6f8` |
+| Texto secundario | `#526c8a` | `#b1c2cb` |
+| Superficie | Blanco azulado translúcido, 70–88 % | Grises `#384146` → `#262e33` translúcidos |
+| Campo sólido | `#f7fcfe` | `#293238` |
+| Acento | `#00738e` | `#38d6e5` |
+| Progreso y acción principal | Cian `#07bfd0`; gradiente `#08c2d2` → `#00a9c5` | Cian `#1bc9d9`; gradiente `#19c7d8` → `#00a9bd` |
+| Foco visible | `#007f9d` | `#66e4ef` |
 
-Se usa la fuente del sistema y una jerarquía corta: título de pantalla, nombre de categoría o producto, dato secundario, unidad y estado. Los radios de las superficies principales son de 16 a 20 px; botones y campos usan 11 a 12 px. Los encabezados y los botones de tema y búsqueda no tienen contorno de tarjeta. El botón de tema dibuja luna y sol mediante SVG para conservar forma, tamaño y centrado en Android; el sol aparece blanco en modo oscuro. La sombra es tenue. Si el sistema pide menos transparencia, las superficies pasan a ser opacas. El desenfoque de 10 px se aplica solo donde el navegador lo soporta.
+Los bordes de tarjeta son tenues (azul al 18 % en claro, blanco azulado al 10 % en oscuro), con radios de 16–18 px y sombras suaves. El desenfoque refuerza la superposición del menú, el modal y las superficies; nunca sustituye un fondo legible. En `prefers-reduced-transparency: reduce` se usan superficies opacas. En `prefers-reduced-motion: reduce` se desactivan transiciones decorativas.
 
-## Componentes y comportamiento
+## Color con significado
 
-- **Navegación:** Inicio muestra las cinco áreas sin texto introductorio. Servicio abre sectores sin repetir el título y Garzones abre «Zonas», con contador y barra para los 16 ítems de cada zona. Las tarjetas tienen margen interior, radio, gradiente de vidrio y foco visible. Al abrir un grupo o volver a una zona se prioriza el primer ítem pendiente o con avance; los contados siguen accesibles por el panel y el resumen. Al cambiar de vista o de ítem, la página vuelve arriba para que el encabezado y el producto actual queden a la vista.
-- **Conteo:** la barra superior une «Anterior», «Ver ítems» y «Siguiente» en tres secciones iguales sin divisores visibles, con «Ver ítems» fijado al centro; en el último ítem, la acción derecha indica su destino. La tarjeta separa nombre, ubicación, estado, cantidad con unidad y nota. Las acciones son «Sin stock», «Guardar avance» y «Listo», en ese orden. El panel lateral conserva búsqueda, agrupación y regreso al ítem actual. «Ver ítems» enfoca el panel sin activar el teclado; el botón de búsqueda del encabezado abre ese mismo panel y enfoca el campo. El buscador se integra con el gris del panel en reposo y aclara su fondo al recibir foco, sin borde ni sombra; en modo oscuro el fondo cambia entre dos grises del panel sin añadir un anillo. Un aviso aparece arriba durante cuatro segundos sin bloquear la pantalla: glassmorphism discreto con tinte ámbar al guardar avance, verde al guardar un conteo o «Sin stock» y rojo ante errores; usa texto blanco, desenfoque alto, borde muy tenue y entrada breve.
-- **Progreso y estado:** la base visual usa grises. Los colores funcionales mate se conservan en botones y estados: rojo para «Sin stock» y pendiente, amarillo para avance y verde para contado. Siempre acompañan texto. «Sin stock» guarda cantidad 0 y estado contado con marca explícita; un cero guardado con «Listo» sigue contado sin esa marca; una cantidad vacía sigue pendiente.
-- **Resumen:** muestra siempre un título y una frase orientadora. Las tres tarjetas de estado abren sus listas; el estado parcial se llama «Avance». Copiar y enviar siguen requiriendo responsable. “Nuevo inventario” mantiene confirmación antes de borrar la sesión local.
-- **Carga breve:** al abrir el resumen se dibuja el contenido inmediatamente. Un indicador decorativo se muestra durante 650 ms y no intercepta gestos ni foco; con `prefers-reduced-motion: reduce` no aparece. No se anuncia como carga real a tecnología asistiva porque no bloquea trabajo.
+El cian identifica navegación, progreso y acciones generales. Los estados y acciones de conteo conservan su semántica previa: **rojo** para pendiente y «Sin stock»; **amarillo/ámbar** para avance; **verde/teal** para contado y «Listo». Los avisos de guardado de «Listo» y «Sin stock» siguen siendo verdes porque ambas operaciones guardan un conteo. Cada estado mantiene texto además de color. Las tarjetas de Inicio pueden usar tintes propios por área: cian para Bodega, azul para Cocina, ámbar para Panadería, rosa para Pastelería y verde agua para Servicio; estos tintes no cambian el estado de sus ítems.
 
-## Accesibilidad y tamaños
+## Pantallas y componentes
 
-Los controles interactivos tienen al menos 44 px de alto donde se tocan con frecuencia. Los enlaces y botones usan un anillo de foco de 3 px. El buscador del panel usa el cambio de fondo como señal de foco, según la revisión visual solicitada; su claridad con teclado queda pendiente de validación con personas usuarias. Los estados conservan texto además de color. El contenido debe tolerar nombres largos, zoom del sistema y anchos desde 320 px; las categorías siguen en dos columnas móviles y los botones de conteo pasan a una columna bajo 380 px. En modo oscuro los campos son sólidos para mantener legibles las cantidades.
+- **Inicio:** encabezado limpio y toggle de tema a la derecha. Las cinco áreas se presentan en tarjetas con icono vectorial, nombre y flecha. El orden es Bodega / Principal, Cocina, Panadería, Pastelería y Servicio. No se muestran cifras de ejemplo de la referencia.
+- **Áreas, sectores y zonas:** cuadrícula de tarjetas con márgenes, títulos legibles y barra de progreso alimentada por el conteo local. Servicio sigue pasando por sectores; Garzones muestra «Zonas» y los avances correspondientes. La barra cian representa ítems contados y la sección ámbar representa avances.
+- **Conteo:** cabecera con regreso, título, barra de progreso y toggle. La navegación mantiene «Anterior / Ver ítems / Siguiente» con acceso central al panel flotante. La ficha separa categoría, nombre, estado, cantidad y nota. Las acciones conservan el orden «Sin stock / Guardar avance / Listo» y los colores funcionales. Los campos usan fondo sólido y foco visible.
+- **Panel de ítems:** conserva búsqueda por nombre, agrupación y acceso a ítems contados. Al abrirlo, solo queda desplegada la categoría del producto actual y la lista se sitúa en ese producto; las demás categorías empiezan cerradas, pero pueden abrirse manualmente. Desde una vista sin producto seleccionado, todas empiezan cerradas. La búsqueda despliega los grupos coincidentes y al limpiarla recupera los grupos abiertos manualmente. «Ver ítems» no enfoca el buscador; la lupa del encabezado sí. El campo permanece integrado en la superficie del panel, sin contorno de reposo. El ítem actual lleva una marca cian discreta.
+- **Resumen:** el anillo y la barra cian muestran `contados / total` real; las tres tarjetas de pendientes, avance y contados abren las listas existentes. Se mantienen responsable, copiar, enviar, regreso y nuevo inventario. El indicador de transición sigue siendo decorativo y no bloquea acciones.
+- **Confirmación:** el modal destaca el riesgo con ámbar y reserva el rojo para borrar el progreso. La acción de cancelar permanece visible. La referencia visual no autoriza un botón de «Finalizar inventario» ni modifica el texto o la lógica de borrado actual.
 
-## Límites del alcance actual
+## Interacción, accesibilidad y tamaños
 
-Los conteos y referencias del Excel no se alteran por esta guía. La rama actual no contiene estados AM/PM ni una vista local de Pedido; sus reglas se deben revisar en la rama donde existan antes de aplicar cambios allí. La colaboración entre teléfonos y la exportación del libro siguen pendientes según `project-context.md`.
+Los controles principales miden al menos 44 px de alto, con estados de foco perceptibles, nombres accesibles y texto legible sobre superficies translúcidas. Luna y sol son SVG para conservar forma y centrado en Android. El encabezado no usa borde de tarjeta. A 600 px o menos se reducen márgenes y tamaño de tarjetas; las categorías continúan en dos columnas, y bajo 380 px las tres acciones de conteo pasan a una columna. Nombres largos y zoom del sistema deben envolver sin cortar acciones ni cifras.
+
+El aviso de guardado se presenta arriba como una pieza de vidrio coloreado de hasta 420 px y al menos 64 px de alto. Verde/teal confirma «Listo» y «Sin stock», ámbar confirma avance y rosa rojizo indica error; el texto mantiene contraste propio de cada tema. Entra desde arriba con desplazamiento corto y sale hacia arriba después de cuatro segundos, sin interceptar gestos. El panel lateral usa una curva suave de 340 ms. Con movimiento reducido se omiten estas animaciones; con transparencia reducida los fondos pasan a ser opacos. El movimiento vertical toma como referencia las entradas y salidas [slideInDown y slideOutUp de Animate.css](https://animate.style/), implementadas aquí con CSS local sin añadir la biblioteca.
+
+## Alcance de datos
+
+Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportación. «Sin stock» sigue guardando cero con marca explícita `outOfStock`; un cero guardado con «Listo» sigue contado sin esa marca. No hay estados AM/PM ni una vista local de Pedido en `inventory-v2`: se revisan en sus propias ramas antes de aplicarles esta guía.

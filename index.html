@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#e9e9ec">
+  <meta name="theme-color" content="#e8f5fa">
   <title>Inventario</title>
   <script src="./theme.js"></script>
   <style>
@@ -27,12 +27,12 @@
       <h1>Inventario</h1>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="theme-icon-moon" d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/><g class="theme-icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></g></svg></button>
     </div>
-    <nav aria-label="Áreas de inventario">
-      <a href="./pages/inventario/?area=cocina">Cocina <span class="arrow" aria-hidden="true">›</span></a>
-      <a href="./pages/inventario/?area=panaderia">Panadería <span class="arrow" aria-hidden="true">›</span></a>
-      <a href="./pages/inventario/?area=pasteleria">Pastelería <span class="arrow" aria-hidden="true">›</span></a>
-      <a href="./pages/inventario/?area=servicio">Servicio <span class="arrow" aria-hidden="true">›</span></a>
-      <a href="./pages/inventario/?area=principal">Bodega / Principal <span class="arrow" aria-hidden="true">›</span></a>
+    <nav class="area-nav" aria-label="Áreas de inventario">
+      <a class="area-link area-principal" href="./pages/inventario/?area=principal"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 14 16 5l12 9v13H4zM10 27V17h12v10M4 14h24M13 21h6M13 24h6"/></svg></span><span class="area-name">Bodega / Principal</span><span class="arrow" aria-hidden="true">›</span></a>
+      <a class="area-link area-cocina" href="./pages/inventario/?area=cocina"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 21a6 6 0 0 1-2-10 6 6 0 0 1 10-5 6 6 0 0 1 10 5 6 6 0 0 1-2 10v6H8zM8 20h16"/></svg></span><span class="area-name">Cocina</span><span class="arrow" aria-hidden="true">›</span></a>
+      <a class="area-link area-panaderia" href="./pages/inventario/?area=panaderia"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 23c-3-4-1-10 5-13 6-4 13-2 16 3 3 5-1 12-7 14-6 2-11 1-14-4ZM11 13l4 5m2-8 4 5"/></svg></span><span class="area-name">Panadería</span><span class="arrow" aria-hidden="true">›</span></a>
+      <a class="area-link area-pasteleria" href="./pages/inventario/?area=pasteleria"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 16h22v11H5zM5 21c3 2 5 2 8 0 3 2 5 2 8 0 2 2 4 2 6 0M10 16c-2-4 0-7 5-7 1-4 7-4 8 0 5 0 7 3 5 7"/></svg></span><span class="area-name">Pastelería</span><span class="arrow" aria-hidden="true">›</span></a>
+      <a class="area-link area-servicio" href="./pages/inventario/?area=servicio"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 9h18v10a9 9 0 0 1-18 0zM23 11h4a4 4 0 0 1 0 8h-4M4 27h22"/></svg></span><span class="area-name">Servicio</span><span class="arrow" aria-hidden="true">›</span></a>
     </nav>
   </main>
 </body>

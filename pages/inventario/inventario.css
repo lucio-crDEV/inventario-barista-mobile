@@ -507,7 +507,7 @@ button:disabled {
   inset: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: visibility 0s linear 0.28s;
+  transition: visibility 0s linear 0.34s;
 }
 
 .item-drawer.is-open {
@@ -538,7 +538,7 @@ button:disabled {
   -webkit-backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 6px 18px rgb(0 0 0 / 10%), inset 0 1px rgb(255 255 255 / 42%);
   transform: translateX(-105%);
-  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform 0.34s cubic-bezier(.22, 1, .36, 1);
   outline: none;
 }
 
@@ -600,6 +600,9 @@ button:disabled {
 }
 
 .item-drawer-group-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -613,6 +616,9 @@ button:disabled {
   text-transform: uppercase;
   cursor: pointer;
   list-style: none;
+  background: var(--ui-drawer);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .item-drawer-group-toggle::-webkit-details-marker {
