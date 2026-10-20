@@ -1266,7 +1266,13 @@ function render() {
     progressText.hidden = choosingScope;
 
     if (!selectedArea) {
-        renderScopeChooser("Selecciona un área", [{ name: "Ir al inicio", url: "../../" }]);
+        renderScopeChooser("Selecciona un área", areas
+            .filter(area => area.active)
+            .sort((a, b) => a.order - b.order)
+            .map(area => ({
+                name: area.name,
+                url: `?area=${encodeURIComponent(area.id)}`
+            })));
     } else if (selectedArea.id === "servicio" && !selectedSector) {
         renderScopeChooser("Sectores de Servicio", serviceSectors.map(sector => ({
             name: sector.name,
