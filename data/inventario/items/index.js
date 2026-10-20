@@ -3,6 +3,7 @@ import { excelRows, serviceRows } from "./catalogo-excel.js";
 import { cocinaCountGroups } from "./cocina.js";
 import { pasteleriaCountGroups } from "./pasteleria.js";
 import { panaderiaCountGroups } from "./panaderia.js";
+import { principalCountGroups } from "./principal.js";
 
 function countGroupsByRow(sheet, groups) {
   const byRow = new Map();
@@ -23,6 +24,7 @@ const countGroups = {
   cocina: countGroupsByRow("cocina", cocinaCountGroups),
   pasteleria: countGroupsByRow("pasteleria", pasteleriaCountGroups),
   panaderia: countGroupsByRow("panaderia", panaderiaCountGroups),
+  principal: countGroupsByRow("principal", principalCountGroups),
 };
 
 const serviceByRow = new Map(
