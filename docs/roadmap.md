@@ -1,48 +1,25 @@
 # Roadmap — inventory-v2
 
-## Propósito
+## Meta
 
-Este roadmap corresponde a la evolución `inventory-v2`. No reutiliza como plan vigente las fases de la aplicación anterior **Inventario Barra**. Distingue la base ya visible en el checkout de trabajo que todavía necesita definición o implementación.
+Generar desde la app un inventario completo con la estructura de `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`. La experiencia de conteo se organiza por área, sector y zona cuando corresponde; las categorías prácticas se usan donde simplifican la búsqueda. Garzones abre directamente sus 16 ítems por zona.
 
-## Estado de referencia
+## Etapas
 
-En el checkout auditado:
+1. **Catálogo y navegación:** cargar las filas del Excel como referencia de salida; abrir Cocina, Panadería, Pastelería, Servicio y Bodega Principal; dentro de Servicio, Barra, Armado / Línea / Copería, Garzones y Mercadito; dentro de Garzones, sus tres zonas. Mantener los ID originales y declarar conversiones sin adivinar equivalencias. Esta estructura ya está incorporada en el checkout actual; las zonas de Garzones omiten la pantalla de categoría.
+2. **Revisión operativa:** confirmar las asignaciones físicas y unidades, con atención a los productos sin ID, las conversiones pendientes y los productos nuevos. La organización de Mercadito se acordará con la jefa de turno.
+3. **Conteo compartido:** reunir los aportes de varios teléfonos sin sobrescrituras, distinguir cantidad pendiente de cero confirmado y conservar responsable y origen de cada conteo. Seleccionar una opción gratuita que cubra el uso real.
+4. **Salida Excel:** ofrecer **Exportar** al final del inventario. Solo al elegir esa opción, partir del archivo totalizado de referencia, escribir los stocks contados en las filas correspondientes, consolidar Servicio y revisar el archivo generado antes de entregarlo.
 
-- la aplicación raíz registra rutas independientes para Inventario y Pedido;
-- Inventario tiene un catálogo de áreas y un catálogo de productos cargado para Barra;
-- el módulo de inventario gestiona sesión local, vistas de categorías/conteo/resumen y persistencia con esquema 3;
-- las otras áreas están declaradas, pero no tienen productos en el catálogo importado actualmente;
-- la existencia de la ruta Pedido no demuestra que el módulo esté terminado.
+La propuesta detallada de UX, colaboración y alternativas gratuitas está en `docs/propuesta-ux-colaboracion.md`. Es una propuesta para evaluar antes de implementar nuevas etapas. Las preguntas de reunión viven en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`.
 
-## Líneas de trabajo
+La cobertura del catálogo y el contrato de referencia del Excel tienen pruebas repetibles en `tests/`. La revisión de resultados y simulaciones está en `docs/verification.md`. El panel lateral, la búsqueda, sus categorías plegables, la cuadrícula móvil y el modo oscuro ya existen; la suma/resta por aportes, el trabajo entre teléfonos y la exportación siguen pendientes.
 
-### 1. Consolidar el inventario actual
+## Criterios de avance
 
-Usar el flujo existente con el catálogo presente y comprobar que las operaciones habituales sean coherentes: navegación, registro y edición de conteos, estados, resumen y recuperación de sesión local. Documentar problemas reproducibles y criterios de aceptación antes de ampliar alcance.
-
-### 2. Definir el despliegue multiárea
-
-Las áreas declaradas son Barra, Línea + Armado + Copería, Panadería, Pastelería y Cocina. Antes de cargar áreas adicionales, confirmar catálogo, responsables, orden de recorrido y cualquier diferencia operativa que afecte el modelo o la experiencia. Implementar y verificar la separación por área de extremo a extremo; no darla por terminada por la mera presencia de `areas.js`.
-
-### 3. Aclarar el alcance de Pedido
-
-Mantener el trabajo de Pedido separado del inventario y revisar la línea `warehouse-order` para recuperar su contexto. Definir qué pertenece a `inventory-v2` y qué permanece en la rama de pedidos antes de unir o duplicar funcionalidades.
-
-### 4. Evolucionar datos y persistencia con cuidado
-
-Mantener identificadores estables y revisar compatibilidad al modificar catálogo o esquema de sesión. La implementación observada guarda datos en el navegador; necesidades de sincronización, historial o backend requieren una decisión de producto explícita y un plan de migración, no se deducen del almacenamiento local.
-
-## Dependencias y criterios de avance
-
-- El trabajo multiárea depende de datos reales por área y de una definición del proceso operativo.
-- Cambios de modelo o persistencia dependen de conocer cómo se conservarán las sesiones existentes.
-- Una línea se considera lista cuando su comportamiento está implementado, sus datos corresponden al alcance aprobado y los criterios acordados se verificaron en el flujo afectado.
-- No convertir preguntas abiertas en requisitos ni etiquetar como descartada una función sin decisión expresa.
-
-## Fuera de este roadmap hasta decisión explícita
-
-El código inspeccionado no basta para concluir compromisos sobre sincronización remota, historial central, autenticación, cámara, mínimos/bajo stock, integraciones externas o políticas de retención. No implementarlos por inferencia; recuperar la decisión del contexto del proyecto o consultarla cuando sea relevante.
-
-## Mantenimiento
-
-Revisa este roadmap cuando cambie una decisión o una dependencia. Mantén el plan centrado en el siguiente trabajo útil y en sus criterios observables. Recalcula el estado desde la rama y el código vigentes, no desde documentación histórica.
+- Ningún producto se vincula a otro ID o fila por parecido de nombre sin validación.
+- Una conversión pendiente o un producto nuevo se informa antes de la salida; no se omite silenciosamente.
+- Una fila compartida entre sectores suma existencias físicas distintas.
+- La exportación conserva la estructura y los datos de referencia del totalizado; solo cambia el stock del nuevo inventario.
+- Contar o terminar un área no genera el Excel; la generación requiere elegir **Exportar** al final.
+- El módulo Pedido permanece separado de Inventario.

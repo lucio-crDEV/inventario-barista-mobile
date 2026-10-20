@@ -1,68 +1,47 @@
 # Contexto del proyecto — inventory-v2
 
-## 1. Propósito y alcance
+## Objetivo vigente
 
-`inventory-v2` es la evolución modular del sistema de inventario para Brioche Bakery. Debe entenderse como una línea de trabajo distinta de la aplicación anterior **Inventario Barra** y de la rama dedicada a **Pedido a Bodega**. No trasladar fases, límites ni supuestos de la aplicación anterior sin contrastarlos con las decisiones de esta evolución.
+`inventory-v2` debe permitir contar el inventario completo desde la app y producir un archivo con la misma estructura que `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`. El archivo `inventarios_og/INVENTARIOS_2026-2027_jefa-turno.xlsx` describe el reparto manual del conteo. El archivo totalizado es la referencia de salida: se conservan hojas, filas, identificadores, nombres, unidades, fórmulas y presentación; las cantidades de stock proceden del nuevo conteo.
 
-La estructura contempla un módulo de inventario y un módulo de pedido. La aplicación raíz (`app.js`) registra las rutas de ambos. El inventario tiene una estructura inicial para varias áreas; la presencia de una opción en el catálogo de áreas no significa que el área ya tenga catálogo, datos o flujo validado.
+El uso operativo puede organizarse de forma distinta del Excel. Cada producto debe vincularse a una fila de salida y contar con una conversión explícita entre su unidad en pantalla y la unidad de esa fila. Una cantidad pendiente no equivale a cero confirmado. Los productos nuevos o sin correspondencia requieren revisión antes de incluirlos en la salida.
 
-## 2. Ramas de trabajo
+El Excel final se genera únicamente cuando se elige explícitamente **Exportar** al terminar el inventario. Los conteos por área forman parte del trabajo previo y no generan archivos por sí solos.
 
-El contexto del proyecto distingue:
+## Áreas y sectores de conteo
 
-- `main`: versión estable anterior de Inventario Barra.
-- `warehouse-order`: trabajo de Pedido a Bodega.
-- `inventory-v2`: evolución del inventario documentada aquí.
+- Cocina → hoja `cocina`.
+- Panadería → hoja `panaderia`.
+- Pastelería → hoja `pasteleria`.
+- Bodega / Principal → hoja `principal`.
+- Servicio → hoja `servicio`, sumando por producto los conteos de Barra, Armado / Línea / Copería, Mercadito y Garzones.
+- Garzones se cuenta en Zona Privada, Salón y Terraza.
 
-Verifica siempre la rama antes de editar o describir el estado. No mezcles el roadmap de la versión anterior con esta rama.
+Armado / Línea / Copería se cuenta como un solo sector. La organización física y las categorías prácticas de Mercadito se revisarán con la jefa de turno. Cada ítem distingue `countCategory` (grupo que se muestra para contar) de `exportCategory` (categoría de su fila en el Excel).
 
-## 3. Implementación observada en este checkout
+Cocina se cuenta en ocho grupos prácticos: Verduras y frutas; Carnes, aves y pescados; Lácteos y huevos; Abarrotes; Aceites, salsas y condimentos; Elaborados y productos listos; Panes y masas; Aseo, protección y envases. Sus 171 filas se asignan una sola vez. Porotos verdes queda provisionalmente en Abarrotes. Cocina cuenta todos los productos de su hoja que tenga físicamente, aunque esos productos también aparezcan en otras áreas. Por ahora muestra y registra las unidades del Excel final; las mejoras de unidades se revisarán después con feedback del equipo. La agrupación no modifica filas, ID ni categorías de salida.
 
-### Estructura
+Pastelería se cuenta en once grupos prácticos que separan ingredientes, bases, rellenos, coberturas y familias de productos terminados. Sus 246 filas se asignan una sola vez. Cinco filas del Excel final carecen de unidad; la app conserva ese dato ausente y queda pendiente definirlo con el equipo antes de exportar cantidades de esas filas.
 
-- `app.js` configura navegación a `pages/inventario/` y `pages/pedido/`.
-- `pages/inventario/index.html`, `inventario.css` e `inventario.js` implementan el módulo de inventario.
-- `data/inventario/areas.js` declara las áreas.
-- `data/inventario/items/index.js` reúne los módulos de catálogo; hoy importa `barra.js`.
-- `data/inventario/items/barra.js` contiene el catálogo presente.
+Panadería se cuenta en siete grupos prácticos: Harinas y levaduras; Abarrotes, semillas y saborizantes; Refrigerados y huevos; Panes y bollería; Galletas y dulces; Aseo y protección; Envases y rotulación. Sus 151 filas se asignan una sola vez. Aseo y envases se separan aquí porque juntos abarcarían 48 productos.
 
-### Áreas y catálogo
+## Estado de la implementación
 
-El catálogo de áreas declara cinco opciones activas: Barra, Línea + Armado + Copería, Panadería, Pastelería y Cocina. El módulo de ítems actualmente reúne únicamente `barra.js`; todos los registros de ese archivo tienen `areaId: "barra"`.
+La rama `inventory-v2` usa HTML, CSS y JavaScript nativos. La página inicial muestra las cinco áreas. El módulo de inventario permite elegir sector en Servicio y zona en Garzones. En cada zona de Garzones se muestran directamente sus 16 ítems; las demás áreas y sectores conservan categorías prácticas antes de los productos. Durante el conteo, un botón abre un panel lateral con todos los ítems del área o zona activa, su estado y búsqueda por nombre. El catálogo de la app se deriva de las filas del archivo totalizado y de las asignaciones del libro manual. Se conservan los ID internos existentes de Barra cuando se puede vincular el mismo producto por nombre o por una equivalencia confirmada. Los ID de GetJusto y números de fila del Excel se guardan como referencias de salida sin modificarlos; los ID ausentes permanecen ausentes.
 
-El archivo contiene 74 registros ordenados (órdenes 1 a 74), de los cuales 72 están activos y 2 inactivos. Estos recuentos describen el checkout auditado y deben recalcularse si cambia el catálogo. No describir las cinco áreas como cinco inventarios completos: el código de áreas es una base, mientras que los datos de producto cargados son de Barra.
+La interfaz usa una paleta gris mate con indicadores de estado. Incluye un modo oscuro seleccionable desde Inicio y las pantallas de Inventario; la preferencia se guarda en el navegador. El panel lateral de ítems conserva la transparencia, permite buscar y plegar categorías, y no intercala categorías en las zonas de Garzones. En celulares, las categorías usan una cuadrícula compacta de dos columnas; el conteo reduce sombras y separa los controles de navegación.
 
-Los objetos actuales contienen `id`, `name`, `category`, `areaId`, `unit`, `order` y `active`. `id` funciona como identificador interno; no cambiarlo sin necesidad y revisar las referencias al migrar datos.
+El conteo existente se guarda en `localStorage` con la clave `inventario-session-v2` y esquema 3. Esa persistencia es local al navegador y aún no reúne automáticamente los conteos de varios teléfonos. El generador del Excel final tampoco está implementado todavía. El documento `docs/propuesta-ux-colaboracion.md` plantea la evolución de interfaz y trabajo compartido; sus etapas siguen pendientes de evaluación. Las dudas de reunión se conservan en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`. La ruta de Pedido pertenece a un módulo separado y no forma parte de esta navegación de inventario.
 
-### Sesión y persistencia
+La revisión del 20-10-2026 comprobó 1.151 filas de referencia contra el Excel original y encontró cero diferencias en ID, nombre, unidad y categoría. El catálogo tiene 1.227 entradas de conteo porque algunos productos aparecen en más de un sector o zona; 18 ítems anteriores de Barra siguen sin fila de salida y dos conversiones de Barra siguen sin equivalencia aprobada. Las pruebas y simulaciones, junto con su alcance, están en `docs/verification.md`.
 
-`pages/inventario/inventario.js` usa `localStorage` con la clave `inventario-session-v2`. La sesión creada tiene `schemaVersion: 3`; el cargador admite esquemas 2 y 3 y normaliza la sesión a versión 3. La sesión es local al navegador y no constituye sincronización remota ni historial central.
+## Conversiones conocidas y pendientes
 
-La sesión incluye identificador, fecha, inicio, índice actual, vista, responsable y conteos. El código presenta vistas de categorías, conteo y resumen, y conserva los datos de sesión en el almacenamiento local. Para detalles de comportamiento, inspecciona el código vigente antes de implementar cambios: pueden variar entre commits.
+- Chai en polvo: conteo y salida en KG. Al cargar una sesión antigua de Barra que guardó gramos, la cantidad se convierte a kilos.
+- Syrups de 750 cc: conteo en CC; la salida en UN corresponde a `cc / 750`.
+- Las unidades iguales, ignorando mayúsculas, mantienen factor 1; gramos a kilos tienen factor `0,001`.
+- Las conversiones sin equivalencia confirmada se marcan como pendientes. No se inventan tamaños de envase.
 
-### Pedido
+## Contexto de ramas
 
-La ruta del módulo Pedido está registrada en la aplicación raíz, pero el estado y alcance de ese módulo deben verificarse en `pages/pedido/` y contrastarse con la rama `warehouse-order`. No inferir que está completo por existir una ruta.
-
-## 4. Decisiones de documentación
-
-- Separar hechos comprobados en el checkout de objetivos y decisiones de producto.
-- Tratar el catálogo multiárea como estructura inicial mientras solo haya datos de Barra.
-- No describir funciones como descartadas o comprometidas sin una decisión explícita y vigente.
-- No reutilizar cifras, claves de almacenamiento, modelos o nombres de la versión anterior sin verificar.
-- Mantener separados Inventario y Pedido, respetando la línea de trabajo de cada rama.
-
-## 5. Cuestiones abiertas
-
-El código por sí solo no establece:
-
-- cuándo se cargarán y validarán productos de las otras áreas;
-- si las áreas compartirán un flujo o tendrán particularidades operativas;
-- qué alcance funcional exacto corresponde al módulo Pedido en esta rama;
-- qué secuencia de entregas y criterios de aceptación fueron acordados para las siguientes iteraciones.
-
-Resolver estas cuestiones desde el contexto de decisiones del proyecto o preguntando al usuario. No rellenarlas con supuestos heredados del MVP anterior.
-
-## 6. Cómo mantener este documento
-
-Al cambiar código, vuelve a comprobar rutas, catálogo, áreas, persistencia y comportamiento antes de actualizar las afirmaciones. Los recuentos son una fotografía del estado auditado, no valores permanentes. Usa `docs/roadmap.md` para el orden de trabajo y conserva aquí solo contexto, decisiones y estado relevante.
+`main` es la versión estable anterior de Inventario Barra; `warehouse-order` es la línea de Pedido a Bodega; `inventory-v2` es esta evolución. Las decisiones de `inventory-v2` reemplazan los límites de la versión anterior.

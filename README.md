@@ -1,45 +1,21 @@
 # inventory-v2
 
-Aplicación web modular para la evolución del sistema de inventario de Brioche Bakery. Este repositorio corresponde a la línea `inventory-v2`; no es la versión anterior de **Inventario Barra**.
+Aplicación web móvil para contar el inventario de Brioche Bakery por área y generar, en una etapa posterior, el libro `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` con las cantidades nuevas y el resto de su estructura intacta.
 
-## Estado del checkout
+La pantalla inicial abre Cocina, Panadería, Pastelería, Servicio o Bodega Principal. Servicio se cuenta por Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Cocina, Panadería, Pastelería, Bodega y los sectores de Servicio salvo Garzones muestran categorías prácticas; al elegir una zona de Garzones se entra directamente a sus 16 ítems.
 
-El checkout auditado está en la rama `inventory-v2`. La aplicación raíz dirige a módulos separados de inventario y pedido. El módulo de inventario importa un catálogo y una lista de áreas desde `data/inventario/`, conserva una sesión local en `localStorage` y usa un esquema de sesión versión 3.
+Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 
-El catálogo actual contiene 74 registros: 72 activos y 2 inactivos. Los registros presentes pertenecen al área Barra. El catálogo de áreas declara cinco áreas, pero esa declaración por sí sola no implica que haya productos o un flujo completo para cada área.
+El conteo actual sigue guardándose en el navegador mediante `localStorage`. La sincronización entre teléfonos y la generación del Excel final son etapas pendientes. Revisa `docs/project-context.md`, `docs/roadmap.md`, `docs/propuesta-ux-colaboracion.md` y `docs/verification.md` para el estado, las etapas, las decisiones pendientes y las comprobaciones realizadas. La planilla de dudas de reunión está en `archivos-externos/reuniones/`.
 
-## Estructura principal
+## Comprobaciones locales
 
-```text
-.
-├── AGENTS.md
-├── README.md
-├── app.js
-├── index.html
-├── styles.css
-├── data/
-│   └── inventario/
-│       ├── areas.js
-│       └── items/
-│           ├── index.js
-│           └── barra.js
-├── pages/
-│   ├── inventario/
-│   │   ├── index.html
-│   │   ├── inventario.css
-│   │   └── inventario.js
-│   └── pedido/
-└── docs/
-    ├── project-context.md
-    └── roadmap.md
+Con Node.js y Python 3 disponibles, desde la raíz del proyecto:
+
+```sh
+node --test tests/catalog.test.mjs
+python3 tests/workbook_contract.py
+node --check pages/inventario/inventario.js
 ```
 
-## Documentación
-
-- `AGENTS.md`: reglas de trabajo en este repositorio.
-- `docs/project-context.md`: decisiones, estado observado y cuestiones abiertas.
-- `docs/roadmap.md`: orden de trabajo y criterios para avanzar.
-
-## Trabajo en el repositorio
-
-Comprueba la rama y `git status` antes de editar; revisa `git diff` después. No hagas commit ni push sin solicitud explícita. Consulta `AGENTS.md` para las instrucciones completas.
+La primera prueba revisa cobertura, IDs, asignaciones por área y conversiones conocidas. La segunda compara las 1.151 filas de referencia con el Excel original sin modificarlo. Ambas son verificaciones del catálogo actual; todavía no prueban exportación ni sincronización, porque esas funciones no están implementadas.

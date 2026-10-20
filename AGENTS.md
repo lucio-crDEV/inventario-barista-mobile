@@ -21,7 +21,7 @@ El código muestra lo implementado, no necesariamente todas las decisiones de pr
 
 El proyecto mantiene líneas de trabajo diferenciadas: `main` corresponde a la versión estable anterior de Inventario Barra; `warehouse-order` corresponde al trabajo de Pedido a Bodega; `inventory-v2` es la evolución del sistema de inventario. Comprueba la rama antes de tareas que dependan de esa separación y no mezcles cambios entre ramas por conveniencia.
 
-`inventory-v2` ya tiene una estructura de áreas que declara Barra, Línea + Armado + Copería, Panadería, Pastelería y Cocina. En el catálogo que acompaña al checkout auditado, los productos cargados corresponden a Barra. No afirmes que las otras áreas tienen catálogo o flujo operativo completo solo porque aparezcan en `data/inventario/areas.js`.
+El objetivo vigente de `inventory-v2` es contar Cocina, Panadería, Pastelería, Servicio y Bodega Principal, y generar el archivo `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` conservando su estructura, identificadores y datos de referencia; solo deben actualizarse las cantidades contadas. Servicio se cuenta en Barra, Armado/Línea/Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Los catálogos y la navegación pueden avanzar por etapas. No confundas una lista cargada con un flujo completo ni con sincronización entre teléfonos.
 
 El módulo de Pedido está separado del módulo de Inventario. No asumir que sus datos, flujos o decisiones son intercambiables.
 
@@ -38,7 +38,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - Mantén cambios acotados al objetivo solicitado.
 - Sigue la estructura modular existente bajo `pages/` y `data/`.
 - Conserva HTML, CSS y JavaScript nativos mientras resuelvan el problema.
-- No incorpores áreas, catálogos, integraciones, persistencia remota o dependencias por anticipado.
+- No incorpores integraciones, persistencia remota o dependencias por anticipado. Las áreas y sus catálogos pertenecen al objetivo vigente.
 - Mantén identificadores y datos existentes salvo que el cambio solicitado los requiera.
 - Prioriza uso móvil, controles claros, lectura rápida y prevención de pérdida accidental de datos.
 
