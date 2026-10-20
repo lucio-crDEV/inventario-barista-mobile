@@ -628,9 +628,9 @@ html[data-theme="dark"] .count-actions .button {
   box-shadow: 0 6px 16px rgb(0 0 0 / 14%), inset 0 1px rgb(255 255 255 / 11%);
 }
 
-.status-out-of-stock { background: #f4dede; color: #8e2525; }
-html[data-theme="dark"] .status-out-of-stock { background: #472929; color: #ffc0c0; }
-.status-dot-out-of-stock { background: #cb514c; }
+.status-out-of-stock { background: #e3f5ec; color: #146746; }
+html[data-theme="dark"] .status-out-of-stock { background: #21493d; color: #9fe6bf; }
+.status-dot-out-of-stock { background: #45a573; }
 
 .feedback-toast {
   --toast-surface: 190 239 226;
@@ -898,13 +898,18 @@ html[data-theme="dark"] :is(.category-card, .item-card, .stat-card, .accordion, 
 .status-pending, html[data-theme="dark"] .status-pending { background: rgb(239 84 103 / 15%); color: #b92646; }
 .status-partial, html[data-theme="dark"] .status-partial { background: rgb(239 177 50 / 21%); color: #8b5b00; }
 .status-counted, html[data-theme="dark"] .status-counted { background: rgb(16 171 132 / 15%); color: #08765e; }
-.status-out-of-stock, html[data-theme="dark"] .status-out-of-stock { background: rgb(239 84 103 / 15%); color: #b92646; }
-html[data-theme="dark"] .status-pending, html[data-theme="dark"] .status-out-of-stock { color: #ff9fac; }
+.status-out-of-stock, html[data-theme="dark"] .status-out-of-stock { background: rgb(16 171 132 / 15%); color: #08765e; }
+html[data-theme="dark"] .status-pending { color: #ff9fac; }
 html[data-theme="dark"] .status-partial { color: #ffd078; }
-html[data-theme="dark"] .status-counted { color: #6ee3c3; }
-.status-dot-pending, .status-dot-out-of-stock { background: #ed5269; }
+html[data-theme="dark"] .status-counted,
+html[data-theme="dark"] .status-out-of-stock { color: #6ee3c3; }
+.status-dot-pending { background: #ed5269; }
 .status-dot-partial { background: #e9a632; }
-.status-dot-counted { background: #0fb99b; }
+.status-dot-counted, .status-dot-out-of-stock { background: #0fb99b; }
+.item-drawer-link.is-out-of-stock .item-drawer-state,
+.summary-item-button.is-out-of-stock .summary-item-value { color: #08765e; }
+html[data-theme="dark"] .item-drawer-link.is-out-of-stock .item-drawer-state,
+html[data-theme="dark"] #app-content .summary-item-button.is-out-of-stock .summary-item-value { color: #6ee3c3; }
 .stat-card.stat-pending { background: linear-gradient(145deg, rgb(255 242 241 / 88%), rgb(255 255 255 / 70%)); }
 .stat-card.stat-partial { background: linear-gradient(145deg, rgb(255 247 227 / 88%), rgb(255 255 255 / 70%)); }
 .stat-card.stat-counted { background: linear-gradient(145deg, rgb(229 251 246 / 88%), rgb(255 255 255 / 70%)); }

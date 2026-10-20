@@ -781,7 +781,7 @@ function formatQuantity(value) {
 
 function getStatusIcon(status, outOfStock = false) {
 
-    if (status === "counted" && outOfStock) return "🔴";
+    if (status === "counted" && outOfStock) return "🟢";
 
     switch (status) {
 
@@ -1659,7 +1659,7 @@ function renderItemDrawerList(currentItemId) {
             const isCurrent = item.id === currentItemId;
             return `
               <button
-                class="item-drawer-link${isCurrent ? " is-current" : ""}"
+                class="item-drawer-link${isCurrent ? " is-current" : ""}${outOfStock ? " is-out-of-stock" : ""}"
                 type="button"
                 data-item-index="${index}"
                 ${isCurrent ? 'aria-current="true"' : ""}
@@ -2546,7 +2546,7 @@ function renderSummaryRows(
 
             return `
         <button
-          class="summary-item-button"
+          class="summary-item-button${isOutOfStockCount(count) ? " is-out-of-stock" : ""}"
           type="button"
           data-item-index="${activeItems.indexOf(
                 item

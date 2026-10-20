@@ -25,7 +25,7 @@ Los bordes de tarjeta son tenues (azul al 18 % en claro, blanco azulado al 10 % 
 
 ## Color con significado
 
-El cian identifica navegación, progreso y acciones generales. Los estados y acciones de conteo conservan su semántica previa: **rojo** para pendiente y «Sin stock»; **amarillo/ámbar** para avance; **verde/teal** para contado y «Listo». Los avisos de guardado de «Listo» y «Sin stock» siguen siendo verdes porque ambas operaciones guardan un conteo. Cada estado mantiene texto además de color. Las tarjetas de Inicio pueden usar tintes propios por área: cian para Bodega, azul para Cocina, ámbar para Panadería, rosa para Pastelería y verde agua para Servicio; estos tintes no cambian el estado de sus ítems.
+El cian identifica navegación, progreso y acciones generales. **Rojo** señala pendientes y el botón «Sin stock» antes de confirmar; **amarillo/ámbar** señala avance; **verde/teal** señala contado y «Sin stock» ya guardado. La insignia del producto, su punto y etiqueta en el panel, y su icono y cantidad en el resumen usan verde para «Sin stock» guardado. Los avisos de «Listo» y «Sin stock» son verdes porque ambas operaciones guardan un conteo. Cada estado mantiene texto además de color. Las tarjetas de Inicio pueden usar tintes propios por área: cian para Bodega, azul para Cocina, ámbar para Panadería, rosa para Pastelería y verde agua para Servicio; estos tintes no cambian el estado de sus ítems.
 
 ## Pantallas y componentes
 

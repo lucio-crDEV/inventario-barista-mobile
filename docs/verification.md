@@ -77,7 +77,7 @@ La captura posterior de Panadería mostró «Ver ítems» a la derecha y un cont
 
 En Pastelería se observó un único divisor vertical en la barra superior: la regla más específica del botón central ocultaba el otro. Se eliminaron ambos divisores para mantener las tres zonas sin una línea aislada.
 
-El aviso superior conserva el tinte funcional y el texto blanco: verde para los guardados de «Sin stock» y «Listo», ámbar para avance y rojo para errores. El ítem marcado «Sin stock» sigue identificado en rojo. Tras la revisión visual se retiró el reflejo interior, se suavizaron borde y sombra, y se aclararon los tintes con más transparencia, especialmente en modo oscuro. El desenfoque mantiene la lectura sobre el contenido. Cuando el sistema pide menos transparencia, el aviso usa un color sólido. La prueba de selección incluye el tono de cada acción.
+El aviso superior conserva el tinte funcional y el texto blanco: verde para los guardados de «Sin stock» y «Listo», ámbar para avance y rojo para errores. En esa revisión el ítem marcado «Sin stock» aún se identificaba en rojo; la corrección posterior de su estado guardado se documenta al final. Tras la revisión visual se retiró el reflejo interior, se suavizaron borde y sombra, y se aclararon los tintes con más transparencia, especialmente en modo oscuro. El desenfoque mantiene la lectura sobre el contenido. Cuando el sistema pide menos transparencia, el aviso usa un color sólido. La prueba de selección incluye el tono de cada acción.
 
 La última comprobación pasó las **12 pruebas de Node**, el contrato de **1.151 filas**, la sintaxis de los módulos de Inventario y selección, y `git diff --check`. La apariencia del aviso más transparente queda pendiente de valoración visual en el navegador local.
 
@@ -134,3 +134,9 @@ Se repitieron las **12 pruebas de Node**, el contrato de **1.151 filas**, la sin
 ### Ajuste final del aviso
 
 Tras la revisión visual, se retiraron los degradados del aviso en claro y oscuro. Los tres tonos funcionales usan una única superficie translúcida cada uno, con desenfoque y sombra más discretos. Se conservan el tamaño, las etiquetas, la duración y la entrada/salida vertical. La variante de transparencia reducida usa el mismo color en versión opaca. En el origen local aislado `127.0.0.1:8766` se comprobó visualmente el aviso verde «Sin stock guardado.» en oscuro y el ámbar «Avance guardado.» en claro; ambos mostraron un color uniforme. Ese servidor y su pestaña se cerraron tras la comprobación, sin modificar el origen principal.
+
+### Color del estado «Sin stock» guardado
+
+Las tres observaciones en Cocina mostraban la marca «Sin stock» roja en la ficha, el resumen y el panel lateral. El estado sigue siendo un cero contabilizado con `outOfStock`, pero ahora usa verde en el icono, la insignia, el punto del panel y los textos de estado de las listas. El botón que inicia la acción «Sin stock» conserva su rojo; no cambia el guardado ni la marca persistida.
+
+En el origen aislado `127.0.0.1:8766` se revisaron dos ítems guardados «Sin stock» en Cocina. La ficha mostró «🟢 Sin stock»; el panel mostró el punto y el texto verdes; el resumen incluyó ambos en «Contados» con icono verde y cantidad «0 · Sin stock» verde. Se comprobaron los colores calculados en claro y oscuro. En oscuro hubo que ajustar la prioridad de una regla general que mantenía gris el texto del resumen. Las 12 pruebas de Node y la revisión de sintaxis pasaron; el origen principal permaneció intacto.
