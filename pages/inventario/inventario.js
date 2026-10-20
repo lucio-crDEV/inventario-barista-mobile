@@ -1666,17 +1666,6 @@ function renderCurrentItem() {
             count.note || ""
         );
 
-    const outputHint = !item.exportRow
-        ? "Producto pendiente de vincular al Excel final."
-        : item.toExportFactor === null
-            ? `Conversión a ${item.exportUnit} pendiente de definir.`
-            : item.toExportFactor !== 1
-                ? item.toExportFactor === 1 / 750
-                    ? `750 cc = 1 ${item.exportUnit} en el Excel final`
-                    : `1.000 g = 1 ${item.exportUnit} en el Excel final`
-                : "";
-
-
     const quantityValue =
         count.quantity === null
             ? ""
@@ -1790,7 +1779,6 @@ function renderCurrentItem() {
             value="${quantityValue}"
           >
 
-          ${outputHint ? `<p class="count-output-hint">${escapeHtml(outputHint)}</p>` : ""}
 
         </div>
 

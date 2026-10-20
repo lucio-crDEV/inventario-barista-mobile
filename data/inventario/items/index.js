@@ -101,6 +101,38 @@ const confirmedAliases = new Map([
   ["helado-frutilla-crema", "Helado frutilla"],
 ]);
 
+// Barra conserva las categorías de conteo de la versión anterior. Las categorías
+// de la hoja Servicio pertenecen solo a la referencia de exportación.
+const barraCategoryOrder = [
+  "Insumos", "Syrups", "Congelados", "Te / Infusiones", "Desechables", "Limpieza",
+];
+const barraCategoryByExcelCategory = {
+  Abarrotes: "Insumos",
+  Bebestibles: "Insumos",
+  "Cafetería": "Insumos",
+  Congelados: "Congelados",
+  Desechables: "Desechables",
+  "Frutas y Verduras": "Insumos",
+  Insumos: "Insumos",
+  "Lácteos y Quesos": "Insumos",
+  Limpieza: "Limpieza",
+  "Pastelería": "Insumos",
+  "Productos Elaborados": "Insumos",
+  Syrups: "Syrups",
+  "Te / Infusiones": "Te / Infusiones",
+};
+const barraCategoryOverridesByRow = new Map([
+  [10, "Te / Infusiones"],
+  [59, "Congelados"], [60, "Congelados"], [61, "Congelados"],
+  [225, "Te / Infusiones"], [226, "Te / Infusiones"],
+]);
+
+function barraCategoryOrderFor(category) {
+  const order = barraCategoryOrder.indexOf(category);
+  if (order < 0) throw new Error(`Categoría de Barra sin definir: ${category}`);
+  return order;
+}
+
 const legacyByExcelName = new Map();
 for (const [id, excelName] of confirmedAliases) {
   const item = previousBarraItems.find(candidate => candidate.id === id);
@@ -116,7 +148,17 @@ const barraItems = serviceRows.barra.map(rowNumber => {
   const matches = legacyByName.get(key) || [];
   const legacy = matches.length === 1 ? matches[0] : legacyByExcelName.get(key);
 
-  if (!legacy) return itemFromRow("servicio", row, "barra");
+  if (!legacy) {
+    const countCategory = barraCategoryOverridesByRow.get(rowNumber)
+      || barraCategoryByExcelCategory[row[4]];
+    const countCategoryOrder = barraCategoryOrderFor(countCategory);
+    return {
+      ...itemFromRow("servicio", row, "barra"),
+      countCategory,
+      countCategoryOrder,
+      order: previousBarraItems.length + rowNumber,
+    };
+  }
   usedLegacyIds.add(legacy.id);
 
   // Chai se contará en kilos; el Excel también usa kilos.
@@ -124,6 +166,7 @@ const barraItems = serviceRows.barra.map(rowNumber => {
   return {
     ...legacy,
     countCategory: legacy.category,
+    countCategoryOrder: barraCategoryOrderFor(legacy.category),
     active: true,
     areaId: "servicio",
     sectorId: "barra",
@@ -141,7 +184,8 @@ const pendingBarraItems = previousBarraItems
     areaId: "servicio",
     sectorId: "barra",
     zoneId: null,
-    countCategory: "Por vincular al Excel",
+    countCategory: item.category,
+    countCategoryOrder: barraCategoryOrderFor(item.category),
     justoId: null,
     exportSheet: null,
     exportRow: null,
@@ -150,11 +194,20 @@ const pendingBarraItems = previousBarraItems
     toExportFactor: null,
   }));
 
+// Estos productos se contaban en Barra antes de mover las bebidas envasadas a
+// Armado/Línea/Copería. Sus ID internos permanecen estables para conservar conteos.
+const movedDrinksFromBarra = new Set([45, 46, 47, 48, 49, 71, 72]);
+
 function serviceItems(sectorId, zoneId = null) {
   return serviceRows[sectorId].map(rowNumber => {
     const row = serviceByRow.get(rowNumber);
     if (!row) throw new Error(`Falta la fila ${rowNumber} de servicio`);
-    return itemFromRow("servicio", row, sectorId, zoneId);
+    const item = itemFromRow("servicio", row, sectorId, zoneId);
+    if (sectorId === "armado-linea-coperia" && movedDrinksFromBarra.has(rowNumber)) {
+      item.id = `servicio:barra:${rowNumber}`;
+      item.countCategory = "Bebidas";
+    }
+    return item;
   });
 }
 

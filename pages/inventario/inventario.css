@@ -326,13 +326,6 @@ button:disabled {
   outline-offset: 2px;
 }
 
-.count-output-hint {
-  margin: 7px 0 0;
-  color: #666;
-  font-size: 0.8rem;
-}
-
-
 .category-card-title {
   overflow-wrap: anywhere;
 
