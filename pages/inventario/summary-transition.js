@@ -1,7 +1,7 @@
 /** Muestra un acento visual mientras el resumen ya está disponible. */
 export function showSummaryTransition(container, {
   reducedMotion = false,
-  duration = 650,
+  duration = 800,
   schedule = setTimeout
 } = {}) {
   if (reducedMotion || !container?.querySelector(".summary-view")) return null;
