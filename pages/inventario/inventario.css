@@ -508,15 +508,6 @@ button:disabled {
   font-weight: 700;
 }
 
-.item-drawer-trigger-count {
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: #ebebeb;
-  color: #444;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
 .item-drawer {
   position: fixed;
   z-index: 100;
@@ -663,6 +654,10 @@ button:disabled {
 .item-drawer-link.is-current {
   border-color: #bcbcbc;
   background: rgb(230 230 230 / 52%);
+}
+
+.item-drawer-link.is-current {
+  box-shadow: inset 3px 0 #777;
 }
 
 .item-drawer-name {

@@ -88,11 +88,6 @@ html[data-theme="dark"] .item-drawer-trigger-icon span {
   background: #ccc;
 }
 
-html[data-theme="dark"] .item-drawer-trigger-count {
-  background: #363636;
-  color: #ededed;
-}
-
 html[data-theme="dark"] .item-drawer-panel {
   border-color: rgb(255 255 255 / 22%);
   background: linear-gradient(145deg, rgb(65 65 65 / 42%), rgb(25 25 25 / 35%));
@@ -126,6 +121,10 @@ html[data-theme="dark"] .item-drawer-link {
 html[data-theme="dark"] :is(.item-drawer-link:hover, .item-drawer-link.is-current) {
   border-color: #777;
   background: rgb(110 110 110 / 40%);
+}
+
+html[data-theme="dark"] .item-drawer-link.is-current {
+  box-shadow: inset 3px 0 #aaa;
 }
 
 html[data-theme="dark"] :is(.field input, .field textarea) {

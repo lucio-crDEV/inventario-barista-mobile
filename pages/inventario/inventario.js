@@ -1721,7 +1721,6 @@ function renderCurrentItem() {
             <span></span><span></span><span></span>
           </span>
           <span class="item-drawer-trigger-label">Ver ítems</span>
-          <span class="item-drawer-trigger-count">${activeItems.indexOf(item) + 1} / ${activeItems.length}</span>
         </button>
       </div>
 
@@ -1917,6 +1916,19 @@ function setupCurrentItemEvents() {
         trigger.setAttribute("aria-expanded", "true");
         document.body.classList.add("item-drawer-open");
         drawer.querySelector(".item-drawer-panel").focus({ preventScroll: true });
+
+        const current = drawer.querySelector(".item-drawer-link.is-current");
+        const currentGroup = current?.closest("details.item-drawer-group");
+        if (currentGroup && !currentGroup.open) {
+            currentGroup.open = true;
+            collapsedItemDrawerGroups.delete(currentGroup.dataset.category);
+        }
+        if (current) {
+            const list = drawer.querySelector(".item-drawer-list");
+            const itemTop = current.getBoundingClientRect().top
+                - list.getBoundingClientRect().top + list.scrollTop;
+            list.scrollTop = itemTop - (list.clientHeight - current.offsetHeight) / 2;
+        }
     });
 
     drawer.querySelector(".item-drawer-backdrop")
