@@ -4,7 +4,7 @@ Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proy
 
 ## Estado comprobado y lo que falta
 
-El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El primer administrador aún no está confirmado: el último intento se detuvo por contraseña de menos de 12 caracteres. No repetir migraciones ni creación del ciclo para corregir esa contraseña.
+El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 el usuario confirmó también la aplicación exitosa del SQL del primer administrador `admin`: D1 procesó las cuatro consultas sin error. No repetir migraciones, creación del ciclo ni bootstrap en esta instalación. Sigue pendiente comprobar el ingreso y el cambio obligatorio de contraseña en el sitio publicado.
 
 La revisión pública inicial encontró HTML en `/api/me` y `/api/bootstrap`, y el catálogo global accesible como archivo. El arreglo está en esta rama: publicar **`dist` generado con `npm run build:pages`**, que contiene el Worker. Se comprobó API, autorización, cookie segura y reintento idempotente en Pages + D1 por HTTPS local; no se certifica aún el sitio remoto actualizado.
 
@@ -49,7 +49,9 @@ Usar fecha de compatibilidad `2026-10-01`. No poner una barra final en `APP_ORIG
 
 La integración Git dispara builds con cada push a la rama configurada; `git pull` no publica nada. Referencias oficiales: [integración Git](https://developers.cloudflare.com/pages/configuration/git-integration/), [controles de rama](https://developers.cloudflare.com/pages/configuration/branch-build-controls/), [configuración Pages y Wrangler](https://developers.cloudflare.com/pages/functions/wrangler-configuration/), [Worker avanzado](https://developers.cloudflare.com/pages/functions/advanced-mode/). Si el proyecto fuera Direct Upload, el push no habilita por sí solo la integración Git: faltaría preparar una automatización de subida compatible; no se ha comprobado ese supuesto ni se debe borrar el proyecto actual para resolverlo.
 
-## 2. Crear el primer administrador pendiente
+## 2. Primer administrador — creado en este sitio
+
+El administrador `admin` ya fue creado en la D1 de este sitio. Conservar el procedimiento siguiente como referencia para otra instalación vacía; **no volver a ejecutarlo aquí**. Tras la aplicación exitosa, retirar `/tmp/primer-admin-v3.bootstrap.sql`, que contiene el hash de la contraseña temporal.
 
 Desde el repositorio actualizado, con Node 24 y `npm ci` ejecutado:
 
@@ -108,4 +110,4 @@ No ejecutar migraciones ni bootstrap de administrador como parte del comando de 
 7. Con una edición pendiente, retirar Barra desde el administrador: la siguiente solicitud rechaza el acceso, desaparecen datos y queda aviso del borrador aislado. Cambiar de usuario no transfiere esos campos.
 8. Restablecer/desactivar una cuenta y comprobar que sus sesiones dejan de funcionar. Revisar ambas apariencias en un teléfono real y verificar tiempos de ingreso/guardado en la red del local.
 
-No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y los límites del piloto están en [verification.md](verification.md). La fase 3A tiene implementación y pruebas locales completas para el alcance descrito, pero su aceptación operativa sigue pendiente de este recorrido remoto, CPU/plan, respaldos/restauración, retención y prueba con trabajadores. 3B continúa con supervisión, historial administrativo avanzado, rectificaciones/anulaciones, activación operativa y revisión/cierre/reapertura; Excel corresponde a etapa 4.
+No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y los límites del piloto están en [verification.md](verification.md). La fase 3A tiene implementación y pruebas locales completas para el alcance descrito, pero su aceptación operativa sigue pendiente del ingreso/cambio de contraseña y de este recorrido remoto, CPU/plan, respaldos/restauración, retención y prueba con trabajadores. 3B continúa con supervisión, historial administrativo avanzado, rectificaciones/anulaciones, activación operativa y revisión/cierre/reapertura; Excel corresponde a etapa 4.

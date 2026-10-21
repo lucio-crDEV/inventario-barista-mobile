@@ -57,7 +57,7 @@ Las capturas reproducibles quedan en `test-results/3a/`, excluido de Git. Se ins
 
 [pages-local-3a.json](pages-local-3a.json): `_worker.js` construido con esbuild, rutas completas y D1 independiente. Sin sesión `/api/me` y `/api/status` devuelven JSON 401. Catálogo global, servidor, SQL, bootstrap, libros y `/_worker.js` no se entregan como archivos. Cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict, Path `/`, no visible en `document.cookie`. Se obtiene catálogo filtrado de Barra, se guarda y reintenta idéntica operación sin duplicarla, se rechaza otro origen y se revoca sesión al salir.
 
-La revisión pública previa de `inventario-login.pages.dev` detectó una publicación estática que devuelve HTML en la API y expone el archivo de catálogo. El paquete que lo corrige se probó **localmente**, todavía no desplegado por esta tarea. La salida de terminal aportada por el usuario confirma migraciones/ciclo remotos; no confirma creación exitosa del administrador ni ajustes de integración Git/bindings. Falta publicar y ejecutar el recorrido remoto de la guía.
+La revisión pública previa de `inventario-login.pages.dev` detectó una publicación estática que devuelve HTML en la API y expone el archivo de catálogo. El paquete que lo corrige se probó **localmente**, todavía no desplegado por esta tarea. La salida de terminal aportada por el usuario confirma migraciones/ciclo remotos y, posteriormente el 21-10-2026, la importación exitosa del primer administrador `admin` (cuatro consultas). Esta evidencia no prueba el ingreso/cambio de contraseña ni los ajustes de integración Git/bindings. Falta publicar y ejecutar el recorrido remoto de la guía.
 
 ## Simulación repetible de 15 clientes
 
@@ -75,7 +75,7 @@ No extrapolar este ensayo local a capacidad garantizada en producción ni al dí
 
 [README](../README.md) y [operación](operacion-3a.md) describen `test:prepare`, los servidores y el orden de suites. Detener los servidores de ensayo antes de recrear sus bases; no ejecutar conjuntos mutantes simultáneamente. Las suites anteriores a esta revisión usaban fixtures de desarrollo; ahora todas apuntan a `.wrangler/test-state` o `.wrangler/pages-test-state`, independientes de `.wrangler/state`. Nunca ejecutar fixtures o carga contra D1 publicada.
 
-**3A implementada y verificada localmente; aceptación operativa pendiente.** Faltan primer administrador confirmado, ajustes del despliegue automático, paquete publicado y pruebas del dominio real, CPU/plan y consumo, respaldos/restauración, retención, Android físico y piloto con trabajadores/señal real. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
+**3A implementada y verificada localmente; aceptación operativa pendiente.** Faltan ajustes del despliegue automático, paquete publicado, ingreso/cambio de contraseña y pruebas del dominio real, CPU/plan y consumo, respaldos/restauración, retención, Android físico y piloto con trabajadores/señal real. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
 
 Etapa 2 conserva cinco unidades ausentes de Pastelería, 18 entradas de Barra sin referencia y dos conversiones pendientes. No se inventaron equivalencias. El rechazo de sumar con unidad desconocida se probó en servidor; no hay ensayo visual específico de las cinco filas. 3B: tablero, historial administrativo avanzado, rectificación/anulación, activación operativa y revisión/cierre/reapertura. Etapa 4: exportación fiel. Exportación, SMS/correo y conteo offline completo no están implementados ni se declaran probados.
 

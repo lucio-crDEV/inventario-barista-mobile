@@ -39,7 +39,7 @@ Inicio y pantallas obtienen la proyección autorizada desde la API. Los contened
 
 ## Habilitación de Pages y revisión visual — 21-10-2026
 
-El usuario publicó una primera versión de v3 en `https://inventario-login.pages.dev/` y creó D1 `inventario-login-v3`. Su salida de terminal confirma migraciones y ciclo `piloto-v3` aplicados; la creación del primer administrador sigue pendiente de una contraseña válida y aplicación del SQL. No se han recibido ni almacenado credenciales personales.
+El usuario publicó una primera versión de v3 en `https://inventario-login.pages.dev/` y creó D1 `inventario-login-v3`. Su salida de terminal confirma migraciones, ciclo `piloto-v3` y creación del primer administrador personal `admin` aplicados. La importación del bootstrap procesó cuatro consultas sin error el 21-10-2026. El ingreso y el cambio obligatorio de contraseña en el sitio aún no se han comprobado. No se han recibido ni almacenado credenciales personales.
 
 La comprobación pública encontró HTML en `/api/me` y `/api/bootstrap` en lugar de API, además del catálogo global expuesto por la publicación estática de la raíz. Esta revisión añade `build:pages`: assets permitidos, `_worker.js` y cobertura de todas las rutas en `dist`. El cliente presenta indisponibilidad clara ante HTML o D1 sin inicializar; no activa fixtures ni modo local. Se verificó el paquete con D1 aislado y cookies seguras por HTTPS **local**; falta publicar ese paquete y validar el dominio real. Configuración e instrucciones en [despliegue-pages.md](despliegue-pages.md).
 
