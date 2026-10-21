@@ -199,6 +199,29 @@ async function api(req, env, url) {
       !["127.0.0.1", "localhost"].includes(url.hostname))
   )
     fail(503, "NOT_CONFIGURED");
+  try {
+    const ready = await env.DB.prepare(
+      `SELECT 1 ready FROM cycles c WHERE c.id=?
+      AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version)
+      AND EXISTS(SELECT 1 FROM users WHERE role='admin' AND active=1)`,
+    )
+      .bind(env.ACTIVE_CYCLE_ID)
+      .first();
+    if (!ready)
+      fail(
+        503,
+        "NOT_INITIALIZED",
+        "El inventario aún no está habilitado. Contacta al administrador.",
+      );
+  } catch (e) {
+    if (e.status) throw e;
+    console.error("Inventory initialization failed", e.message);
+    fail(
+      503,
+      "NOT_INITIALIZED",
+      "El inventario aún no está habilitado. Contacta al administrador.",
+    );
+  }
   if (
     req.method !== "GET" &&
     (req.headers.get("origin") !== env.APP_ORIGIN ||
@@ -233,12 +256,14 @@ async function api(req, env, url) {
     const raw = token(),
       hash = await digest(raw);
     // Password/reset/disable may race verification: compare the verified hash atomically.
-    await db
+    const inserted = await db
       .prepare(
         "INSERT INTO sessions SELECT ?,id,? FROM users WHERE id=? AND password_hash=? AND active=1",
       )
       .bind(hash, now() + 43200, u.id, u.password_hash)
       .run();
+    if (!inserted.meta.changes)
+      fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
     return json({ user: userDTO(u) }, 200, { "Set-Cookie": cookie(env, raw) });
   }
   const { u, hash } = await auth(req, env);
@@ -281,6 +306,8 @@ async function api(req, env, url) {
       "PASSWORD_CHANGE_REQUIRED",
       "Debes cambiar tu contraseña temporal.",
     );
+  if (p === "/api/status" && req.method === "GET")
+    return json({ ready: true, stage: "3A" });
   if (p.startsWith("/api/admin/")) {
     if (u.role !== "admin") fail(403, "ADMIN_REQUIRED");
     if (p === "/api/admin/users" && req.method === "GET") {
