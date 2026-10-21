@@ -294,6 +294,7 @@ html[data-theme="dark"] .feedback-message[data-tone="success"] {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  flex: 1;
   font-size: 0.77rem;
   line-height: 1.5;
   color: var(--ui-muted);
@@ -301,7 +302,7 @@ html[data-theme="dark"] .feedback-message[data-tone="success"] {
 .sync-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 #sync-state::before {
   content: "";
@@ -328,13 +329,13 @@ html[data-theme="dark"] .feedback-message[data-tone="success"] {
   padding: 0;
   border: 0;
   border-radius: 12px;
-  background: var(--ui-primary);
-  color: #092b3c;
+  background: transparent;
+  color: var(--ui-accent);
   cursor: pointer;
 }
 .sync-refresh svg {
-  width: 23px;
-  height: 23px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;

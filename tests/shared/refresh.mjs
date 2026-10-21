@@ -12,10 +12,19 @@ const openMenu = () => page.locator("[data-settings-toggle]").click();
 const closeMenu = () => page.locator(".settings-close").click();
 const button = page.getByRole("button", { name: "Actualizar sincronización", exact: true });
 const status = page.locator("#sync-state");
+// Wait for the async handler, including the cross-tab lock, before advancing time.
+const check = () => button.evaluate(el => el.onclick());
 const totals = () => ["counts", "operations", "history"].map(table =>
   db.prepare(`SELECT count(*) n FROM ${table}`).get().n);
 const draftSnapshot = () => page.evaluate(() => Object.fromEntries(
   Object.entries(localStorage).filter(([key]) => key.startsWith("inventory-drafts-v1:"))));
+async function nextCheck() {
+  // Advance the manual cooldown with polling hidden, without making timed GETs.
+  await page.evaluate(() => Object.defineProperty(document, "hidden", { configurable: true, value: true }));
+  await page.clock.fastForward(30_001);
+  await page.evaluate(() => Object.defineProperty(document, "hidden", { configurable: true, value: false }));
+  await expect(page.locator(".sync-refresh")).toBeEnabled();
+}
 
 async function gateSync() {
   let release, started;
@@ -52,9 +61,10 @@ try {
       await expect(status).toHaveAttribute("data-state", "synced");
       await expect(status).toHaveText("Sincronizado");
       assert.equal(await status.evaluate(el => getComputedStyle(el, "::before").backgroundColor), "rgb(18, 167, 125)");
-      assert.equal(await button.evaluate(el => getComputedStyle(el).backgroundColor), theme === "dark" ? "rgb(25, 199, 216)" : "rgb(8, 194, 210)");
+      assert.equal(await button.evaluate(el => getComputedStyle(el).backgroundColor), "rgba(0, 0, 0, 0)");
+      assert.equal(await button.locator("svg").evaluate(el => getComputedStyle(el).width), "18px");
       const b = await button.boundingBox(), s = await status.boundingBox();
-      assert.ok(b.x + b.width <= s.x && b.width >= 44 && b.height >= 44);
+      assert.ok(s.x + s.width <= b.x && b.width >= 44 && b.height >= 44);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       await page.locator(".settings-panel").evaluate(async el => {
         await Promise.all(el.getAnimations().map(a => a.finished.catch(() => {})));
@@ -63,7 +73,7 @@ try {
       await closeMenu();
     }
   }
-  checks.push("Botón cian a la izquierda, punto verde y texto; 320/390/1024 px en claro/oscuro; ingreso sin control");
+  checks.push("Punto y texto primero, icono cian de 18 px a la derecha sin fondo, área táctil de 44 px; 320/390/1024 px en ambos temas");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.clock.install();
@@ -91,9 +101,28 @@ try {
   await button.dispatchEvent("click");
   assert.equal(gate.count(), 1);
   gate.release();
-  await expect(button).toBeEnabled();
   await expect(status).toHaveAttribute("data-state", "synced");
+  await expect(button).not.toHaveAttribute("aria-busy", "true");
+  await expect(button).toBeDisabled();
   await gate.remove();
+  let extra = 0;
+  const countExtra = req => { if (req.url().includes("/api/sync?")) extra++; };
+  page.on("request", countExtra);
+  await button.evaluate(async el => { for (let i = 0; i < 10; i++) await el.onclick(); });
+  assert.equal(extra, 0);
+  // The timestamp is shared across navigation/tabs, without inventory data.
+  const tab = await context.newPage();
+  await tab.clock.install();
+  await tab.goto(origin + "/");
+  await tab.locator("[data-settings-toggle]").click();
+  const otherButton = tab.getByRole("button", { name: "Actualizar sincronización", exact: true });
+  await expect(otherButton).toBeDisabled();
+  let otherRequests = 0;
+  tab.on("request", req => { if (new URL(req.url()).pathname.startsWith("/api/")) otherRequests++; });
+  await otherButton.evaluate(async el => { await el.onclick(); });
+  assert.equal(otherRequests, 0);
+  await tab.close();
+  checks.push("Una comprobación manual cada 30 s por usuario en el navegador; diez reintentos y otra pestaña no envían peticiones");
   await closeMenu();
   checks.push("Sondeo y actualización manual comparten una sola consulta; doble toque protegido y estado ocupado hasta responder");
 
@@ -108,10 +137,13 @@ try {
   });
   assert.equal(saved.status, 200);
   const before = totals();
+  await nextCheck();
+  assert.equal(extra, 0, "Terminar la espera no debe iniciar ninguna petición");
   await openMenu();
-  await button.click();
-  await expect(button).toBeEnabled();
+  await check();
   await expect(status).toHaveAttribute("data-state", "pending");
+  await expect(button).not.toHaveAttribute("aria-busy", "true");
+  await expect(button).toBeDisabled();
   await expect(status).toContainText("Pendiente de enviar");
   await expect(page.locator("#quantity")).toHaveValue("3");
   await expect(page.locator("#note")).toHaveValue("Conservar este borrador");
@@ -122,28 +154,48 @@ try {
   checks.push("Cambio remoto recuperado sin enviar borradores, cambiar campos ni modificar conteos, operaciones o historial");
 
   const failure = route => route.abort("failed");
+  await nextCheck();
   await page.route("**/api/sync?*", failure);
-  await button.click();
-  await expect(button).toBeEnabled();
+  await check();
   await expect(status).toHaveAttribute("data-state", "error");
+  await expect(button).toBeDisabled();
   await expect(status).toContainText("No se pudo actualizar");
   await page.unroute("**/api/sync?*", failure);
-  await button.click();
-  await expect(button).toBeEnabled();
+  const failedRequests = extra;
+  await button.evaluate(async el => { await el.onclick(); });
+  assert.equal(extra, failedRequests);
+  await nextCheck();
+  await check();
   await expect(status).toHaveAttribute("data-state", "pending");
+  await expect(button).not.toHaveAttribute("aria-busy", "true");
   assert.deepEqual(await draftSnapshot(), draft);
   assert.deepEqual(totals(), before);
   assert.equal(writes, 0);
-  checks.push("Fallo de red indica error, permite reintentar y recupera estado pendiente sin perder borradores");
+  checks.push("Fallo de red conserva borrador y aplica también la espera de 30 s, sin reintentos automáticos");
+
+  await nextCheck();
+  const polled = page.waitForResponse(r => r.url().includes("/api/sync?"));
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await polled;
+  const afterPoll = extra;
+  await check();
+  await expect(button).not.toHaveAttribute("aria-busy", "true");
+  await expect(status).toHaveAttribute("data-state", "pending");
+  assert.equal(extra, afterPoll);
+  page.off("request", countExtra);
+  checks.push("Reutiliza el sondeo de los últimos cinco segundos sin una consulta adicional a Workers/D1");
 
   await closeMenu();
   await page.goto(origin + "/pages/cuenta/?change=1");
   await page.locator("[name=currentPassword]").fill("Campo de prueba conservado");
   await openMenu();
+  await expect(button).toBeDisabled();
+  await nextCheck();
   const checkSession = page.waitForResponse(r => r.url().endsWith("/api/me"));
-  await button.click();
+  await check();
   assert.equal((await checkSession).status(), 200);
-  await expect(button).toBeEnabled();
+  await expect(button).not.toHaveAttribute("aria-busy", "true");
+  await expect(button).toBeDisabled();
   await expect(status).toHaveAttribute("data-state", "synced");
   await closeMenu();
   await expect(page.locator("[name=currentPassword]")).toHaveValue("Campo de prueba conservado");

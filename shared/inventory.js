@@ -15,7 +15,7 @@ export class SharedInventory {
     const data = await authenticated("/api/bootstrap");
     const inventory = new SharedInventory(data.user, data);
     identityBar(data.user, async () => {
-      await inventory.sync();
+      await inventory.sync({ manual: true });
       return inventory.pendingState();
     });
     inventory.state(inventory.pendingState());
@@ -34,6 +34,7 @@ export class SharedInventory {
     this.busy = false;
     this.editVersion = 0;
     this.modal = null;
+    this.lastSyncAt = 0;
   }
   state(text) {
     setSync(text);
@@ -353,9 +354,12 @@ export class SharedInventory {
     this.data = data;
     this.onPermissions?.(data);
   }
-  sync() {
+  sync({ manual = false } = {}) {
     // Manual refresh and polling share one in-flight read. Neither sends drafts.
     if (this.syncing) return this.syncing;
+    // A recent accepted poll already performed this read; do not ask D1 again.
+    if (manual && Date.now() - this.lastSyncAt < 5000)
+      return Promise.resolve();
     this.syncing = (async () => {
       try {
         const r = await api(
@@ -379,6 +383,7 @@ export class SharedInventory {
         }
         for (const record of r.changes) this.onRecord?.(record, record.itemId);
         this.cursor = r.cursor;
+        this.lastSyncAt = Date.now();
         if (
           r.changes.length &&
           !this.modal &&

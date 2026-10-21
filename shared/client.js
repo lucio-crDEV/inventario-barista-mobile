@@ -1,4 +1,5 @@
 import { settingsAccount } from "./settings.js";
+import { refreshLimit } from "./refresh-limit.js";
 export const escapeHtml = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -95,39 +96,61 @@ export async function logout() {
 window.addEventListener("storage", (e) => {
   if (e.key === "inventory-logout-event") loginRedirect();
 });
+let disposeIdentity = () => {};
 export function identityBar(user, refresh) {
+  disposeIdentity();
   const bar = document.createElement("section");
   bar.className = "identity-bar";
   bar.setAttribute("aria-label", "Cuenta y sincronización");
-  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><div class="sync-controls"><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg></button><span id="sync-state" role="status" data-state="synced">Sincronizado</span></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (user.role === "admin" ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
+  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg></button></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (user.role === "admin" ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
   settingsAccount(bar);
   const button = bar.querySelector(".sync-refresh");
+  const limit = refreshLimit(user.id);
+  const listeners = new AbortController();
+  let checking = false, timer;
+  const updateAvailability = () => {
+    clearTimeout(timer);
+    const wait = limit.remaining();
+    button.disabled = checking || wait > 0;
+    button.title = checking ? "Comprobando…" : wait
+      ? `Volver a comprobar en ${Math.ceil(wait / 1000)} segundos`
+      : "Actualizar sincronización";
+    if (wait && bar.isConnected) timer = setTimeout(updateAvailability, wait);
+  };
+  window.addEventListener("storage", e => {
+    if (e.key === limit.key) updateAvailability();
+  }, { signal: listeners.signal });
+  document.addEventListener("visibilitychange", updateAvailability, { signal: listeners.signal });
+  disposeIdentity = () => { clearTimeout(timer); listeners.abort(); };
+  updateAvailability();
   button.onclick = async () => {
-    if (button.disabled) return;
+    if (checking) return;
+    checking = true;
+    updateAvailability();
     const label = bar.querySelector("#sync-state");
     const previous = { text: label.textContent, state: label.dataset.state };
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
-    setSync("Actualizando…", "syncing");
     try {
-      let status;
-      if (refresh) status = await refresh();
-      else {
+      const status = await limit.run(async () => {
+        button.setAttribute("aria-busy", "true");
+        setSync("Actualizando…", "syncing");
+        if (refresh) return refresh();
         const { user: current } = await api("/api/me");
         if (current.id !== user.id)
           throw Object.assign(Error("La sesión cambió."), { status: 401 });
-        status = "Sincronizado";
-      }
+        return "Sincronizado";
+      });
       if (status) setSync(status);
       else if (label.textContent === "Actualizando…")
         setSync(previous.text, previous.state);
     } catch (e) {
+      if (e.code === "REFRESH_COOLDOWN") return;
       if (e.status === 401 || e.code === "PASSWORD_CHANGE_REQUIRED")
         loginRedirect();
       else setSync("No se pudo actualizar. Inténtalo de nuevo.", "error");
     } finally {
-      button.disabled = false;
+      checking = false;
       button.removeAttribute("aria-busy");
+      updateAvailability();
     }
   };
   bar.querySelector("#logout").onclick = () =>

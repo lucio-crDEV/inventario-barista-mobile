@@ -1,9 +1,11 @@
 {
   "checks": [
-    "Botón cian a la izquierda, punto verde y texto; 320/390/1024 px en claro/oscuro; ingreso sin control",
+    "Punto y texto primero, icono cian de 18 px a la derecha sin fondo, área táctil de 44 px; 320/390/1024 px en ambos temas",
+    "Una comprobación manual cada 30 s por usuario en el navegador; diez reintentos y otra pestaña no envían peticiones",
     "Sondeo y actualización manual comparten una sola consulta; doble toque protegido y estado ocupado hasta responder",
     "Cambio remoto recuperado sin enviar borradores, cambiar campos ni modificar conteos, operaciones o historial",
-    "Fallo de red indica error, permite reintentar y recupera estado pendiente sin perder borradores",
+    "Fallo de red conserva borrador y aplica también la espera de 30 s, sin reintentos automáticos",
+    "Reutiliza el sondeo de los últimos cinco segundos sin una consulta adicional a Workers/D1",
     "En Cuenta verifica la sesión mediante GET y conserva el formulario sin recarga"
   ],
   "javascriptErrors": [],
