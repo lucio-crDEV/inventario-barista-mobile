@@ -2,7 +2,7 @@
 
 Implementación 3A local con Worker + D1. Guía: [operacion-3a.md](operacion-3a.md). Contrato: [contrato-3a.md](contrato-3a.md).
 
-- Usuario personal y contraseña; UUID estable independiente del nombre visible. No hay cuentas compartidas por área, registro público ni recuperación por correo/SMS. Administrador crea y restablece cuentas con cambio obligatorio de contraseña.
+- Usuario personal y contraseña; UUID estable independiente del nombre visible. Mínimo de nuevas contraseñas: 8 caracteres por decisión del usuario (sustituye 12); se conservan bcrypt coste 12 y máximo técnico de 72 bytes sin truncar. No hay cuentas compartidas por área, registro público ni recuperación por correo/SMS. Administrador crea y restablece cuentas con cambio obligatorio de contraseña.
 - Roles trabajador y administrador. Cuenta inactiva no ingresa; desactivación o restablecimiento revoca sesiones. Cambio propio exige contraseña actual y también revoca sesiones. Último administrador activo protegido en la base.
 - Varias asignaciones forman una unión. Un nodo incluye descendientes, nunca hermanos. Sin ámbitos asignados puede ingresar, pero no ve catálogo, conteos, progreso, historial ni áreas. Mensaje: «No tienes áreas asignadas. Contacta al administrador». No hay área por defecto. Administrador tiene acceso global por rol sin asignaciones operativas.
 - Servicio incluye Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones incluye Zona privada, Salón y Terraza. Dar Servicio completo se explica explícitamente en la administración. Barra + Armado no revela Mercadito/Garzones. Solo Terraza muestra únicamente los contenedores Servicio/Garzones y esa zona.

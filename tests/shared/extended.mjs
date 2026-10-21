@@ -145,4 +145,25 @@ await test("Desactivar una cuenta revoca dos dispositivos y reactivar no restaur
   }
   assert.equal((await first.request("/api/me")).status, 401);
 });
+await test("Ocho caracteres: alta, ingreso, cambio y restablecimiento; siete se rechazan sin revocar sesión", async () => {
+  const username = "clave8-" + Date.now();
+  const payload = { username, name: "Ensayo mínimo ocho", role: "worker", password: "Clave-0" };
+  assert.equal((await admin.request("/api/admin/users", payload)).status, 400);
+  const created = await admin.request("/api/admin/users", { ...payload, password: "Clave-08" });
+  assert.equal(created.status, 201);
+  const person = new Client();
+  await person.login(username, "Clave-08");
+  assert.equal(person.user.mustChange, true);
+  assert.equal((await person.request("/api/password", { currentPassword: "Clave-08", newPassword: "Nueva-0" })).status, 400);
+  assert.equal((await person.request("/api/password", { currentPassword: "Clave-08", newPassword: "Nueva-08" })).status, 200);
+  assert.equal((await person.request("/api/me")).status, 401);
+  await person.login(username, "Nueva-08");
+  const path = `/api/admin/users/${created.data.id}/password`;
+  assert.equal((await admin.request(path, { password: "Reset-0" })).status, 400);
+  assert.equal((await person.request("/api/me")).status, 200);
+  assert.equal((await admin.request(path, { password: "Reset-08" })).status, 200);
+  assert.equal((await person.request("/api/me")).status, 401);
+  await person.login(username, "Reset-08");
+  assert.equal(person.user.mustChange, true);
+});
 db.close();

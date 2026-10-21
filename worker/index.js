@@ -280,7 +280,7 @@ async function api(req, env, url) {
       fail(
         400,
         "PASSWORD_POLICY",
-        "Usa al menos 12 caracteres y como máximo 72 bytes.",
+        "Usa al menos 8 caracteres. Si es muy larga, elige una contraseña más corta.",
       );
     if (
       typeof b.currentPassword !== "string" ||

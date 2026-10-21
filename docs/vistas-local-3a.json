@@ -1,8 +1,9 @@
 {
   "checks": [
-    "Ingreso a 320/390/1024 px, ambos temas, fuente de sistema, toggle en cabecera y sin desborde",
+    "Ingreso a 320/390/1024 px, ambos temas, encabezado en fila, ayuda centrada, solo toggle de tema y sin desborde",
     "Mostrar y ocultar contraseña sin cambiar su contenido",
     "HTML en lugar de API y D1 sin inicializar muestran indisponibilidad clara sin formulario engañoso",
+    "Menú autenticado desde la derecha a 320/390/1024 px en ambos temas; fondo inerte, foco contenido y Escape devuelve al botón",
     "Administración compacta en claro/oscuro, cuentas plegables y búsqueda",
     "Alta desde administración, cambio obligatorio, confirmación de contraseña y acceso sin áreas",
     "Dos ámbitos otorgados en sesión activa y navegación filtrada",

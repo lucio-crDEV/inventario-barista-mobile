@@ -27,6 +27,12 @@ try {
   const heading = await page.locator(".view-header").boundingBox(),
     toggle = await page.locator("[data-theme-toggle]").boundingBox();
   assert.ok(toggle.y >= heading.y && toggle.y < heading.y + heading.height);
+  await expect(page.locator("[data-settings-toggle], #settings-drawer")).toHaveCount(0);
+  assert.equal(await page.getByText("Usa tu cuenta para contar en las áreas que tienes asignadas.").count(), 0);
+  assert.equal(await page.locator(".login-help").evaluate(el => getComputedStyle(el).textAlign), "center");
+  const icon = await page.locator(".account-heading .account-symbol").boundingBox();
+  const title = await page.locator(".account-heading h2").boundingBox();
+  assert.ok(icon.x + icon.width <= title.x);
   for (const width of [320, 390, 1024]) {
     await page.setViewportSize({ width, height: 844 });
     for (const theme of ["light", "dark"]) {
@@ -49,18 +55,28 @@ try {
         style.bg,
         theme === "dark" ? "rgb(17, 19, 21)" : "rgb(250, 248, 243)",
       );
+      await expect(page.locator("form [name=username]")).toBeVisible();
+      await page.locator("#account-content").evaluate(async el => { await Promise.all(el.getAnimations({subtree: true}).map(a => a.finished.catch(() => {}))); });
+      await expect(page.locator("[data-settings-toggle], #settings-drawer")).toHaveCount(0);
       await page.screenshot({
         path: `test-results/3a/login-${width}-${theme}.png`,
       });
+
     }
   }
   checks.push(
-    "Ingreso a 320/390/1024 px, ambos temas, fuente de sistema, toggle en cabecera y sin desborde",
+    "Ingreso a 320/390/1024 px, ambos temas, encabezado en fila, ayuda centrada, solo toggle de tema y sin desborde",
   );
+  await page.locator("[data-theme-toggle]").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("[name=password]").fill("ejemplo-visible");
   await page.locator(".reveal-password").click();
   await expect(page.locator("[name=password]")).toHaveAttribute("type", "text");
+  await expect(page.locator(".reveal-password")).toHaveAttribute("aria-label", "Ocultar contraseña");
+  await expect(page.locator(".reveal-password svg")).toHaveCount(1);
   await page.locator(".reveal-password").click();
   await expect(page.locator("[name=password]")).toHaveAttribute(
     "type",
@@ -103,20 +119,46 @@ try {
   panel.on("pageerror", (e) => errors.push(e.message));
   await panel.goto(origin + "/pages/admin/");
   await expect(panel.locator("#user-search")).toBeVisible();
-  for (const theme of ["light", "dark"]) {
-    await panel.evaluate(
-      (t) => localStorage.setItem("inventario-theme", t),
-      theme,
-    );
-    await panel.reload();
-    await expect(panel.locator("#user-search")).toBeVisible();
-    await panel.screenshot({ path: `test-results/3a/admin-${theme}.png` });
-    assert.ok(
+  assert.equal(await panel.locator("main > .identity-bar, .back-link").count(), 0);
+  await panel.locator("[data-settings-toggle]").click();
+  await expect(panel.locator(".identity-bar")).toContainText("Administrador ficticio");
+  await expect(panel.getByRole("link", { name: "Usuarios y accesos", exact: true })).toBeVisible();
+  await panel.locator(".settings-backdrop").click({ position: { x: 2, y: 2 } });
+  await expect(panel.locator("[data-settings-toggle]")).toHaveAttribute("aria-expanded", "false");
+  for (const width of [320, 390, 1024]) {
+    await panel.setViewportSize({ width, height: 844 });
+    for (const theme of ["light", "dark"]) {
       await panel.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    );
+        (t) => localStorage.setItem("inventario-theme", t),
+        theme,
+      );
+      await panel.reload();
+      await expect(panel.locator("#user-search")).toBeVisible();
+      await panel.locator("[data-settings-toggle]").click();
+      await expect(panel.locator(".settings-panel")).toBeVisible();
+      await expect.poll(async () => {
+        const menu = await panel.locator(".settings-panel").boundingBox();
+        return Math.abs(menu.x + menu.width - (width - 10));
+      }).toBeLessThan(2);
+      assert.equal(await panel.locator("main").evaluate(el => el.inert), true);
+      await panel.screenshot({ path: `test-results/3a/menu-${width}-${theme}.png` });
+      await panel.locator(".settings-close").press("Shift+Tab");
+      await expect(panel.locator("[data-theme-toggle]")).toBeFocused();
+      await panel.locator("[data-theme-toggle]").press("Tab");
+      await expect(panel.locator(".settings-close")).toBeFocused();
+      await panel.locator(".settings-close").press("Escape");
+      await expect(panel.locator("[data-settings-toggle]")).toBeFocused();
+      assert.equal(await panel.locator("main").evaluate(el => el.inert), false);
+      await panel.screenshot({ path: `test-results/3a/admin-${theme}.png` });
+      assert.ok(
+        await panel.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      );
+    }
   }
+  checks.push("Menú autenticado desde la derecha a 320/390/1024 px en ambos temas; fondo inerte, foco contenido y Escape devuelve al botón");
+  await panel.setViewportSize({ width: 390, height: 844 });
   await panel.locator("#user-search").fill("bruno");
   await expect(panel.locator(".user-card:visible")).toHaveCount(1);
   checks.push(
@@ -127,11 +169,24 @@ try {
     username = "vista-" + Date.now();
   await create.locator("[name=username]").fill(username);
   await create.locator("[name=name]").fill("Persona de ensayo");
-  await create.locator("[name=password]").fill(password);
-  await create
-    .getByRole("button", { name: "Crear usuario", exact: true })
-    .click();
+  await create.locator("[name=password]").fill("Clave-08");
+  let releaseCreate;
+  const createGate = new Promise(resolve => { releaseCreate = resolve; });
+  await panel.route("**/api/admin/users", async route => {
+    if (route.request().method() === "POST") await createGate;
+    await route.continue();
+  });
+  const submitCreate = create.getByRole("button", { name: "Crear usuario", exact: true });
+  await submitCreate.click();
+  try {
+    await expect(create.locator(".button-primary")).toBeDisabled();
+    await expect(create.locator(".button-primary")).toContainText("Creando");
+    await expect(create.locator(".reveal-password")).toBeEnabled();
+  } finally {
+    releaseCreate();
+  }
   await expect(panel.locator("#message")).toContainText("Cambios guardados");
+  await panel.unroute("**/api/admin/users");
   const people = await (
     await admin.request.get(origin + "/api/admin/users")
   ).json();
@@ -139,25 +194,27 @@ try {
   const worker = await browser.newContext({
     viewport: { width: 390, height: 844 },
   });
-  const loginUser = await login(worker, username);
+  const loginUser = await login(worker, username, "Clave-08");
   assert.equal(loginUser.mustChange, true);
   const work = await worker.newPage();
   work.on("pageerror", (e) => errors.push(e.message));
   await work.goto(origin + "/pages/cuenta/");
-  await work.locator("[name=currentPassword]").fill(password);
-  await work.locator("[name=newPassword]").fill("Personal-nueva-2026");
+  await expect(work.locator("[data-settings-toggle]")).toBeVisible();
+  await expect(work.locator("[data-account-theme][data-theme-toggle]")).toHaveCount(0);
+  await work.locator("[name=currentPassword]").fill("Clave-08");
+  await work.locator("[name=newPassword]").fill("Nueva-08");
   await work.locator("[name=confirmPassword]").fill("No-coincide-2026");
   await work
     .getByRole("button", { name: "Guardar contraseña", exact: true })
     .click();
   await expect(work.locator("#message")).toContainText("no coinciden");
-  await work.locator("[name=confirmPassword]").fill("Personal-nueva-2026");
+  await work.locator("[name=confirmPassword]").fill("Nueva-08");
   await work.screenshot({ path: "test-results/3a/cambio-contrasena.png" });
   await work
     .getByRole("button", { name: "Guardar contraseña", exact: true })
     .click();
   await expect(work.locator("[name=username]")).toBeVisible();
-  await login(worker, username, "Personal-nueva-2026");
+  await login(worker, username, "Nueva-08");
   await work.goto(origin + "/");
   await expect(work.locator("nav")).toContainText("No tienes áreas asignadas");
   checks.push(
@@ -178,10 +235,10 @@ try {
   await panel.locator(".user-card:visible summary").click();
   let reset = panel.locator(`form[data-reset="${id}"]`);
   await reset.locator("[name=password]").fill("Temporal-reset-2026");
-  await reset.getByRole("button").click();
+  await reset.getByRole("button", { name: "Restablecer contraseña y revocar sesiones", exact: true }).click();
   await panel.locator("#cancel-reset").click();
   assert.equal((await worker.request.get(origin + "/api/me")).status(), 200);
-  await reset.getByRole("button").click();
+  await reset.getByRole("button", { name: "Restablecer contraseña y revocar sesiones", exact: true }).click();
   await panel.locator("#confirm-reset").click();
   await expect(panel.locator("#message")).toContainText("Cambios guardados");
   assert.equal((await worker.request.get(origin + "/api/me")).status(), 401);

@@ -14,11 +14,13 @@
     root.dataset.theme = theme;
 
     const dark = theme === "dark";
-    const button = document.querySelector("[data-theme-toggle]");
-    if (button) {
+    for (const button of document.querySelectorAll("[data-theme-toggle]")) {
       const label = dark ? "Activar modo claro" : "Activar modo oscuro";
       button.setAttribute("aria-label", label);
       button.setAttribute("title", label);
+      button.setAttribute("aria-pressed", String(dark));
+      const name = button.querySelector("[data-theme-name]");
+      if (name) name.textContent = dark ? "Modo oscuro" : "Modo claro";
     }
 
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -30,11 +32,12 @@
   document.addEventListener("DOMContentLoaded", () => {
     applyTheme(savedTheme());
     document.addEventListener("click", event => {
-      const control = event.target.closest?.(".theme-toggle, .header-back-button, .header-search-button");
+      const control = event.target.closest?.(".theme-toggle, [data-theme-toggle], .header-back-button, .header-search-button");
       // Los toques no dejan foco persistente; el teclado conserva su indicador.
       if (control && event.detail > 0) control.blur();
     });
-    document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest?.("[data-theme-toggle]")) return;
       const next = root.dataset.theme === "dark" ? "light" : "dark";
       try {
         localStorage.setItem(STORAGE_KEY, next);
@@ -44,6 +47,8 @@
       applyTheme(next);
     });
   });
+
+  document.addEventListener("inventory:theme-controls", () => applyTheme(savedTheme()));
 
   window.addEventListener("storage", event => {
     if (event.key === STORAGE_KEY) applyTheme(savedTheme());

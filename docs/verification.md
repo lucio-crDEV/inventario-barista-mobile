@@ -4,6 +4,16 @@ Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d6
 
 Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3, esbuild 0.28.2; Chromium 141 mediante Playwright 1.56.1. Los conjuntos automatizados usan bases desechables separadas del desarrollo: Worker 8790 y Pages HTTPS 8791.
 
+## Menú, formularios y mínimo de contraseña — 21-10-2026
+
+Revisión local solicitada antes de 3B. Inicio, Inventario, Cuenta autenticada y Administración reúnen identidad/sincronización/acciones/tema en un panel translúcido que entra desde la derecha mediante cuatro cuadros SVG. El ingreso **sin sesión** conserva solo el toggle claro/oscuro, sin icono ni panel de menú. El listado de ítems continúa entrando desde la izquierda. Encabezados de acceso/cambio en fila, ayuda de contacto centrada, ojos SVG y flechas superiores de regreso, sin los textos/acciones duplicados señalados por el usuario.
+
+Resultados de esta ronda: `npm test` **16/16**, primer administrador **4/4** con contraseña de ocho caracteres, extended **6/6** (alta/cambio/restablecimiento con ocho; siete se rechazan sin revocar una sesión válida), vistas **8 grupos** a 320/390/1024 px en ambos temas, navegador **14 recorridos**, UX **8/8** y Pages HTTPS local **6/6**. Sin errores JavaScript en las suites de navegador. Contrato Excel: **1.151 filas iguales**. Los informes de vistas y UX se actualizaron con esas ejecuciones; el tamaño de bootstrap del ensayo UX es ahora 29.126 bytes, dependiente de los fixtures presentes.
+
+Se comprueba panel derecho anclado tras su transición, contenido de fondo inerte, Tab/Shift+Tab contenido, Escape/toque exterior y devolución de foco; persistencia del tema y alternancia accesible del ojo sin alterar el campo. Las capturas están en `test-results/3a/`; se inspeccionaron login claro, menú oscuro y cambio de contraseña de la app local. La regresión de conteo conserva las tres acciones, borradores, reintento seguro y aislamiento al cambiar de usuario.
+
+Decisión confirmada: mínimo **8 caracteres**, máximo técnico de 72 bytes UTF-8 sin truncamiento y bcrypt coste 12. La ayuda de pantalla no muestra bytes. Sin migración de credenciales existentes, datos ni esquema; CPU/plan permanece pendiente. No se ejecutó carga remota ni se repitió la simulación local de 15 clientes, al no cambiar reglas de conteo. Esta revisión UI requiere un nuevo push para publicarse; el verificador público inferior corresponde a la versión ya desplegada anteriormente.
+
 ## Cierre técnico adicional — 21-10-2026
 
 El usuario aplazó la prueba operativa con el equipo. Se completó el trabajo independiente disponible; la aceptación operativa permanece abierta y no impide desarrollar 3B. [Guía de recuperación, retención y pendientes](cierre-tecnico-3a.md).
@@ -40,13 +50,13 @@ Regresiones repetidas con este cambio: 15 pruebas generales, 11 grupos de integr
 
 | Comprobación | Resultado |
 | --- | --- |
-| `npm test` | **15/15**: 12 originales, distinción de cantidades/cero y dos grupos de configuración/inicialización cerrada |
+| `npm test` | **16/16**: catálogo, cantidades/cero, política de ocho caracteres, configuración/inicialización cerrada y flujos existentes |
 | `npm run test:bootstrap` | **4/4**: contraseña corta, límite UTF-8, discrepancia y generación real privada sin texto plano ni sobrescritura |
 | `python3 tests/workbook_contract.py` | **1.151 filas** coinciden; cero diferencias en ID, nombre, unidad y categoría |
 | `npm run test:integration` | **11/11** grupos sobre Worker + D1; última ejecución 10,98 s |
-| `npm run test:extended` | **5/5** grupos adicionales de identidad, dos dispositivos, cantidades, sincronización y sesiones |
+| `npm run test:extended` | **6/6** grupos de identidad, dos dispositivos, cantidades, sincronización, sesiones y contraseñas de ocho caracteres |
 | `npm run test:browser` | **14 recorridos**, seis contextos independientes a 390 × 844; sin errores JavaScript |
-| `npm run test:views` | **7 grupos** de ingreso, cambio y administración; 320/390/1024 px, ambos temas, sin desborde ni errores JavaScript |
+| `npm run test:views` | **8 grupos** de ingreso, menú derecho, cambio y administración; 320/390/1024 px, ambos temas, sin desborde ni errores JavaScript |
 | `npm run test:ux` | **8/8 grupos** de carga lenta, menor número de peticiones y reintento tras cambio remoto |
 | `npm run test:sync` | **3 comprobaciones** de pantalla oculta/visible simulada y preservación de edición |
 | `npm run test:pages` | **6 comprobaciones** del paquete avanzado de Pages + D1 aislado, HTTPS local y cookie segura |
@@ -83,7 +93,7 @@ La validación y los efectos del conteo son una única sentencia con triggers; n
 
 Sin stock deshabilita Sumar. El formulario real del administrador retira acceso durante la comparación: desaparecen datos, queda el aviso y se aísla el borrador. Cambiar de persona no transfiere datos. `inventario-session-v2` permanece íntegro. Se pierde la respuesta después de aceptar un guardado: Reintentar recupera la operación sin aumentar de nuevo la versión.
 
-[vistas-local-3a.json](vistas-local-3a.json): ingreso a 320/390/1024 px en claro y oscuro, tipografía del sistema, toggle SVG en cabecera, mostrar/ocultar contraseña, errores legibles/foco, indisponibilidad ante HTML o D1 sin inicializar, administración plegable/buscable en ambos temas. Se crea una cuenta desde la interfaz, se valida discrepancia de contraseñas y cambio obligatorio; se otorgan dos ámbitos durante su sesión. El restablecimiento permite cancelar conservando el campo y confirma revocación/nuevo cambio obligatorio.
+[vistas-local-3a.json](vistas-local-3a.json): ingreso a 320/390/1024 px en claro y oscuro, tipografía del sistema, solo toggle en ingreso sin sesión y menú derecho con sesión, ojos SVG para mostrar/ocultar contraseña, errores legibles/foco, indisponibilidad ante HTML o D1 sin inicializar, administración plegable/buscable en ambos temas. Se crea una cuenta desde la interfaz, se valida discrepancia de contraseñas y cambio obligatorio; se otorgan dos ámbitos durante su sesión. El restablecimiento permite cancelar conservando el campo y confirma revocación/nuevo cambio obligatorio.
 
 Las capturas reproducibles quedan en `test-results/3a/`, excluido de Git. Se inspeccionaron visualmente ingreso y administración además de las capturas de conteo/conflicto. Se corrigió la superposición del menú Mi cuenta, la legibilidad de la comparación y la diferencia entre cero en avance y cero confirmado. Esto no certifica Android físico, teclado virtual, gestos, lector de pantalla ni contraste de cada superposición.
 

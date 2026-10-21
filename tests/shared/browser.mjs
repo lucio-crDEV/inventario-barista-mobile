@@ -38,7 +38,7 @@ async function session(username) {
   await page.locator("[name=password]").fill(password);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
   await page.waitForURL(origin + "/");
-  await expect(page.locator(".identity-bar")).toBeVisible();
+  await expect(page.locator(".identity-bar")).toBeAttached();
   return { context, page };
 }
 async function openItem(page, x) {
@@ -186,7 +186,9 @@ try {
     "Sin stock no es un aporte sumable",
   );
   await B.page.locator("#keep-draft").click();
+  await B.page.locator("[data-settings-toggle]").click();
   await B.page.locator("[data-theme-toggle]").click();
+  await B.page.locator(".settings-close").click();
   await expect(B.page.locator("html")).toHaveAttribute("data-theme", "dark");
   await B.page.screenshot({
     path: "test-results/3a/conteo-oscuro.png",
@@ -223,7 +225,7 @@ try {
     timeout: 10000,
   });
   // Logout and switch to another identity in the same browser context.
-  await B.page.locator(".account-menu summary").click();
+  await B.page.locator("[data-settings-toggle]").click();
   await B.page.locator("#logout").click();
   await B.page.waitForURL("**/pages/cuenta/");
   await B.page.locator("[name=username]").fill("cocina");

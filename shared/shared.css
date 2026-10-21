@@ -49,7 +49,6 @@
 .account-card,
 .user-card,
 .create-user,
-.identity-bar,
 .shared-dialog {
   background: var(--ui-surface);
   border: 1px solid var(--ui-border);
@@ -136,14 +135,14 @@
   display: block;
 }
 .password-field input {
-  padding-right: 76px;
+  padding-right: 52px;
 }
 .reveal-password {
   position: absolute;
   right: 4px;
   top: 2px;
   bottom: 2px;
-  min-width: 64px;
+  min-width: 44px;
   padding: 8px;
   border: 0;
   background: transparent;
@@ -295,52 +294,6 @@ html[data-theme="dark"] .feedback-message[data-tone="success"] {
   font-size: 0.77rem;
   line-height: 1.5;
   color: var(--ui-muted);
-}
-.account-menu {
-  grid-column: 2;
-  grid-row: 1;
-  position: relative;
-}
-.account-menu summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 8px;
-  color: var(--ui-accent);
-  cursor: pointer;
-  font-weight: 650;
-  list-style: none;
-}
-.account-menu > div {
-  position: absolute;
-  top: 100%;
-  right: -6px;
-  z-index: 20;
-  min-width: 210px;
-  display: grid;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--ui-border);
-  border-radius: 14px;
-  background: var(--ui-solid);
-  box-shadow: var(--ui-shadow);
-}
-.identity-bar .account-menu a,
-.identity-bar .account-menu button {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 10px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--ui-text);
-  font: inherit;
-  text-decoration: none;
-  text-align: left;
-  cursor: pointer;
-  box-shadow: none;
 }
 .create-user {
   margin-top: 24px;
@@ -554,10 +507,6 @@ html[data-theme="dark"] .state-chip.is-inactive {
     transition: none !important;
   }
 }
-/* The inventory header has its own backdrop stacking context. */
-.identity-bar:has(.account-menu[open]) {
-  z-index: 30;
-}
 .history-list {
   list-style: none;
   margin: 20px 0;
@@ -678,9 +627,6 @@ html[data-theme="dark"] .state-chip.is-inactive {
 .shared-dialog[open] {
   animation: dialog-appear 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.account-menu[open] > div {
-  animation: dialog-appear 140ms ease-out;
-}
 button.is-pending {
   display: inline-flex;
   align-items: center;
@@ -720,8 +666,7 @@ button.is-pending::before {
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   button.is-pending::before,
-  .shared-dialog[open],
-  .account-menu[open] > div {
+  .shared-dialog[open] {
     animation: none !important;
   }
 }
@@ -735,4 +680,324 @@ button.is-pending::before {
   padding-inline: 8px;
   font-size: 0.8rem;
   gap: 6px;
+}
+
+/* Account headings keep the symbol and both text lines together. */
+.account-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.account-heading > div:last-child {
+  min-width: 0;
+}
+
+.account-heading .account-symbol {
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+}
+
+.account-heading .eyebrow {
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+
+.account-heading h2 {
+  margin: 0;
+  font-size: clamp(1.05rem, 4.6vw, 1.45rem);
+  line-height: 1.25;
+}
+
+.login-help {
+  text-align: center;
+}
+
+.reveal-password {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+.reveal-password svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin .password-field input, .account .password-field input {
+  padding-right: 52px;
+}
+
+.shared-view .header-back-button {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: var(--ui-accent);
+  padding: 0;
+  box-shadow: none;
+}
+
+.shared-view .header-back-button svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.settings-toggle svg {
+  fill: currentColor;
+}
+
+body.settings-open {
+  overflow: hidden;
+}
+
+.settings-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear .34s;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ui-text);
+}
+
+.settings-drawer.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  transition: none;
+}
+
+.settings-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: rgb(0 0 0 / 10%);
+  opacity: 0;
+  transition: opacity .34s ease;
+}
+
+.settings-drawer.is-open .settings-backdrop {
+  opacity: 1;
+}
+
+.settings-panel {
+  position: absolute;
+  inset: 10px 10px 10px auto;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, calc(100vw - 32px));
+  padding: calc(18px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));
+  border: 1px solid var(--ui-border);
+  border-radius: 22px;
+  background: var(--ui-drawer);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: var(--ui-shadow);
+  transform: translateX(calc(100% + 20px));
+  transition: transform .34s cubic-bezier(.22, 1, .36, 1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.settings-drawer.is-open .settings-panel {
+  transform: translateX(0);
+}
+
+.settings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.settings-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -.025em;
+}
+
+.settings-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ui-text);
+  cursor: pointer;
+}
+
+.settings-close svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.settings-panel .identity-bar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.settings-panel .identity-avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.settings-panel .identity-person strong {
+  font-size: 1rem;
+}
+
+.settings-actions {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--ui-border);
+  padding-top: 14px;
+}
+
+.settings-drawer .settings-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ui-text);
+  box-shadow: none;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.settings-drawer .settings-guest {
+  margin: 0;
+  text-align: left;
+  color: var(--ui-muted);
+}
+
+.settings-appearance {
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.settings-appearance h3 {
+  margin: 0 0 12px;
+  color: var(--ui-muted);
+  font-size: .78rem;
+  font-weight: 650;
+}
+
+.appearance-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ui-text);
+  font: inherit;
+  font-size: .95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.appearance-toggle > svg {
+  width: 23px;
+  height: 23px;
+  color: var(--ui-accent);
+}
+
+.theme-switch {
+  width: 42px;
+  height: 25px;
+  padding: 3px;
+  border-radius: 20px;
+  background: var(--ui-track);
+  margin-left: auto;
+}
+
+.theme-switch::after {
+  content: "";
+  display: block;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--ui-muted);
+  transition: transform 180ms ease;
+}
+
+.appearance-toggle[aria-pressed="true"] .theme-switch {
+  background: var(--ui-nav-active);
+}
+
+.appearance-toggle[aria-pressed="true"] .theme-switch::after {
+  background: var(--ui-accent);
+  transform: translateX(17px);
+}
+
+.settings-panel :focus-visible {
+  outline: 3px solid var(--ui-ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-drawer, .settings-panel, .settings-backdrop, .theme-switch::after {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .settings-panel {
+    background: var(--ui-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }

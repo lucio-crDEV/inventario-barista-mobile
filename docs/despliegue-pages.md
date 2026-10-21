@@ -60,7 +60,7 @@ python3 scripts/first-admin.py /tmp/primer-admin-v3.bootstrap.sql &&
 npx wrangler d1 execute DB --config wrangler.pages.production.jsonc --remote --file /tmp/primer-admin-v3.bootstrap.sql
 ```
 
-Introducir el usuario personal elegido, por ejemplo `admin1`, el nombre visible y **una contraseña privada propia** de al menos 12 caracteres y como máximo 72 bytes UTF-8. La entrada de contraseña no se muestra en pantalla; escribirla también en la confirmación. `admin-prueba` / `Solo-pruebas-2026` pertenecen exclusivamente al entorno ficticio local y no se crean en el sitio real.
+Introducir el usuario personal elegido, por ejemplo `admin1`, el nombre visible y **una contraseña privada propia** de al menos 8 caracteres y como máximo 72 bytes UTF-8. La entrada de contraseña no se muestra en pantalla; escribirla también en la confirmación. `admin-prueba` / `Solo-pruebas-2026` pertenecen exclusivamente al entorno ficticio local y no se crean en el sitio real.
 
 El script no conecta a Cloudflare, valida antes de crear archivo, no almacena la contraseña y genera UUID/hash bcrypt con sal en un archivo 0600. El segundo comando sí crea la cuenta en la D1 seleccionada; `&&` impide ejecutarlo si el script falla. El SQL solo funciona con tabla de usuarios vacía. No sobrescribe archivos existentes: si un intento válido ya generó el archivo, conservarlo y comprobar si se aplicó antes de generar otro. No compartir su contenido. Tras aplicación exitosa, retirar el SQL temporal de la computadora. El primer ingreso obliga a cambiar la contraseña temporal y volver a ingresar.
 

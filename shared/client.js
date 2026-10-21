@@ -1,3 +1,4 @@
+import { settingsAccount } from "./settings.js";
 export const escapeHtml = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -98,23 +99,10 @@ export function identityBar(user) {
   const bar = document.createElement("section");
   bar.className = "identity-bar";
   bar.setAttribute("aria-label", "Cuenta y sincronización");
-  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><span id="sync-state" role="status">Sincronizado</span><details class="account-menu"><summary>Mi cuenta</summary><div><a href="/pages/cuenta/?change=1">Cambiar contraseña</a>${user.role === "admin" ? '<a href="/pages/admin/">Usuarios y accesos</a>' : ""}<button type="button" id="logout">Cerrar sesión</button></div></details>`;
-  const main = document.querySelector("main");
-  const heading = main.querySelector(".view-header, .home-header");
-  if (heading) heading.after(bar);
-  else main.prepend(bar);
+  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><span id="sync-state" role="status">Sincronizado</span><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (user.role === "admin" ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
+  settingsAccount(bar);
   bar.querySelector("#logout").onclick = () =>
     logout().catch((e) => alert(e.message));
-  const menu = bar.querySelector(".account-menu");
-  document.addEventListener("click", (event) => {
-    if (menu.open && !menu.contains(event.target)) menu.open = false;
-  });
-  menu.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      menu.open = false;
-      menu.querySelector("summary").focus();
-    }
-  });
   sessionStorage.setItem("inventory-user", user.id);
   return bar;
 }

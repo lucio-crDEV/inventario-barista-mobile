@@ -19,9 +19,9 @@ if not re.fullmatch(r'[a-z0-9._-]{3,40}', username):
     raise SystemExit('Usuario inválido: usa entre 3 y 40 letras minúsculas, números, puntos, guiones o guiones bajos.')
 if not name or len(name) > 80:
     raise SystemExit('Nombre visible inválido: usa entre 1 y 80 caracteres.')
-password = getpass.getpass('Contraseña temporal (mínimo 12 caracteres, máximo 72 bytes): ')
-if len(password) < 12:
-    raise SystemExit('No se creó ningún archivo: la contraseña debe tener al menos 12 caracteres. Vuelve a ejecutar el script.')
+password = getpass.getpass('Contraseña temporal (mínimo 8 caracteres, máximo 72 bytes): ')
+if len(password) < 8:
+    raise SystemExit('No se creó ningún archivo: la contraseña debe tener al menos 8 caracteres. Vuelve a ejecutar el script.')
 if len(password.encode('utf-8')) > 72:
     raise SystemExit('No se creó ningún archivo: la contraseña supera 72 bytes UTF-8. Vuelve a ejecutar el script con una contraseña más corta.')
 if password != getpass.getpass('Repite la contraseña: '):

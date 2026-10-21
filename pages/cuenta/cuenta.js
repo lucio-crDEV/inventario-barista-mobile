@@ -1,5 +1,6 @@
+import { passwordField, bindPasswordFields } from "/shared/password-field.js";
 import { loading, reveal, pendingButton } from "/shared/loading.js";
-import { api, escapeHtml as esc, logout } from "/shared/client.js";
+import { api, escapeHtml as esc, identityBar } from "/shared/client.js";
 const content = document.querySelector("#account-content"),
   message = document.querySelector("#message");
 const lock =
@@ -9,9 +10,6 @@ function notify(text) {
   message.textContent = text;
   message.dataset.tone = "error";
   message.focus();
-}
-function passwordField(label, name, autocomplete) {
-  return `<label>${label}<span class="password-field"><input name="${name}" type="password" autocomplete="${autocomplete}" required ${name === "currentPassword" || name === "password" ? "" : 'minlength="12"'}><button type="button" class="reveal-password" aria-label="Mostrar ${label.toLowerCase()}" aria-pressed="false">Ver</button></span></label>`;
 }
 const finishLoading = loading(content);
 let user,
@@ -33,18 +31,10 @@ if (unavailable) {
   content.innerHTML = `<section class="account-card"><div class="account-symbol">${lock}</div><h2>Inventario no disponible</h2><p>El acceso estará disponible cuando el administrador termine de habilitar el servicio.</p><button class="button button-primary" id="retry-service" type="button">Reintentar conexión</button></section>`;
   document.querySelector("#retry-service").onclick = () => location.reload();
 } else {
-  content.innerHTML = `<section class="account-card"><div class="account-symbol">${lock}</div><p class="eyebrow">${user ? esc(user.name) : "Acceso personal"}</p><h2>${user ? "Cambiar contraseña" : "Ingresar al inventario"}</h2><p class="view-intro">${user ? (user.mustChange ? "Para continuar, reemplaza tu contraseña temporal." : "Al cambiarla, se cerrarán tus sesiones en todos los dispositivos.") : "Usa tu cuenta para contar en las áreas que tienes asignadas."}</p><form>${user ? passwordField("Contraseña actual", "currentPassword", "current-password") + passwordField("Nueva contraseña", "newPassword", "new-password") + passwordField("Repetir nueva contraseña", "confirmPassword", "new-password") : '<label>Usuario<input name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>' + passwordField("Contraseña", "password", "current-password")}<p class="field-hint">${user ? "Al menos 12 caracteres; máximo 72 bytes." : "¿Necesitas una cuenta o restablecer tu contraseña? Contacta al administrador."}</p><button class="button button-primary" type="submit">${user ? "Guardar contraseña" : "Ingresar"}</button></form>${user ? '<div class="account-footer"><button class="text-action" type="button" id="logout">Cerrar sesión</button>' + (!user.mustChange ? '<a href="/">Volver al inventario</a>' : "") + "</div>" : ""}</section>`;
-  document
-    .querySelector("#logout")
-    ?.addEventListener("click", () => logout().catch((e) => notify(e.message)));
-  for (const button of content.querySelectorAll(".reveal-password"))
-    button.onclick = () => {
-      const field = button.previousElementSibling,
-        visible = field.type === "password";
-      field.type = visible ? "text" : "password";
-      button.textContent = visible ? "Ocultar" : "Ver";
-      button.setAttribute("aria-pressed", String(visible));
-    };
+  if (user) identityBar(user);
+  document.querySelector("#account-back").hidden = !user || user.mustChange;
+  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${user ? esc(user.name) : "Acceso personal"}</p><h2>${user ? "Cambiar contraseña" : "Ingresar al inventario"}</h2></div></div>${user ? `<p class="view-intro">${user.mustChange ? "Para continuar, reemplaza tu contraseña temporal." : "Al cambiarla, se cerrarán tus sesiones en todos los dispositivos."}</p>` : ""}<form>${user ? passwordField("Contraseña actual", "currentPassword", "current-password", false) + passwordField("Nueva contraseña", "newPassword", "new-password") + passwordField("Repetir nueva contraseña", "confirmPassword", "new-password") : '<label>Usuario<input name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>' + passwordField("Contraseña", "password", "current-password", false)}<p class="field-hint ${user ? "" : "login-help"}">${user ? "Al menos 8 caracteres." : "¿Necesitas una cuenta o restablecer tu contraseña? Contacta al administrador."}</p><button class="button button-primary" type="submit">${user ? "Guardar contraseña" : "Ingresar"}</button></form></section>`;
+  bindPasswordFields(content);
   content.querySelector("form").onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target,
