@@ -1,4 +1,4 @@
-# Guía de estilo UX/UI — inventory-v2
+# Guía de estilo UX/UI — inventory-v3
 
 ## Dirección visual
 
@@ -8,7 +8,7 @@ La imagen es una referencia de diseño, no una fuente de cantidades, nombres de 
 
 ## Tokens
 
-Los valores aplicados viven en `theme.css`. Las dos páginas cargan esa hoja después de sus estilos base y `theme.js` actualiza el color de la barra del navegador.
+Los valores aplicados viven en `theme.css`. Las páginas cargan esa hoja después de sus estilos base y `theme.js` actualiza el color de la barra del navegador.
 
 | Uso | Claro | Oscuro |
 | --- | --- | --- |
@@ -30,7 +30,7 @@ El cian identifica navegación, progreso y acciones generales. **Rojo** señala 
 ## Pantallas y componentes
 
 - **Inicio:** encabezado limpio y toggle de tema a la derecha. Las cinco áreas se presentan en tarjetas con icono vectorial, nombre y flecha. El orden es Bodega / Principal, Cocina, Panadería, Pastelería y Servicio. No se muestran cifras de ejemplo de la referencia.
-- **Áreas, sectores y zonas:** cuadrícula de tarjetas con márgenes, títulos legibles y barra de progreso alimentada por el conteo local. Servicio sigue pasando por sectores; Garzones muestra «Zonas» y los avances correspondientes. La barra cian representa ítems contados y la sección ámbar representa avances.
+- **Áreas, sectores y zonas:** cuadrícula de tarjetas con márgenes, títulos legibles y barra de progreso alimentada por el conteo compartido autorizado. Servicio sigue pasando por sectores; Garzones muestra «Zonas» y los avances correspondientes. La barra cian representa ítems contados y la sección ámbar representa avances.
 - **Conteo:** cabecera con regreso, título, barra de progreso y toggle. La navegación mantiene «Anterior / Ver ítems / Siguiente» con acceso central al panel flotante. La ficha separa categoría, nombre, estado, cantidad y nota. Las acciones conservan el orden «Sin stock / Guardar avance / Listo» y los colores funcionales. Los campos usan fondo sólido y foco visible.
 - **Panel de ítems:** conserva búsqueda por nombre, agrupación y acceso a ítems contados. Al abrirlo, solo queda desplegada la categoría del producto actual y la lista se sitúa en ese producto; las demás categorías empiezan cerradas, pero pueden abrirse manualmente. Desde una vista sin producto seleccionado, todas empiezan cerradas. La búsqueda despliega los grupos coincidentes y al limpiarla recupera los grupos abiertos manualmente. «Ver ítems» no enfoca el buscador; la lupa del encabezado sí. El campo permanece integrado en la superficie del panel, sin contorno de reposo. El ítem actual lleva una marca cian discreta.
 - **Resumen:** encabezado compacto con regreso, título y toggle; se ocultan su barra y contador para evitar duplicar el avance. Se elimina el subtítulo descriptivo. El anillo vectorial sin degradado y la barra cian muestran `contados / total` real; las tres tarjetas de pendientes, avance y contados abren las listas existentes. Se mantienen responsable, copiar, enviar, regreso y nuevo inventario. El indicador de transición sigue siendo decorativo y no bloquea acciones.
@@ -44,7 +44,7 @@ El aviso de guardado se presenta arriba como una pieza de vidrio coloreado de ha
 
 ## Alcance de datos
 
-Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportación. «Sin stock» sigue guardando cero con marca explícita `outOfStock`; un cero guardado con «Listo» sigue contado sin esa marca. No hay estados AM/PM ni una vista local de Pedido en `inventory-v2`: se revisan en sus propias ramas antes de aplicarles esta guía.
+Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportación. «Sin stock» sigue guardando cero con marca explícita `outOfStock`; un cero guardado con «Listo» sigue contado sin esa marca. No hay estados AM/PM ni una vista de Pedido en `inventory-v3`: se revisan en sus propias ramas antes de aplicarles esta guía.
 
 
 ## Etapa 3A — cuenta y colaboración
@@ -52,3 +52,12 @@ Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportac
 Se conserva el diseño de inventario. Una franja compacta identifica persona, rol, modo Compartido, sincronización, cambio de contraseña y cierre de sesión; administradores acceden desde allí a Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación legible, último autor, versión y tabla vigente/propuesto de cantidad, estado y nota. Cada acción de escritura exige revisar su resultado y confirmarlo. Sin stock no ofrece suma válida.
 
 El conteo conserva Guardar avance/Listo/Sin stock. Historial por producto es lectura. Un resultado incierto protege los campos y ofrece Reintentar envío pendiente; no se etiqueta como sincronizado. Las notas agregadas se ven completas en Nota e Historial. Nuevo inventario queda deshabilitado con referencia a 3B; no hay borrado compartido. Se añadió vista móvil de ingreso/cambio y administración mínima, sin tablero de supervisión.
+
+
+### Ingreso y administración revisados — 21-10-2026
+
+Ingreso, cambio de contraseña y Usuarios y accesos reutilizan los tokens `--ui-*`, tipografía del sistema, controles de 44–48 px, superficies crema/carbón y acento cian. Mantienen el toggle SVG arriba a la derecha, sin degradados ni realimentación de hover. La barra de identidad muestra nombre y rol; «Mi cuenta» reúne sus acciones en un menú que se cierra al tocar fuera o con Escape. Los mensajes de disponibilidad no muestran un formulario de ingreso cuando falta la API o la inicialización de D1.
+
+La contraseña puede mostrarse u ocultarse; el cambio exige repetirla y los errores reciben foco. La administración presenta cuentas plegables, búsqueda y alta separada. Cada asignación explica sus descendientes; restablecer contraseña requiere una confirmación que permite cancelar conservando el campo. Un envío en curso deshabilita la acción para evitar dobles toques.
+
+La comparación distingue «Sin conteo», cero en avance, cero contado y «Sin stock». Antes de Sumar muestra operación y total; antes de Sobrescribir muestra el resultado. El historial usa etiquetas y fechas en español, preservando notas multilínea con autor. Verificación ejecutada a 320, 390 y 1024 px en ambos temas, sin desborde horizontal; Android físico, lector de pantalla y teclado virtual siguen pendientes.

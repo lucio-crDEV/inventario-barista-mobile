@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Ingreso a 320/390/1024 px, ambos temas, fuente de sistema, toggle en cabecera y sin desborde",
+    "Mostrar y ocultar contraseña sin cambiar su contenido",
+    "HTML en lugar de API y D1 sin inicializar muestran indisponibilidad clara sin formulario engañoso",
+    "Administración compacta en claro/oscuro, cuentas plegables y búsqueda",
+    "Alta desde administración, cambio obligatorio, confirmación de contraseña y acceso sin áreas",
+    "Dos ámbitos otorgados en sesión activa y navegación filtrada",
+    "Restablecimiento con cancelación segura, confirmación explícita, sesiones revocadas y nuevo cambio obligatorio"
+  ],
+  "errors": [],
+  "screenshots": "test-results/3a/",
+  "physicalDevice": false
+}

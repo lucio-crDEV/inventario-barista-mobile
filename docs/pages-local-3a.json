@@ -1,0 +1,12 @@
+{
+  "transport": "Pages advanced mode + D1 aislado, HTTPS local",
+  "checks": [
+    "Pages ejecuta la API y devuelve JSON; ausencia de sesión es 401",
+    "Catálogo global, servidor, bootstrap, SQL y libros no son públicos",
+    "Cookie __Host segura, HttpOnly, SameSite Strict y fuera de JavaScript en HTTPS",
+    "Guardado HTTPS y reintento idéntico pasan por el Worker de Pages sin duplicarse",
+    "Permisos de Barra y rechazo de otro origen sobre Pages HTTPS",
+    "Cierre de sesión revoca la cookie en Pages"
+  ],
+  "remoteProduction": false
+}

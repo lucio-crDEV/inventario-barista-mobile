@@ -1,0 +1,9 @@
+{
+  "checks": [
+    "Sondeo detenido con document.hidden simulado",
+    "Al volver visible consulta inmediatamente",
+    "La actualización conserva cantidad y nota en edición"
+  ],
+  "osVisibility": false,
+  "physicalDevice": false
+}

@@ -2,7 +2,7 @@
   "environment": "Workers/workerd + D1 local; no garantiza capacidad de producción",
   "clients": 15,
   "rounds": 10,
-  "durationMs": 6781,
+  "durationMs": 6919,
   "measuredRequests": 496,
   "statuses": {
     "200": 482,
@@ -13,9 +13,9 @@
   "acceptedWrites": 151,
   "duplicateRetries": 150,
   "latencyMs": {
-    "p50": 41,
-    "p95": 115,
-    "max": 4422
+    "p50": 46,
+    "p95": 119,
+    "max": 4309
   },
   "consistency": "151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas",
   "note": "Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan."

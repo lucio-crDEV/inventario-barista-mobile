@@ -33,3 +33,8 @@ No hay workflows de despliegue versionados en `.github/` en esta copia. La confi
 - El paquete y los nombres de Workers usan v3; las identidades de datos se conservan.
 - Se ejecutaron build, pruebas generales, contrato de 1.151 filas y comprobación de diff tras la separación. Los resultados completos de integración/navegador/carga de la implementación se conservan en [verification.md](verification.md).
 - La validación operativa/producción continúa pendiente; la separación no convierte 3A en una entrega desplegada.
+
+
+## Continuación: sitio Pages separado
+
+Tras esta separación, el usuario subió v3 y publicó `inventario-login.pages.dev`; también creó la base D1 separada `inventario-login-v3`. La revisión siguiente añade el paquete avanzado de Pages, corrige la respuesta HTML donde se esperaba API, adapta las vistas a la guía y amplía pruebas. La configuración exacta de la integración Git y el procedimiento para actualizar/desplegar automáticamente están en [despliegue-pages.md](despliegue-pages.md). Estas acciones posteriores del usuario no cambian el registro histórico de la separación descrito arriba. Esta revisión no modifica recursos remotos ni ejecuta push; `inventory-v2` conserva su referencia original.

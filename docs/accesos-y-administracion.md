@@ -13,6 +13,8 @@ Implementación 3A local con Worker + D1. Guía: [operacion-3a.md](operacion-3a.
 
 La administración mínima de usuarios y ámbitos pertenece a **3A**. Tablero completo, historial administrativo avanzado, rectificaciones/anulaciones, activación operativa y revisión/cierre/reapertura son **3B**. Exportación fiel es **4**. Desactivar un producto no equivale a cero y no elimina ni cambia filas del Excel. Eliminar registros sigue exigiendo semántica que preserve auditoría.
 
+La administración usa búsqueda y cuentas plegables, explica el alcance de cada ámbito y confirma el restablecimiento antes de revocar sesiones. Los nombres y contraseñas de fixtures pertenecen solo a desarrollo local; el primer administrador del sitio se crea con una cuenta personal y contraseña privada por el procedimiento fuera de línea de [despliegue-pages.md](despliegue-pages.md).
+
 La habilitación de producción y aceptación operativa permanecen pendientes; ver las comprobaciones reales en [verification.md](verification.md).
 
 <details>

@@ -2,7 +2,7 @@
 
 Aplicación web móvil para contar el inventario por área y generar, en una etapa posterior, el libro `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` con las cantidades nuevas y el resto de su estructura intacta.
 
-La pantalla inicial muestra Bodega / Principal, Cocina, Panadería, Pastelería y Servicio. Servicio se cuenta por Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Cocina, Panadería, Pastelería, Bodega y los sectores de Servicio salvo Garzones muestran categorías prácticas; al elegir una zona de Garzones se entra directamente a sus 16 ítems.
+La pantalla inicial muestra las áreas autorizadas entre Bodega / Principal, Cocina, Panadería, Pastelería y Servicio. Servicio se cuenta por Barra, Armado / Línea / Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Cocina, Panadería, Pastelería, Bodega y los sectores de Servicio salvo Garzones muestran categorías prácticas; al elegir una zona de Garzones se entra directamente a sus 16 ítems.
 
 Al abrir un grupo se muestra primero el siguiente ítem pendiente o con avance. «Sin stock» guarda explícitamente un cero como contado; «Guardar avance» y «Listo» conservan sus respectivos estados. El panel de ítems y el resumen permiten volver a cualquier producto.
 
@@ -23,7 +23,7 @@ npm run seed:local
 npm run dev
 ```
 
-Abrir `http://127.0.0.1:8787/`. Inicializar fixtures solo una vez en una base local vacía. Usuarios ficticios: `admin-prueba`, `ana`, `bruno`, `cocina`, `multiple`, `terraza`, `garzones`, `sin-areas`; contraseña local: `Solo-pruebas-2026`. Un servidor estático no basta para esta versión. No publicar la raíz: `npm run build` prepara únicamente los assets públicos de `dist/`.
+Abrir `http://127.0.0.1:8787/`. Inicializar fixtures solo una vez en una base local vacía. Usuarios ficticios: `admin-prueba`, `ana`, `bruno`, `cocina`, `multiple`, `terraza`, `garzones`, `sin-areas`; contraseña local: `Solo-pruebas-2026`. Un servidor estático no basta para esta versión. No publicar la raíz. Para Workers, `npm run build` prepara los assets públicos. Para Cloudflare Pages, usar **`npm run build:pages` y salida `dist`**: incluye el Worker que protege API y rutas. [Configuración del sitio publicado y primer administrador](docs/despliegue-pages.md).
 
 [Guía completa: inicio, primer administrador sin registro público, pruebas manuales y pendientes de producción](docs/operacion-3a.md). [Contrato técnico](docs/contrato-3a.md). [Contexto](docs/project-context.md), [roadmap](docs/roadmap.md), [accesos](docs/accesos-y-administracion.md) y [verificación](docs/verification.md).
 
@@ -34,14 +34,27 @@ npm test
 python3 tests/workbook_contract.py
 ```
 
-Con el Worker local abierto y fixtures ficticios (estas pruebas modifican solo D1 local):
+Preparar bases de pruebas desechables, separadas de los datos de desarrollo:
+
+```sh
+npm run test:prepare
+npm run test:server
+```
+
+Con ese servidor abierto en otra terminal, ejecutar en secuencia:
 
 ```sh
 npm run test:integration
+npm run test:extended
 npm exec playwright install chromium
 npm run test:browser
+npm run test:views
+npm run test:sync
 npm run test:load
+npm run test:bootstrap
 ```
+
+Para el paquete de Pages por HTTPS: `npm run build:pages`, abrir `npm run test:pages:server` en otra terminal y ejecutar `npm run test:pages`. Puertos 8790/8791; bases `.wrangler/test-state` y `.wrangler/pages-test-state`. Detener esos servidores antes de repetir `test:prepare` (reinicia únicamente esas dos bases ficticias).
 
 No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas locales no certifican capacidad ni habilitación de producción. La revisión de asignaciones/unidades (2), supervisión/cierre avanzado (3B), exportación fiel (4) y offline completo siguen pendientes.
 
@@ -49,10 +62,10 @@ No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas l
 
 `inventory-v3` parte de `inventory-v2` en `3d2331919ea8bdf39daf1f095ea09877d69e6dd0` y añade toda la etapa 3A. `inventory-v2` permanece en ese commit anterior; no recibe usuarios, Workers ni los cambios de colaboración. El paquete y los Workers se identifican como `inventory-v3` / `inventory-v3-local`.
 
-Los cambios están en commits locales. Para subir esta rama nueva sin actualizar `inventory-v2`:
+La rama v3 ya tiene seguimiento remoto. Para enviar los nuevos commits sin actualizar `inventory-v2`:
 
 ```sh
 git push -u origin inventory-v3
 ```
 
-No se ejecutó push ni despliegue. Se necesita acceso SSH al remoto. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).
+El usuario publicó una primera versión en un proyecto Pages separado. Esta revisión no ejecutó push, despliegue ni cambios remotos; deja el paquete corregido preparado localmente. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).

@@ -1,6 +1,6 @@
 # Operación local y preparación de producción — 3A
 
-Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El avance quedó en commits locales de `inventory-v3` tras la solicitud de separación. No se ejecutó push, despliegue ni modificación remota. El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
+Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El avance quedó en commits locales de `inventory-v3` tras la solicitud de separación. En esta revisión no se ejecutó push, despliegue ni modificación remota; el usuario publicó por su cuenta una primera versión y preparó D1. El despliegue automático corregido se documenta en [despliegue-pages.md](despliegue-pages.md). El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
 
 ## Iniciar el entorno local
 
@@ -51,13 +51,15 @@ python3 scripts/first-admin.py /tmp/primer-admin.bootstrap.sql
 
 El script pregunta usuario, nombre y contraseña con entrada oculta; no pasa la contraseña en argumentos ni la guarda. Crea un archivo nuevo con permisos 0600 que contiene el hash bcrypt con sal, UUID y una auditoría de bootstrap. El SQL exige una tabla de usuarios vacía; no se usa para añadir o promover cuentas en una instalación ya inicializada. Para ensayar con una base local vacía usar `wrangler d1 execute ... --local --file /tmp/primer-admin.bootstrap.sql`; no ejecutar además los fixtures sobre esa base.
 
-Preparar una configuración propia basada en `wrangler.production.example.jsonc`, con D1 real, origen HTTPS exacto y `ACTIVE_CYCLE_ID` explícito. El archivo principal no incluye DB de producción ni valores válidos por defecto. Aplicar las migraciones en la base elegida y, **solo al autorizar la preparación remota**, aplicar el archivo del primer administrador mediante Wrangler con la configuración seleccionada y `--remote`. Esta entrega no ejecuta esos pasos. El administrador ingresa con la contraseña temporal y debe cambiarla; después crea las demás cuentas desde la interfaz.
+Para el sitio del usuario, usar `wrangler.pages.production.jsonc` con D1 `inventario-login-v3`, ciclo `piloto-v3` y origen HTTPS exacto. El procedimiento completo y los ajustes del panel están en [despliegue-pages.md](despliegue-pages.md). El usuario ya aplicó migraciones y ciclo, pero falta confirmar el primer administrador. Generar el archivo y aplicarlo son pasos distintos; usar `&&` entre ellos para no ejecutar SQL tras un error de validación. Un error de contraseña corta no crea archivo ni cuenta. No usar los usuarios ni contraseña de ensayo en la base pública.
+
+Para otro despliegue Workers, partir de `wrangler.production.example.jsonc`; para Pages, de `wrangler.pages.example.jsonc`. El archivo principal sigue sin DB de producción ni origen válido por defecto. Las configuraciones de ejemplo no habilitan recursos ni usuarios por sí mismas.
 
 El ciclo inicial real se crea explícitamente por el operador de D1, con ID propio, nombre, `catalog_version='inventory-v2-2026-10-21'` y `state='open'`; `ACTIVE_CYCLE_ID` debe coincidir. La interfaz de ciclo/revisión/cierre es 3B. No usar el nombre ni los usuarios de prueba en producción. Retirar el SQL temporal tras su aplicación y conservar el acceso administrativo a D1 para recuperación de desastre.
 
 ## Separación y publicación
 
-`npm run build` copia a `dist/` una lista explícita de archivos públicos. No copia libros, `sources/`, documentación interna, fixtures, migraciones, servidor ni el catálogo global. El Worker restringe también las rutas estáticas. Servir **Worker + dist del mismo origen**; un servidor estático o un Pages anterior por sí solo no implementa la autorización y ya no es una forma válida de operar esta versión compartida. No publicar la raíz del repositorio.
+`npm run build` copia a `dist/` una lista explícita de archivos públicos. No copia libros, `sources/`, documentación interna, fixtures, migraciones, servidor ni el catálogo global. El Worker restringe también las rutas estáticas. Servir **Worker + dist del mismo origen**. En Pages, `npm run build:pages` genera `_worker.js` y `_routes.json` junto con los assets permitidos; configurar esa compilación y salida `dist` en la integración Git. Una publicación estática sin el Worker no implementa autorización. El panel aporta DB y variables en este flujo; el archivo de configuración con nombre personalizado se usa explícitamente por los comandos D1. No publicar la raíz del repositorio.
 
 Las cookies reales usan `__Host-inventory_session`, Secure, HttpOnly, SameSite=Strict, Path=/ y caducidad de 12 horas. Solo `APP_ENV=local` con origen loopback usa una cookie local sin Secure. POST exige Origin exacto y JSON; no se habilita CORS. La cabecera X-Inventory-User en guardados es una comprobación de que no cambió la cuenta de la pestaña; nunca determina autoría ni permisos, que salen de la sesión del servidor.
 
@@ -67,7 +69,7 @@ Las contraseñas usan bcryptjs 3.0.3, coste 12 y sal individual, sin truncar ent
 
 ## Criterios que siguen pendientes
 
-3A está implementada y verificada en entorno local, **no declarada operativa en producción**. Faltan configuración y prueba del dominio HTTPS/cookies reales, CPU/límites y consumo en el plan elegido, respaldos/restauración D1, política de retención, evaluación en Android físico y piloto con trabajadores/señal real. No se han probado SMS/correo, exportación ni offline completo porque no forman parte de esta entrega.
+3A está implementada y verificada en entorno local, **no declarada operativa en producción**. Se probó Pages por HTTPS local con cookies seguras; faltan publicación corregida y prueba del dominio/cookies reales, CPU/límites y consumo en el plan elegido, respaldos/restauración D1, política de retención, evaluación en Android físico y piloto con trabajadores/señal real. No se han probado SMS/correo, exportación ni offline completo porque no forman parte de esta entrega.
 
 Las cinco unidades ausentes de Pastelería siguen ausentes. Se permite registrar el valor explícito sin inventar unidad, pero Sumar se bloquea cuando la unidad es desconocida. No se certifica ese dato para Excel. Continúan las 18 entradas de Barra sin referencia, dos conversiones pendientes y revisión física de etapa 2.
 
@@ -76,6 +78,15 @@ Los datos de `inventario-session-v2` permanecen intactos en su origen anterior. 
 
 ## Identidad de versión y despliegue
 
-El paquete y Worker de esta rama se llaman `inventory-v3`; el entorno local, `inventory-v3-local`. La configuración de producción de ejemplo usa una base separada `inventory-v3-production` con UUID aún por configurar. No reutilizar la aplicación, dominio o base de producción de `inventory-v2` al preparar v3. El UUID local ficticio se conserva para no perder los datos de ensayo ya preparados. El identificador inmutable de catálogo `inventory-v2-2026-10-21` se conserva: identifica los datos heredados, no el nombre de la rama o del Worker.
+El paquete y Worker de esta rama se llaman `inventory-v3`; el entorno local, `inventory-v3-local`. El ejemplo genérico Workers usa `inventory-v3-production`; la configuración Pages del sitio usa la base separada `inventario-login-v3` con el UUID suministrado por el usuario. No reutilizar la aplicación, dominio o base de producción de `inventory-v2` al preparar v3. El UUID local ficticio se conserva para no perder los datos de ensayo ya preparados. El identificador inmutable de catálogo `inventory-v2-2026-10-21` se conserva: identifica los datos heredados, no el nombre de la rama o del Worker.
 
 El envío preparado es `git push -u origin inventory-v3`; no se ha ejecutado. Detalles y límites respecto de configuraciones externas de Cloudflare: [separacion-inventory-v3.md](separacion-inventory-v3.md).
+
+
+## Pruebas sin alterar el desarrollo local
+
+`npm run test:prepare` aplica migraciones y fixtures a `.wrangler/test-state` (Worker) y `.wrangler/pages-test-state` (Pages). **Reinicia solo esas dos bases desechables**; detener sus servidores antes de repetirlo. No apunta a `.wrangler/state` ni a D1 remota. El Worker de pruebas se abre con `npm run test:server` en 8790; ejecutar integración, extended, browser, views, sync y load en secuencia. Las suites modifican únicamente los fixtures de esa base.
+
+Para Pages: `npm run build:pages`, `npm run test:pages:server` en otra terminal y `npm run test:pages`. Usa 8791, HTTPS local y una base independiente. `npm run test:bootstrap` valida el generador del administrador. Comandos completos en README y resultados en [verification.md](verification.md).
+
+El desarrollo manual conserva 8787 y `.wrangler/state`. Las alternativas `dev:pages` / `dev:pages:https` abren 8788 y usan esa misma base de desarrollo; detener el Worker antes de alternar para evitar dos procesos escribiendo el mismo SQLite. No cambiar `.wrangler/state` por las carpetas de pruebas ni copiar fixtures a producción.
