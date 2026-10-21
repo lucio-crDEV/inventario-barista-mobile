@@ -73,7 +73,7 @@ npm run maintenance -- --local
 
 El ensayo de operaciones crea y elimina únicamente bases temporales. El respaldo exige destino nuevo y privado; la restauración solo admite un destino local nuevo y revoca sesiones recuperadas. `maintenance` solo consulta salvo `--apply`; conserva historial, conteos e IDs/resultados de operaciones. No hay mantenimiento programado ni escrituras remotas en build. Los comandos remotos explícitos y límites de recuperación están en la guía.
 
-Después de un deployment, `npm run verify:public` realiza 16 GET anónimos al sitio, sin ingresar ni modificar datos; falla si rutas/JSON/no-store/cabeceras no cumplen. La evidencia actual distingue el sitio publicado del Worker local corregido. No ejecutar pruebas con fixtures o carga contra el sitio.
+Después de un deployment, `npm run verify:public` realiza 16 GET anónimos al sitio, sin ingresar ni modificar datos; falla si rutas/JSON/no-store/cabeceras no cumplen. La última ejecución compartida por el usuario pasa las 16 comprobaciones, incluidas las cabeceras de errores de API. No ejecutar pruebas con fixtures o carga contra el sitio.
 
 ## Rama y envío
 
@@ -85,4 +85,4 @@ La rama v3 ya tiene seguimiento remoto. Para enviar los nuevos commits sin actua
 git push -u origin inventory-v3
 ```
 
-El usuario publicó hasta `fb67ecb` en un proyecto Pages separado, incluidas las mejoras UX. Este cierre técnico no ejecutó push, despliegue ni cambios remotos; deja las herramientas y la corrección de cabeceras de errores listas localmente. No requiere nuevas migraciones ni bootstrap. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).
+El usuario publicó las mejoras UX y después la corrección de cabeceras de errores en un proyecto Pages separado; el verificador público pasa. La tarea no ejecutó push, despliegue ni cambios remotos. Las herramientas del cierre técnico no requieren nuevas migraciones ni bootstrap. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).

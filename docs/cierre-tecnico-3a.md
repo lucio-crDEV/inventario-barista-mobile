@@ -9,7 +9,7 @@ La funcionalidad 3A está implementada y tiene pruebas locales de API, navegador
 | Cuentas, sesiones, permisos, guardados y resolución ajena | Implementados y probados localmente; recorridos detallados en [verificación](verification.md) |
 | Skeletons, estados de envío y menos peticiones | Incluidos en `fb67ecb`, deployment exitoso aportado por el usuario |
 | Aislamiento público de API/archivos | 16 rutas del sitio responden como se espera, sin sesión ni escrituras remotas |
-| Cabeceras de seguridad en errores de API | Se detectó ausencia en los seis 401 publicados; corregido y comprobado localmente en esta entrega, pendiente de push/deployment y nueva comprobación pública |
+| Cabeceras de seguridad en errores de API | Corrección publicada: el usuario repitió el verificador y las 16 comprobaciones pasan, incluidos los seis 401, con `securityHeadersPassed: true` y `passed: true` |
 | Respaldo, restauración y retención | Herramientas terminadas y ensayo real D1 **local** aprobado; falta ensayo de recuperación de la D1 remota en destino separado y copia externa privada |
 | CPU y plan de autenticación | Pendiente técnico antes de uso real; la medida local indica incompatibilidad probable con Free, no certifica CPU de Cloudflare |
 | Dominio autenticado, red y Android físicos | El usuario informa funcionamiento; no se certificó independientemente el recorrido completo ni dispositivos físicos |

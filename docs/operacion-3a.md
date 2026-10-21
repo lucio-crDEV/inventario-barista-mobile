@@ -1,6 +1,6 @@
 # Operación local y preparación de producción — 3A
 
-Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El usuario preparó D1, hizo push y publicó hasta `fb67ecb`, incluidas las mejoras UX. Esta tarea no ejecuta push, despliegue ni modificación remota; el cierre técnico posterior se prepara localmente. El despliegue automático se documenta en [despliegue-pages.md](despliegue-pages.md). El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
+Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El usuario preparó D1, hizo push y publicó las mejoras UX y la corrección posterior de cabeceras. La última ejecución pública compartida por el usuario pasa las 16 comprobaciones. Esta tarea no ejecuta push, despliegue ni modificación remota. El despliegue automático se documenta en [despliegue-pages.md](despliegue-pages.md). El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
 
 ## Iniciar el entorno local
 
