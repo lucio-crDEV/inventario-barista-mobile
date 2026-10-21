@@ -2,7 +2,10 @@ node_modules/
 .wrangler/
 dist/
 .dev.vars*
-! .dev.vars.example
+!.dev.vars.example
 test-results/
 playwright-report/
 *.bootstrap.sql
+
+__pycache__/
+*.py[cod]

@@ -100,7 +100,7 @@ await test("Jerarquía, múltiples ámbitos, sin asignaciones, administrador y e
   }
   assert.equal((await a.request("/api/admin/users")).status, 403);
   const staticData = await fetch(
-    "http://127.0.0.1:8787/data/inventario/items/catalogo-excel.js",
+    "http://127.0.0.1:8790/data/inventario/items/catalogo-excel.js",
   );
   assert.equal(staticData.status, 404);
   assert.ok(!("exportRow" in bar[0]));

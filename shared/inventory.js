@@ -1,3 +1,4 @@
+import { describeCountValue } from './count-display.js';
 import {
   api,
   requireUser,
@@ -87,7 +88,7 @@ export class SharedInventory {
         const r = await api(this.recordURL("/api/history", item));
         const el = dialog(
           "Historial del producto",
-          `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p>${r.history.map((h) => `<p>${esc(h.created_at)} · ${esc(h.after_record.authorName)} · ${esc(h.action)} · ${esc(h.before_record?.quantity ?? "Sin conteo")} → ${esc(h.after_record.quantity)} ${esc(item.unit)} · ${esc(h.after_record.status)}</p><p>${esc(h.after_record.note)}</p>`).join("") || "<p>Sin movimientos.</p>"}<button type="button">Cerrar</button>`,
+          `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${esc(h.after_record.quantity)} ${esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : "Contado"}</p>${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}<button type="button">Cerrar</button>`,
         );
         el.querySelector("button").onclick = () => el.close();
       } catch (e) {
@@ -186,9 +187,11 @@ export class SharedInventory {
       this.drafts.remove(item.id);
       this.modal?.close();
       this.modal = null;
-      this.state(Object.keys(this.drafts.all()).length
-        ? "Pendiente de enviar · hay otros borradores"
-        : "Sincronizado");
+      this.state(
+        Object.keys(this.drafts.all()).length
+          ? "Pendiente de enviar · hay otros borradores"
+          : "Sincronizado",
+      );
       return true;
     } catch (e) {
       if (e.status === 409 && ["STALE", "FOREIGN_RECORD"].includes(e.code)) {
@@ -228,15 +231,10 @@ export class SharedInventory {
   }
   resolve(item, d, current) {
     this.modal?.close();
-    const label = (r) =>
-      !r
-        ? "Sin conteo"
-        : r.outOfStock
-          ? "Sin stock · cero confirmado"
-          : `${r.quantity} ${item.unit || "(unidad pendiente)"}${r.quantity === 0 ? " · cero confirmado" : ""}`;
+    const label = r=>describeCountValue(r,item.unit);
     const el = dialog(
       "Revisar registro de otra persona",
-      `<p><strong>${esc(item.name)}</strong> · ${esc(this.locationName(item))}</p><p>Último autor: ${esc(current.authorName)} · versión ${current.version}</p><table><thead><tr><th>Dato</th><th>Vigente</th><th>Tu propuesta</th></tr></thead><tbody><tr><th>Cantidad</th><td>${esc(label(current))}</td><td>${esc(label({ ...d, quantity: Number(d.quantity) }))}</td></tr><tr><th>Estado</th><td>${current.status === "partial" ? "Avance" : "Contado"}</td><td>${d.status === "partial" ? "Avance" : "Contado"}</td></tr><tr><th>Nota</th><td>${esc(current.note || "Sin nota")}</td><td>${esc(d.note || "Sin nota")}</td></tr></tbody></table><button type="button" id="discard">Descartar mi cambio</button><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? "disabled" : ""}>Sumar mi cantidad</button><button type="button" id="choose-overwrite">Sobrescribir</button>${d.outOfStock ? "<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>" : ""}<p id="result-preview" role="status"></p><button type="button" id="confirm-choice" hidden>Confirmar resultado</button><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
+      `<p><strong>${esc(item.name)}</strong> · ${esc(this.locationName(item))}</p><p>Último autor: ${esc(current.authorName)} · versión ${current.version}</p><table><thead><tr><th>Dato</th><th>Vigente</th><th>Tu propuesta</th></tr></thead><tbody><tr><th>Cantidad</th><td>${esc(label(current))}</td><td>${esc(label({ ...d, quantity: Number(d.quantity) }))}</td></tr><tr><th>Estado</th><td>${current.status === "partial" ? "Avance" : "Contado"}</td><td>${d.status === "partial" ? "Avance" : "Contado"}</td></tr><tr><th>Nota</th><td>${esc(current.note || "Sin nota")}</td><td>${esc(d.note || "Sin nota")}</td></tr></tbody></table><button type="button" id="discard">Descartar mi cambio</button><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? "disabled" : ""}>Sumar mi cantidad</button><button type="button" id="choose-overwrite">Sobrescribir</button>${d.outOfStock ? "<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>" : !item.unit ? "<p>La unidad está pendiente de confirmar. No se puede sumar.</p>" : ""}<p id="result-preview" role="status"></p><button type="button" id="confirm-choice" hidden>Confirmar resultado</button><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
     );
     this.modal = el;
     let action = null;
@@ -247,9 +245,11 @@ export class SharedInventory {
         this.drafts.remove(item.id);
         el.close();
         this.modal = null;
-        this.state(Object.keys(this.drafts.all()).length
-          ? "Cambio descartado · otros borradores pendientes de enviar"
-          : "Sincronizado · cambio descartado");
+        this.state(
+          Object.keys(this.drafts.all()).length
+            ? "Cambio descartado · otros borradores pendientes de enviar"
+            : "Sincronizado · cambio descartado",
+        );
         this.onRender?.();
       } catch (e) {
         this.handleError(e);

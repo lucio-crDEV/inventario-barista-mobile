@@ -27,7 +27,27 @@ export async function api(path, body) {
           body: JSON.stringify(body),
         }),
   });
-  const data = await r.json();
+  if (!r.headers.get("content-type")?.includes("application/json"))
+    throw Object.assign(
+      Error(
+        "El servicio de inventario no está disponible. Contacta al administrador.",
+      ),
+      { status: 503, code: "API_UNAVAILABLE" },
+    );
+  let data;
+  try {
+    data = await r.json();
+  } catch {
+    throw Object.assign(
+      Error("No se pudo leer la respuesta del servicio. Inténtalo de nuevo."),
+      { status: 503, code: "INVALID_RESPONSE" },
+    );
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data))
+    throw Object.assign(
+      Error("El servicio de inventario no está disponible."),
+      { status: 503, code: "INVALID_RESPONSE" },
+    );
   if (!r.ok)
     throw Object.assign(Error(data.message || data.code), data, {
       status: r.status,
@@ -66,10 +86,23 @@ export function identityBar(user) {
   const bar = document.createElement("section");
   bar.className = "identity-bar";
   bar.setAttribute("aria-label", "Cuenta y sincronización");
-  bar.innerHTML = `<span>${escapeHtml(user.name)} · ${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</span><span id="sync-state" role="status">Sincronizado</span><a href="/pages/cuenta/?change=1">Cambiar contraseña</a>${user.role === "admin" ? '<a href="/pages/admin/">Usuarios y accesos</a>' : ""}<button type="button" id="logout">Cerrar sesión</button>`;
-  document.querySelector("main").prepend(bar);
+  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><span id="sync-state" role="status">Sincronizado</span><details class="account-menu"><summary>Mi cuenta</summary><div><a href="/pages/cuenta/?change=1">Cambiar contraseña</a>${user.role === "admin" ? '<a href="/pages/admin/">Usuarios y accesos</a>' : ""}<button type="button" id="logout">Cerrar sesión</button></div></details>`;
+  const main = document.querySelector("main");
+  const heading = main.querySelector(".view-header, .home-header");
+  if (heading) heading.after(bar);
+  else main.prepend(bar);
   bar.querySelector("#logout").onclick = () =>
     logout().catch((e) => alert(e.message));
+  const menu = bar.querySelector(".account-menu");
+  document.addEventListener("click", (event) => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  menu.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      menu.open = false;
+      menu.querySelector("summary").focus();
+    }
+  });
   sessionStorage.setItem("inventory-user", user.id);
   return bar;
 }
@@ -110,8 +143,16 @@ export function dialog(title, content) {
   el.showModal();
   el.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
-    const controls = [...el.querySelectorAll("button, a[href], input, textarea, select, [tabindex]")]
-      .filter((control) => !control.disabled && control.tabIndex >= 0 && control.getClientRects().length);
+    const controls = [
+      ...el.querySelectorAll(
+        "button, a[href], input, textarea, select, [tabindex]",
+      ),
+    ].filter(
+      (control) =>
+        !control.disabled &&
+        control.tabIndex >= 0 &&
+        control.getClientRects().length,
+    );
     const first = controls[0];
     const last = controls.at(-1);
     if (event.shiftKey && document.activeElement === first) {

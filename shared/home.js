@@ -27,5 +27,5 @@ try {
   document.addEventListener("visibilitychange", tick);
 } catch (e) {
   nav.hidden = false;
-  nav.innerHTML = `<p class="error">${escapeHtml(e.message)}. No se ha activado ningún modo local.</p>`;
+  nav.innerHTML = `<p class="error">${escapeHtml(e.message)}. Inténtalo de nuevo más tarde.</p>`;
 }

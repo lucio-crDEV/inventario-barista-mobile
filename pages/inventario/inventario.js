@@ -2,8 +2,12 @@ import { SharedInventory } from "/shared/inventory.js";
 let shared;
 try { shared = await SharedInventory.create(); }
 catch (error) {
-    document.querySelector('#app-content').textContent = `No se pudo conectar: ${error.message}. No se ha activado ningún modo local.`;
-    throw error;
+    const content = document.querySelector('#app-content');
+    content.textContent = error.message || 'No se pudo conectar con el inventario.';
+    const retry = document.createElement('button');
+    retry.className='button button-primary'; retry.textContent='Reintentar conexión';
+    retry.onclick=()=>location.reload(); content.append(retry);
+    await new Promise(()=>{});
 }
 const items = shared.data.items;
 const areas = shared.data.scopes.filter(x => !x.parent).map(x => ({...x, active:true}));

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { hashPassword, validPassword } from "../worker/password.js";
 const quote = (x) => `'${String(x).replaceAll("'", "''")}'`;
 const fixtures = process.argv.includes("--fixtures");
@@ -39,13 +40,13 @@ if (fixtures) {
   users = [[u.username, u.name, "admin", [], u.password]];
 }
 // Output is SQL, never sent to a public endpoint. Run only against selected D1 database.
-console.log("BEGIN TRANSACTION;");
+// D1/Wrangler executes the import; it does not accept interactive BEGIN/COMMIT.
 if (!fixtures)
   console.log(
     "INSERT INTO guards SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM users) THEN 1 ELSE 0 END;",
   );
 for (const [username, name, role, grants, password] of users) {
-  const id = crypto.randomUUID();
+  const id = randomUUID();
   const hash = await hashPassword(password);
   console.log(
     `INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES(${quote(id)},${quote(username)},${quote(name)},${quote(hash)},${quote(role)},${fixtures ? 0 : 1});`,
@@ -61,4 +62,3 @@ if (fixtures)
   console.log(
     "INSERT INTO cycles VALUES('prueba-compartida','Inventario compartido de prueba','inventory-v2-2026-10-21','open');",
   );
-console.log("COMMIT;");

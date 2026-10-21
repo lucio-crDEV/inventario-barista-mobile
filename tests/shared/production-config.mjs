@@ -35,3 +35,30 @@ await test("Producción sin DB, origen HTTPS o ciclo configurado rechaza sin fix
     assert.equal(r.status, 503);
   }
 });
+await test("Esquema o ciclo sin inicializar devuelve 503 JSON sin datos de inventario", async () => {
+  for (const broken of [true, false]) {
+    const env = {
+      APP_ENV: "production",
+      APP_ORIGIN: "https://example.test",
+      ACTIVE_CYCLE_ID: "piloto",
+      DB: {
+        prepare() {
+          if (broken) throw Error("no such table: cycles");
+          return {
+            bind() {
+              return { first: async () => null };
+            },
+          };
+        },
+      },
+    };
+    const r = await worker.fetch(
+      new Request("https://example.test/api/me"),
+      env,
+    );
+    assert.equal(r.status, 503);
+    const data = await r.json();
+    assert.equal(data.code, "NOT_INITIALIZED");
+    assert.ok(!("items" in data));
+  }
+});

@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { readdirSync } from "node:fs";
-export const origin = "http://127.0.0.1:8787";
+export const origin = "http://127.0.0.1:8790";
 export const password = "Solo-pruebas-2026";
 export const cycleId = "prueba-compartida";
 export function database() {
-  const dir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject";
+  const dir = ".wrangler/test-state/v3/d1/miniflare-D1DatabaseObject";
   const file = readdirSync(dir).find(
     (x) => x.endsWith(".sqlite") && x !== "metadata.sqlite",
   );
