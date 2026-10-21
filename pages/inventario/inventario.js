@@ -1,11 +1,19 @@
-import { areas, serviceSectors, garzonZones } from "../../data/inventario/areas.js";
-import { items } from "../../data/inventario/items/index.js";
+import { SharedInventory } from "/shared/inventory.js";
+let shared;
+try { shared = await SharedInventory.create(); }
+catch (error) {
+    document.querySelector('#app-content').textContent = `No se pudo conectar: ${error.message}. No se ha activado ningún modo local.`;
+    throw error;
+}
+const items = shared.data.items;
+const areas = shared.data.scopes.filter(x => !x.parent).map(x => ({...x, active:true}));
+const serviceSectors = shared.data.scopes.filter(x => x.parent === 'servicio').map(x => ({...x,id:x.id.split(':').at(-1)}));
+const garzonZones = shared.data.scopes.filter(x => x.parent === 'servicio:garzones').map(x => ({...x,id:x.id.split(':').at(-1)}));
 import { showSummaryTransition } from "./summary-transition.js";
 import { nextWorkIndex, isOutOfStockCount, feedbackToneForCount } from "./work-selection.js";
 
 
-const STORAGE_KEY =
-    "inventario-session-v2";
+// Los datos locales anteriores no se leen ni se migran automáticamente.
 
 
 const appContent =
@@ -83,8 +91,23 @@ let storageWarning = false;
 let sessionNeedsSave = false;
 
 
-let session =
-    loadSession();
+let session = createSession();
+session.id = shared.cycleId;
+session.responsible = shared.user.name;
+session.counts = Object.fromEntries(shared.data.counts.map(x => [x.itemId,x]));
+shared.onRecord = (record, itemId) => {
+    // A delayed sync page must not replace a newer accepted response in memory.
+    const previous = session.counts[itemId];
+    if (record && previous && record.version < previous.version) return;
+    if (record) session.counts[itemId] = record;
+    else delete session.counts[itemId];
+    updateProgress();
+};
+shared.onRender = () => render();
+shared.onPermissions = () => {
+    // Rebuild from a fresh server projection, retaining only identity-bound drafts.
+    location.reload();
+};
 
 
 let feedbackMessage = "";
@@ -139,313 +162,7 @@ function createId() {
 }
 
 
-function loadSession() {
-
-    let saved;
-
-    try {
-
-        saved =
-            localStorage.getItem(STORAGE_KEY);
-
-
-        if (!saved) {
-
-            return createSession();
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo cargar la sesión:",
-            error
-        );
-
-        storageWarning = true;
-
-        return createSession();
-    }
-
-
-    let parsed;
-
-    try {
-
-        parsed = JSON.parse(saved);
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo interpretar la sesión:",
-            error
-        );
-
-        sessionNeedsSave = true;
-
-        return createSession();
-    }
-
-
-    if (
-        !isPlainObject(parsed) ||
-        ![2, 3].includes(parsed.schemaVersion)
-    ) {
-
-        sessionNeedsSave = true;
-
-        return createSession();
-    }
-
-
-    const originalSchemaVersion =
-        parsed.schemaVersion;
-
-
-    const normalized = {
-        ...createSession(),
-        ...parsed,
-        schemaVersion: 3
-    };
-
-
-    if (
-        originalSchemaVersion === 2 &&
-        normalized.view === "count"
-    ) {
-
-        normalized.view = "categories";
-    }
-
-
-    if (
-        typeof normalized.id !== "string" ||
-        normalized.id.length === 0
-    ) {
-
-        normalized.id = createId();
-    }
-
-
-    if (!isValidDateString(normalized.date)) {
-
-        normalized.date = new Date().toISOString();
-    }
-
-
-    if (!isValidDateString(normalized.startedAt)) {
-
-        normalized.startedAt = normalized.date;
-    }
-
-
-    if (
-        !Number.isInteger(normalized.currentIndex)
-    ) {
-
-        normalized.currentIndex = 0;
-    }
-
-
-    normalized.currentIndex = Math.min(
-        Math.max(normalized.currentIndex, 0),
-        Math.max(activeItems.length - 1, 0)
-    );
-
-
-    if (
-        ![
-            "categories",
-            "count",
-            "summary"
-        ].includes(normalized.view)
-    ) {
-
-        normalized.view = defaultView;
-    }
-
-    if (isGarzonZone && normalized.view === "categories") {
-        normalized.view = "count";
-    }
-
-    if (typeof normalized.responsible !== "string") {
-
-        normalized.responsible = "";
-    }
-
-
-    normalized.counts =
-        normalizeCounts(normalized.counts);
-
-    if (normalized.scopeKey !== scopeKey) {
-        normalized.scopeKey = scopeKey;
-        normalized.currentIndex = isGarzonZone
-            ? nextWorkIndex(activeItems, normalized.counts)
-            : 0;
-        normalized.view = defaultView;
-    }
-
-    sessionNeedsSave =
-        originalSchemaVersion !== 3 ||
-        JSON.stringify(normalized) !==
-            JSON.stringify(parsed);
-
-
-    return normalized;
-}
-
-
-function isPlainObject(value) {
-
-    return Boolean(
-        value &&
-        typeof value === "object" &&
-        !Array.isArray(value)
-    );
-}
-
-
-function isValidDateString(value) {
-
-    return typeof value === "string" &&
-        !Number.isNaN(Date.parse(value));
-}
-
-
-function normalizeCounts(counts) {
-
-    if (!isPlainObject(counts)) {
-
-        return {};
-    }
-
-
-    const catalogItemsById = new Map(
-        items.map(item => [item.id, item])
-    );
-
-    const normalizedCounts = {};
-
-
-    for (const [itemId, rawCount] of Object.entries(counts)) {
-
-        const item = catalogItemsById.get(itemId);
-
-
-        if (!item || !isPlainObject(rawCount)) {
-
-            continue;
-        }
-
-
-        const count = {
-            ...rawCount
-        };
-
-        const validStatus = [
-            "pending",
-            "partial",
-            "counted"
-        ].includes(count.status);
-
-        if (!validStatus) {
-
-            count.status = "pending";
-        }
-
-
-        if (
-            count.quantity !== null &&
-            (
-                typeof count.quantity !== "number" ||
-                !Number.isFinite(count.quantity) ||
-                count.quantity < 0
-            )
-        ) {
-
-            count.quantity = null;
-        }
-
-
-        if (
-            ["partial", "counted"].includes(count.status) &&
-            count.quantity === null
-        ) {
-
-            count.status = "pending";
-        }
-
-        count.outOfStock = isOutOfStockCount(count);
-
-
-        if (typeof count.note !== "string") {
-
-            count.note = "";
-        }
-
-
-        if (item.id === "chai-polvo" &&
-            count.unit?.toLowerCase() === "gr" &&
-            typeof count.quantity === "number") {
-            count.quantity /= 1000;
-            count.unit = "KG";
-        }
-
-        if (typeof count.unit !== "string") {
-            count.unit = item.unit;
-        }
-
-
-        if (
-            count.countedAt !== null &&
-            typeof count.countedAt !== "string"
-        ) {
-
-            count.countedAt = null;
-        }
-
-
-        count.itemId = itemId;
-
-        normalizedCounts[itemId] = count;
-    }
-
-
-    return normalizedCounts;
-}
-
-
-function saveSession() {
-
-    try {
-
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(session)
-        );
-
-        storageWarning = false;
-
-        sessionNeedsSave = false;
-
-        updateStorageWarning();
-
-        return true;
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo guardar la sesión:",
-            error
-        );
-
-        storageWarning = true;
-
-        updateStorageWarning();
-
-        return false;
-    }
-}
+function saveSession() { return true; }
 
 
 // ============================================================
@@ -833,47 +550,7 @@ function getStatusLabel(status, outOfStock = false) {
 // REGISTRO DE CONTEO
 // ============================================================
 
-function registerCount({
-    item,
-    quantity,
-    status,
-    note,
-    outOfStock = false
-}) {
-
-    session.counts[item.id] = {
-
-        sessionId:
-            session.id,
-
-        itemId:
-            item.id,
-
-        quantity,
-
-        unit:
-            item.unit,
-
-        status,
-
-        outOfStock,
-
-        note,
-
-        countedAt:
-            new Date().toISOString()
-    };
-
-
-    saveSession();
-}
-
-
-// ============================================================
-// GUARDAR ACTUAL
-// ============================================================
-
-function saveCurrentAs(status, { outOfStock = false } = {}) {
+async function saveCurrentAs(status, { outOfStock = false } = {}) {
 
     const item =
         getCurrentItem();
@@ -927,19 +604,7 @@ function saveCurrentAs(status, { outOfStock = false } = {}) {
     }
 
 
-    registerCount({
-
-        item,
-
-        quantity,
-
-        status,
-
-        note,
-
-        outOfStock
-    });
-
+    if (!(await shared.save(item, quantity, status, note, outOfStock))) return;
 
     feedbackMessage =
         outOfStock
@@ -1167,6 +832,8 @@ function openSummary() {
 // ============================================================
 
 function openNewSessionConfirmation() {
+    return; // Ciclos compartidos se administrarán en 3B.
+
 
     newSessionReturnFocus = document.activeElement;
 
@@ -1292,6 +959,12 @@ function updateProgress() {
 // ============================================================
 
 function render() {
+    if (!items.length) {
+        appContent.textContent = "No tienes áreas asignadas. Contacta al administrador";
+        document.querySelector('#progress-bar-container').hidden = true;
+        progressText.hidden = true;
+        return;
+    }
 
     updateProgress();
 
@@ -1966,6 +1639,7 @@ function renderCurrentItem() {
 
 
     setupCurrentItemEvents();
+    shared.mount(item,count);
 }
 
 
@@ -2387,7 +2061,7 @@ function renderSummary() {
 
 
           <input
-            id="responsible"
+            id="responsible" readonly
             type="text"
             autocomplete="name"
             maxlength="80"
@@ -2435,11 +2109,11 @@ function renderSummary() {
 
 
         <button
-          id="new-session"
+          id="new-session" disabled title="La gestión de ciclos compartidos corresponde a administración (3B)"
           class="button button-ghost"
           type="button"
         >
-          Nuevo inventario
+          Nuevo inventario · disponible en etapa 3B
         </button>
 
 
@@ -3253,3 +2927,6 @@ if (sessionNeedsSave) {
 
 
 render();
+shared.poll();
+
+if (Object.keys(shared.drafts.all()).length) shared.state('Pendiente de enviar · borradores recuperados; los de ámbitos retirados permanecen aislados.');

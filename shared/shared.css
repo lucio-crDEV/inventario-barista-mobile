@@ -1,0 +1,158 @@
+.identity-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  font-size: 0.82rem;
+  margin: 0 0 18px;
+  padding: 12px;
+  border: 1px solid #84959b44;
+  border-radius: 14px;
+  background: var(--surface, #fffefa);
+}
+.identity-bar a,
+.identity-bar button {
+  color: inherit;
+  font: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  padding: 6px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.shared-dialog {
+  color: inherit;
+  background: #fffefa;
+  border: 1px solid #81939b66;
+  border-radius: 18px;
+  padding: 22px;
+  width: min(94vw, 600px);
+  max-height: 90dvh;
+  overflow: auto;
+}
+.shared-dialog::backdrop {
+  background: #11131599;
+  backdrop-filter: blur(4px);
+}
+.shared-dialog h2 {
+  font-size: 1.2rem;
+  margin-top: 0;
+}
+.shared-dialog button,
+.account button,
+.admin button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #81939b66;
+  background: #07bfd0;
+  color: #142b4d;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  margin: 5px 3px;
+}
+.shared-dialog button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.shared-dialog table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 16px 0;
+}
+.shared-dialog th,
+.shared-dialog td {
+  text-align: left;
+  padding: 8px 4px;
+  border-bottom: 1px solid #81939b44;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.shared-dialog p {
+  text-align: left;
+  margin: 12px 0;
+}
+.account,
+.admin {
+  width: min(100% - 32px, 720px);
+  margin: auto;
+  padding: 32px 0;
+}
+.account form,
+.admin form,
+.admin article {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #84959b44;
+  border-radius: 16px;
+  margin: 18px 0;
+}
+.account label,
+.admin label {
+  display: grid;
+  gap: 6px;
+}
+.account input,
+.admin input:not([type="checkbox"]),
+.admin select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #84959b88;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+}
+.admin fieldset label {
+  display: flex;
+  gap: 8px;
+  align-items: start;
+  margin: 10px 0;
+}
+.admin input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.shared-dialog :focus-visible,
+.account :focus-visible,
+.admin :focus-visible {
+  outline: 3px solid #007f9d;
+  outline-offset: 3px;
+}
+[data-theme="dark"] .shared-dialog {
+  background: #1d2022;
+  color: #f0f6f8;
+}
+[data-theme="dark"] .identity-bar {
+  background: #1d2022;
+}
+.error {
+  color: #bd344e;
+  white-space: pre-wrap;
+}
+[data-theme="dark"] .error {
+  color: #ff9cae;
+}
+.pending-draft {
+  padding: 10px;
+  border: 1px solid #bd8b24;
+  border-radius: 10px;
+}
+[hidden] {
+  display: none !important;
+}
+.shared-dialog th:first-child {
+  width: 76px;
+  min-width: 76px;
+  overflow-wrap: normal;
+}
+.shared-dialog td {
+  max-width: 180px;
+}

@@ -12,31 +12,38 @@ La interfaz usa blanco crema en modo claro y carbón profundo en modo oscuro, co
 
 Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 
-El conteo actual sigue guardándose en el navegador mediante `localStorage`. La sincronización entre teléfonos y la generación del Excel final son etapas pendientes. Revisa `docs/project-context.md`, `docs/roadmap.md`, `docs/propuesta-ux-colaboracion.md`, `docs/style-guide.md` y `docs/verification.md` para el estado, las etapas, las decisiones pendientes, el diseño y las comprobaciones realizadas. La planilla de dudas de reunión está en `archivos-externos/reuniones/`.
+El modo compartido usa Cloudflare Workers + D1: usuarios personales, contraseñas, ámbitos múltiples, administración mínima, historial y resolución de registros ajenos con Descartar, Sumar o Sobrescribir. Los guardados propios son directos con control de versión. Los datos locales anteriores permanecen intactos y no se importan automáticamente. No se implementó exportación Excel ni el flujo de Pedido.
 
-## Vista local
-
-Desde la raíz del repositorio, inicia un servidor y mantenlo abierto mientras revisas la app:
+## Entorno compartido local
 
 ```sh
-python3 -m http.server 8765 --bind 127.0.0.1
+npm ci
+npm run db:local
+npm run seed:local
+npm run dev
 ```
 
-Abre `http://127.0.0.1:8765/`. Si el navegador indica que se rechazó la conexión, comprueba que el servidor siga en ejecución.
+Abrir `http://127.0.0.1:8787/`. Inicializar fixtures solo una vez en una base local vacía. Usuarios ficticios: `admin-prueba`, `ana`, `bruno`, `cocina`, `multiple`, `terraza`, `garzones`, `sin-areas`; contraseña local: `Solo-pruebas-2026`. Un servidor estático no basta para esta versión. No publicar la raíz: `npm run build` prepara únicamente los assets públicos de `dist/`.
 
-## Comprobaciones locales
+[Guía completa: inicio, primer administrador sin registro público, pruebas manuales y pendientes de producción](docs/operacion-3a.md). [Contrato técnico](docs/contrato-3a.md). [Contexto](docs/project-context.md), [roadmap](docs/roadmap.md), [accesos](docs/accesos-y-administracion.md) y [verificación](docs/verification.md).
 
-Con Node.js y Python 3 disponibles, desde la raíz del proyecto:
+## Pruebas
 
 ```sh
-node --test tests/catalog.test.mjs tests/summary-transition.test.mjs tests/work-selection.test.mjs
+npm test
 python3 tests/workbook_contract.py
-node --check pages/inventario/inventario.js
-node --check theme.js
-git diff --check
 ```
 
-Las pruebas de Node revisan el catálogo, el indicador breve del resumen y la selección del siguiente ítem de trabajo. La prueba de Python compara las 1.151 filas de referencia con el Excel original sin modificarlo. Estas verificaciones no prueban exportación ni sincronización, porque esas funciones aún no están implementadas.
+Con el Worker local abierto y fixtures ficticios (estas pruebas modifican solo D1 local):
+
+```sh
+npm run test:integration
+npm exec playwright install chromium
+npm run test:browser
+npm run test:load
+```
+
+No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas locales no certifican capacidad ni habilitación de producción. La revisión de asignaciones/unidades (2), supervisión/cierre avanzado (3B), exportación fiel (4) y offline completo siguen pendientes.
 
 ## Envío de esta rama
 

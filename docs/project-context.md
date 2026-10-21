@@ -27,7 +27,13 @@ Panadería se cuenta en siete grupos prácticos: Harinas y levaduras; Abarrotes,
 
 Bodega / Principal se cuenta en catorce grupos prácticos que separan abarrotes, condimentos, panificación, carnes y pescados, lácteos, congelados, bebidas, cafetería, té, repostería, aseo, envases, artículos de servicio y suministros de operación. Sus 288 filas se asignan una sola vez. Los dos atunes se muestran junto al jamón en «Carnes, aves y pescados», aunque el Excel mantenga los atunes bajo «Abarrotes» y el jamón bajo «Carnes y Aves». Los grupos de pantalla no cambian la fila, el ID, la unidad ni la categoría de exportación. Bodega cuenta solo los productos de su hoja; no se copian aquí los de Cocina por compartir tipo de producto.
 
-## Estado de la implementación
+## Estado vigente — etapa 3A, 21-10-2026
+
+Implementados Worker + D1, usuarios personales con contraseña, sesión por cookie HttpOnly, cambio propio/temporal, administración mínima de cuentas y múltiples ámbitos, catálogo filtrado, conteo compartido con versiones, historial, reintentos idempotentes y borradores aislados por identidad/ciclo. Decisiones confirmadas: ausencia de asignaciones significa ausencia de acceso al inventario; administrador global por rol; registros ajenos requieren Descartar, Sumar o Sobrescribir; actualizaciones propias se guardan directamente con control de versión. El catálogo conserva sus identificadores, unidades y referencias originales. Pedido no se modificó.
+
+Inicio y pantallas obtienen la proyección autorizada desde la API. Los contenedores solo conducen a descendientes permitidos. La sesión local anterior permanece sin leer ni importar; Nuevo inventario está deshabilitado en modo compartido. Contrato en [contrato-3a.md](contrato-3a.md), inicio y primer administrador en [operacion-3a.md](operacion-3a.md). 3A está implementada y probada localmente, pendiente de habilitación y piloto operativo; no equivale a producción terminada. Etapa 2 sigue con sus decisiones físicas/unidades pendientes; 3B y Excel en 4 siguen pendientes.
+
+## Interfaz y catálogo conservados
 
 La rama `inventory-v2` usa HTML, CSS y JavaScript nativos. La página inicial muestra las cinco áreas. El módulo de inventario permite elegir sector en Servicio y zona en Garzones. En cada zona de Garzones se muestran directamente sus 16 ítems; las demás áreas y sectores conservan categorías prácticas antes de los productos. Durante el conteo, un botón abre un panel lateral con todos los ítems del área o zona activa, su estado y búsqueda por nombre. El catálogo de la app se deriva de las filas del archivo totalizado y de las asignaciones del libro manual. Se conservan los ID internos existentes de Barra cuando se puede vincular el mismo producto por nombre o por una equivalencia confirmada. Los ID de GetJusto y números de fila del Excel se guardan como referencias de salida sin modificarlos; los ID ausentes permanecen ausentes.
 
@@ -39,7 +45,7 @@ Barra conserva las seis categorías de conteo de la versión anterior: Insumos, 
 
 Las bebidas envasadas de marca (Coca-Cola, Coca-Cola Zero, Fanta, Sprite y Sprite Zero) y las aguas con y sin gas se cuentan en Armado / Línea / Copería, bajo «Bebidas». Las pulpas, porciones de jugo, hielo y Primaveral siguen en Barra. Las siete bebidas trasladadas conservan sus ID internos previos para mantener conteos locales existentes.
 
-El conteo existente se guarda en `localStorage` con la clave `inventario-session-v2` y esquema 3. Esa persistencia es local al navegador y aún no reúne automáticamente los conteos de varios teléfonos. El generador del Excel final tampoco está implementado todavía. El documento `docs/propuesta-ux-colaboracion.md` plantea la evolución de interfaz y trabajo compartido; sus etapas siguen pendientes de evaluación. Las dudas de reunión se conservan en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`. La ruta de Pedido pertenece a un módulo separado y no forma parte de esta navegación de inventario.
+Históricamente, hasta el 20-10-2026, el conteo se guardaba en `localStorage` con la clave `inventario-session-v2` y esquema 3. Esa persistencia histórica es local al navegador y no se importa automáticamente al nuevo ciclo compartido. El generador del Excel final tampoco está implementado todavía. Las propuestas históricas de `docs/propuesta-ux-colaboracion.md` quedan subordinadas a las decisiones confirmadas de 3A. Las dudas de reunión se conservan en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`. La ruta de Pedido pertenece a un módulo separado y no forma parte de esta navegación de inventario.
 
 La revisión del 20-10-2026 comprobó 1.151 filas de referencia contra el Excel original y encontró cero diferencias en ID, nombre, unidad y categoría. El catálogo tiene 1.227 entradas de conteo porque algunos productos aparecen en más de un sector o zona; 18 ítems anteriores de Barra siguen sin fila de salida y dos conversiones de Barra siguen sin equivalencia aprobada. Las pruebas y simulaciones, junto con su alcance, están en `docs/verification.md`.
 
@@ -53,3 +59,11 @@ La revisión del 20-10-2026 comprobó 1.151 filas de referencia contra el Excel 
 ## Contexto de ramas
 
 `main` es la versión estable anterior de Inventario Barra; `warehouse-order` es la línea de Pedido a Bodega; `inventory-v2` es esta evolución. Las decisiones de `inventory-v2` reemplazan los límites de la versión anterior.
+
+## Evaluación histórica de la siguiente etapa — 20-10-2026
+
+La revisión de código confirma que Responsable es texto de sesión y no identidad por registro. La propuesta actualizada en [etapa-conteo-compartido.md](etapa-conteo-compartido.md) recomienda Workers + D1, usuarios individuales, conteo por ubicación con control de versión, historial y cierre previo a exportar. Son recomendaciones pendientes de implementación y validación operativa; no cambian todavía el funcionamiento local. Las 12 pruebas Node y el contrato de 1.151 filas volvieron a pasar en esta evaluación. No se verificó el despliegue remoto.
+
+## Accesos y administración: análisis histórico, sustituido el 21-10-2026
+
+En ese análisis previo el ingreso seguía abierto a evaluación. La decisión posterior confirmada es usuario personal y contraseña, sin verificación obligatoria por correo/teléfono. El usuario confirmó aislamiento de datos por área/subárea y administración global con historial, rectificaciones, activación operativa de productos, cierre y exportación. Ver [accesos-y-administracion.md](accesos-y-administracion.md), que distingue requisitos confirmados de alternativas. La estructura del Excel sigue siendo inmutable; desactivar un producto no autoriza eliminar su fila ni asignarle cero automáticamente.

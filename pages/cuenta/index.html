@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cuenta · Inventario</title>
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/theme.css" />
+    <link rel="stylesheet" href="/shared/shared.css" />
+  </head>
+  <body>
+    <main class="account">
+      <h1>Inventario compartido</h1>
+      <button
+        class="theme-toggle"
+        type="button"
+        data-theme-toggle
+        aria-label="Cambiar tema"
+      >
+        ◐
+      </button>
+      <div id="account-content"></div>
+      <p id="message" role="status" class="error"></p>
+    </main>
+    <script type="module" src="./cuenta.js"></script>
+  </body>
+</html>

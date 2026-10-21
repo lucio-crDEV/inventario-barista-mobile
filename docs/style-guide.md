@@ -45,3 +45,10 @@ El aviso de guardado se presenta arriba como una pieza de vidrio coloreado de ha
 ## Alcance de datos
 
 Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportación. «Sin stock» sigue guardando cero con marca explícita `outOfStock`; un cero guardado con «Listo» sigue contado sin esa marca. No hay estados AM/PM ni una vista local de Pedido en `inventory-v2`: se revisan en sus propias ramas antes de aplicarles esta guía.
+
+
+## Etapa 3A — cuenta y colaboración
+
+Se conserva el diseño de inventario. Una franja compacta identifica persona, rol, modo Compartido, sincronización, cambio de contraseña y cierre de sesión; administradores acceden desde allí a Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación legible, último autor, versión y tabla vigente/propuesto de cantidad, estado y nota. Cada acción de escritura exige revisar su resultado y confirmarlo. Sin stock no ofrece suma válida.
+
+El conteo conserva Guardar avance/Listo/Sin stock. Historial por producto es lectura. Un resultado incierto protege los campos y ofrece Reintentar envío pendiente; no se etiqueta como sincronizado. Las notas agregadas se ven completas en Nota e Historial. Nuevo inventario queda deshabilitado con referencia a 3B; no hay borrado compartido. Se añadió vista móvil de ingreso/cambio y administración mínima, sin tablero de supervisión.

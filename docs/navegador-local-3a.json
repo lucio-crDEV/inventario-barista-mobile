@@ -1,0 +1,21 @@
+{
+  "checks": [
+    "Sesiones independientes, Cocina/Barra aisladas, múltiples ámbitos y usuario sin áreas",
+    "URL fuera del ámbito no revela productos",
+    "Tab permanece en el diálogo; Escape conserva el borrador",
+    "Descartar recupera 4 y elimina solo el borrador afectado; foco inicial seguro",
+    "Sumar explícito confirma 4 + 3 = 7",
+    "Sobrescribir explícito reemplaza 4 por 3",
+    "Cambio remoto invalida la confirmación y exige nueva elección",
+    "Sincronización remota conserva campos en edición",
+    "Borrador recuperado después de recarga",
+    "Sin stock no sumable; capturas móviles claro/oscuro",
+    "Administrador retira acceso durante sesión; desaparecen datos y se conserva borrador aislado",
+    "Cambio de usuario no transfiere catálogo ni borradores",
+    "Persistencia local anterior intacta",
+    "Respuesta perdida recuperada con el mismo ID sin duplicar escritura"
+  ],
+  "errors": [],
+  "viewport": "390 × 844; Chromium independiente por usuario",
+  "physicalDevice": false
+}

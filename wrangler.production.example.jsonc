@@ -1,0 +1,23 @@
+{
+  "name": "inventory-v2",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "vars": {
+    "APP_ENV": "production",
+    "APP_ORIGIN": "https://DOMINIO-REAL",
+    "ACTIVE_CYCLE_ID": "CICLO-REAL",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "BASE-REAL",
+      "database_id": "UUID-REAL",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

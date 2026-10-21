@@ -1,0 +1,29 @@
+{
+  "name": "inventory-v2",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "vars": { "APP_ENV": "production", "APP_ORIGIN": "", "ACTIVE_CYCLE_ID": "" },
+  "env": {
+    "local": {
+      "name": "inventory-v2-local",
+      "vars": {
+        "APP_ENV": "local",
+        "APP_ORIGIN": "http://127.0.0.1:8787",
+        "ACTIVE_CYCLE_ID": "prueba-compartida",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "inventory-v2-local",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
+}

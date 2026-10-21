@@ -1,3 +1,62 @@
+# Verificación de etapa 3A — 21-10-2026
+
+Rama `inventory-v2`. Se conservaron los cambios de documentación existentes al iniciar. Ningún libro ni archivo sincronizado se editó; no se ejecutó commit, push, despliegue ni acceso a recursos remotos. Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3; navegador Chromium 141 mediante Playwright 1.56.1.
+
+## Resultados actuales
+
+| Comprobación ejecutada | Resultado |
+| --- | --- |
+| `npm test` | 13/13: 12 pruebas originales + rechazo de producción sin configuración válida; sin fallback a fixtures |
+| `python3 tests/workbook_contract.py` | 1.151 filas coinciden; cero diferencias en ID, nombre, unidad y categoría |
+| `npm run test:integration` | 11/11 grupos contra Worker + D1 local; última ejecución 12,99 s |
+| `npm run test:browser` | Seis contextos independientes, vista 390 × 844, recorridos detallados abajo; sin errores JavaScript |
+| `npm run test:load` | 15 clientes, 496 solicitudes medidas, 6.781 ms; cero errores inesperados |
+| Migraciones en D1 local vacío separado | 0001 y 0002 aplicadas desde cero; 1.227 ítems/ubicaciones y árbol real |
+| Bootstrap del primer administrador | Script Python con entradas ficticias; SQL sin contraseña plana, archivo 0600; D1 crea una cuenta admin con bcrypt coste 12, cambio obligatorio y una auditoría; repetirlo se rechaza por guardia sin crear otra cuenta |
+| Sintaxis, build y diff | Módulos nuevos y de inventario válidos; assets públicos por lista explícita; `git diff --check` sin errores |
+
+## Cobertura real de servidor
+
+Los grupos de integración verifican ingreso correcto/incorrecto y errores genéricos, cookies locales HttpOnly/SameSite, Origin ajeno rechazado, usuario sin áreas, ámbito único, Barra + Armado, Garzones completo frente a Terraza, Servicio heredado sin otras áreas, administrador global sin asignaciones, trabajador sin administración, alta, cambio de contraseña, restablecimiento temporal obligatorio, desactivación y revocación, asignación/retirada con sesión activa, protección del último administrador y auditoría sin contraseñas.
+
+Se prueban intentos sobre producto ajeno por lectura, guardado, búsqueda, resumen, sincronización e historial; la URL del catálogo global responde 404. Las respuestas operativas omiten las referencias Excel. Cabecera de identidad de pestaña distinta se rechaza sin escritura; el servidor siempre deriva autor/rol/permisos de la sesión.
+
+Conteos: primer registro, actualización propia, ajeno existente rechazado para resolución, 4 + 3 = 7, sobrescribir 4 → 3, avance conservado si cualquiera es parcial, ambos contados, notas con autor conservadas, cero normal/Sin stock, aporte Sin stock rechazado, suma positiva elimina marca, tres decimales y unidad incorrecta, suma decimal 0,1 + 0,2 = 0,3, versión obsoleta, dos sumas concurrentes sobre una versión (una aceptada y otra 409), dos primeros guardados concurrentes, doble solicitud idéntica, ID repetido con contenido diferente, reintento histórico después de una modificación posterior, operación propia retrasada y nueva decisión tras rechazo.
+
+Se retira permiso antes de sumar y reintentar una operación ya aceptada: ambos accesos se rechazan. Dos ubicaciones del mismo producto permanecen independientes. Con ciclo cerrado se rechazan guardado directo, suma y sobrescritura. Un trigger de fallo inyectado después de iniciar historial produce HTTP 500 **esperado**, sin conteo, operación ni historial de éxito; retirar el fallo permite reintentar el mismo ID. Se comparan número de versiones/movimientos y correspondencia de operaciones/historial.
+
+## Navegador y revisión visual
+
+El archivo [navegador-local-3a.json](navegador-local-3a.json) enumera los recorridos ejecutados. Se abren Ana, Bruno, Cocina, Múltiple, administrador y usuario sin áreas en seis contextos independientes. Se verifica aislamiento de tarjetas y URL, unión de dos ámbitos, las tres decisiones sobre el mismo registro, resultado explícito antes de confirmar, foco inicial en Descartar, Tab/Shift+Tab contenido y Escape conservando borrador. Descartar conserva 4 y otro borrador; Sumar guarda 7; Sobrescribir guarda 3.
+
+Se modifica el dato mientras la comparación está abierta: la confirmación antigua no escribe y vuelve a exigir una elección. El sondeo no cambia campos editados. Se recupera un borrador tras recarga, Sin stock deshabilita Sumar y un administrador retira ámbitos desde el formulario real: desaparecen los datos y permanece el aviso de borradores aislados. Cambiar de usuario no muestra campos ni catálogo del anterior. La clave local antigua se conserva íntegra. Una ruta de navegador deja que el servidor acepte un guardado y pierde su respuesta: Reintentar recupera el resultado sin aumentar la versión por segunda vez.
+
+Se inspeccionaron capturas de conflicto en claro y conteo en oscuro a 390 × 844. Los artefactos reproducibles quedan en `test-results/3a/` (excluidos de Git). Se corrigieron el ancho de la columna Cantidad, la ubicación legible y el recorrido de foco encontrados durante estas pruebas. Esto no prueba teclado virtual, gestos o rendimiento en Android físico.
+
+## Simulación repetible de 15 clientes
+
+Ejecutar con el Worker local abierto: `npm run test:load`. Informe: [carga-local-3a.json](carga-local-3a.json). Cada cliente inicia sesión, obtiene su catálogo, realiza diez guardados intencionales en su ítem, reintenta cada operación con idéntico ID y consulta sincronización, con pausa de 50 ms por ronda. Al final los quince intentan sumar sobre la misma versión confirmada: una suma se acepta y catorce reciben conflicto esperado; no se reafirman automáticamente.
+
+- Duración total: **6.781 ms**, incluye ingresos bcrypt.
+- Solicitudes medidas: **496** (482 HTTP 200, 14 HTTP 409 esperados). Las lecturas auxiliares de verificación no están incluidas.
+- **151 escrituras aceptadas**, **150 reintentos sin duplicación**, **0 errores inesperados**.
+- Latencia conjunta: p50 **41 ms**, p95 **115 ms**, máximo **4.422 ms** (incluye autenticación concurrente).
+- Totales finales de los 15 ítems comprobados; cantidad de operaciones/historial y snapshots coincidentes. No hay historial de éxito para conflictos.
+
+No extrapolar esta ráfaga local a un día completo ni a capacidad garantizada de producción. No se midió CPU facturada, latencia de red real, cuotas diarias ni rendimiento del plan elegido. El coste bcrypt exige medición de CPU antes de habilitar producción.
+
+## Repetición y límites
+
+Inicio/fixtures y primer administrador: [operacion-3a.md](operacion-3a.md). Ejecutar integración, navegador y carga **en secuencia**: usan únicamente la base local con fixtures y reinician datos de conteo de prueba. No ejecutarlos contra datos operativos. Las migraciones desde cero y bootstrap se ensayaron con `--persist-to /tmp/inventory-3a-clean`, independiente de esa base.
+
+Completado localmente: implementación 3A y comprobaciones anteriores. **Pendiente operativo:** despliegue autorizado, dominio/cookies HTTPS reales, límites/CPU y consumo de Workers/D1, respaldo y restauración, retención, Android físico, piloto con trabajadores y señal real. Producción vacía o mal configurada rechaza acceso; no hay usuarios ni contraseñas de fábrica.
+
+El catálogo sigue con cinco unidades ausentes, 18 entradas de Barra sin referencia y dos conversiones pendientes; no se inventaron equivalencias. La suma de unidad ausente se bloquea por implementación; no se realizó un ensayo de navegador específico sobre esas cinco filas. Quedan para 3B tablero, historia administrativa avanzada, rectificación/anulación, activación operativa y revisión/cierre/reapertura; para 4, exportación fiel. No se probó exportación, SMS/correo ni conteo offline completo porque no se implementan en esta etapa. La protección del cliente ante páginas de sincronización tardías se inspeccionó en código; la operación retrasada se probó en servidor. La pausa del sondeo con pantalla oculta se inspeccionó en código; no se simuló visibilidad del sistema operativo en un teléfono.
+
+## Registro histórico anterior (20-10-2026)
+
+Las descripciones siguientes conservan las revisiones previas del modo local. Sus limitaciones sobre ausencia de Worker/sincronización describen ese estado anterior y están sustituidas por el registro de 3A de arriba.
+
 # Verificación local — inventory-v2
 
 **Fecha:** 20-10-2026. **Rama:** `inventory-v2`. **Alcance:** catálogo, referencia Excel e interfaz de conteo local. No se generó ni modificó un libro de salida.

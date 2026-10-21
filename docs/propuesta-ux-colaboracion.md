@@ -1,4 +1,8 @@
+> **Estado vigente 21-10-2026:** las decisiones de 3A sustituyen las alternativas de autenticación, asignaciones y tratamiento de registros ajenos de este análisis histórico. Usuario personal y contraseña, permisos múltiples administrables, sin asignaciones = sin acceso, propios directos y ajenos mediante Descartar/Sumar/Sobrescribir. Administración mínima está implementada en 3A. Ver [contrato vigente](contrato-3a.md), [operación](operacion-3a.md), [accesos](accesos-y-administracion.md) y [roadmap](roadmap.md). La validación operativa/producción sigue pendiente.
+
 # Propuesta de evolución de inventory-v2
+
+> Actualización del 20-10-2026: consultar [la siguiente etapa de conteo compartido](etapa-conteo-compartido.md). Precisa usuarios, reparto físico, conflictos y cierre; revisa la suma indiscriminada de aportes de esta propuesta. Son recomendaciones aún no implementadas.
 
 **Estado:** propuesta para evaluar. Ya se aplicaron la navegación por áreas, el acceso directo a los ítems de Garzones, el panel lateral con búsqueda y categorías plegables, la cuadrícula móvil y el modo oscuro. Las etapas de conteo compartido, revisión central y exportación siguen pendientes.
 
