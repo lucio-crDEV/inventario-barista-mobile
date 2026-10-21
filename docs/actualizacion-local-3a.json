@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Botón cian a la izquierda, punto verde y texto; 320/390/1024 px en claro/oscuro; ingreso sin control",
+    "Sondeo y actualización manual comparten una sola consulta; doble toque protegido y estado ocupado hasta responder",
+    "Cambio remoto recuperado sin enviar borradores, cambiar campos ni modificar conteos, operaciones o historial",
+    "Fallo de red indica error, permite reintentar y recupera estado pendiente sin perder borradores",
+    "En Cuenta verifica la sesión mediante GET y conserva el formulario sin recarga"
+  ],
+  "javascriptErrors": [],
+  "remoteRequests": false
+}

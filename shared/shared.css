@@ -290,10 +290,63 @@ html[data-theme="dark"] .feedback-message[data-tone="success"] {
   background: rgb(7 191 208 / 12%);
 }
 #sync-state {
-  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   font-size: 0.77rem;
   line-height: 1.5;
   color: var(--ui-muted);
+}
+.sync-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#sync-state::before {
+  content: "";
+  flex: 0 0 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #d68b14;
+}
+#sync-state[data-state="synced"]::before {
+  background: #12a77d;
+}
+#sync-state[data-state="syncing"]::before {
+  background: var(--ui-accent);
+}
+#sync-state[data-state="error"]::before {
+  background: #e4516c;
+}
+.sync-refresh {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ui-primary);
+  color: #092b3c;
+  cursor: pointer;
+}
+.sync-refresh svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sync-refresh[aria-busy="true"] svg {
+  animation: pending-spin 1s linear infinite;
+}
+.sync-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .create-user {
   margin-top: 24px;
@@ -666,6 +719,7 @@ button.is-pending::before {
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
   button.is-pending::before,
+  .sync-refresh[aria-busy="true"] svg,
   .shared-dialog[open] {
     animation: none !important;
   }

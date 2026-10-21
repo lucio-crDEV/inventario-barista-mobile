@@ -4,6 +4,14 @@ Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d6
 
 Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3, esbuild 0.28.2; Chromium 141 mediante Playwright 1.56.1. Los conjuntos automatizados usan bases desechables separadas del desarrollo: Worker 8790 y Pages HTTPS 8791.
 
+## Actualización manual en el panel de cuenta — 21-10-2026
+
+Botón cian de actualizar a la izquierda del punto verde y «Sincronizado». Consulta incremental en Inventario; verificación de sesión/conexión en las demás vistas. No envía borradores ni recarga formularios. Peticiones manuales y sondeo comparten una consulta en curso; botón ocupado hasta finalizar, error recuperable y estado pendiente cuando quedan borradores. Sin cambios en servidor, migraciones, catálogo o contraseñas.
+
+Pruebas ejecutadas en esta revisión: `npm test` **16/16**, `npm run test:refresh` **5/5 grupos**, `npm run test:sync` **3 comprobaciones**, `npm run test:views` **8 grupos** y `npm run test:browser` **14 recorridos**, sin errores JavaScript. `build:pages`, sintaxis de los módulos y `git diff --check` correctos. La suite nueva compara cantidades/campos/borradores y las tablas de conteos, operaciones e historial antes/después: actualizar no modifica ninguno, incluso ante cambio remoto o fallo de red; comprueba doble toque, consulta simultánea y formulario de contraseña conservado. Tamaños 320/390/1024 px en ambos temas; capturas en `test-results/refresh/`, informe en [actualizacion-local-3a.json](actualizacion-local-3a.json). Se inspeccionó también el menú local del administrador en el navegador.
+
+No se repitieron la carga de 15 clientes ni la suite Pages HTTPS en esta revisión: el cambio afecta al cliente y se construyó el paquete Pages, pero no se declara publicado. `.DS_Store` permanece sin seguimiento y fuera del commit. 3B sigue pausada durante la comprobación de despliegue; la aceptación operativa de 3A conserva los pendientes documentados.
+
 ## Menú, formularios y mínimo de contraseña — 21-10-2026
 
 Revisión local solicitada antes de 3B. Inicio, Inventario, Cuenta autenticada y Administración reúnen identidad/sincronización/acciones/tema en un panel translúcido que entra desde la derecha mediante cuatro cuadros SVG. El ingreso **sin sesión** conserva solo el toggle claro/oscuro, sin icono ni panel de menú. El listado de ítems continúa entrando desde la izquierda. Encabezados de acceso/cambio en fila, ayuda de contacto centrada, ojos SVG y flechas superiores de regreso, sin los textos/acciones duplicados señalados por el usuario.

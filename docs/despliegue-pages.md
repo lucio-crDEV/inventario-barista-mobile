@@ -101,6 +101,8 @@ No ejecutar migraciones ni bootstrap de administrador como parte del comando de 
 
 ## 4. Comprobar el sitio después del deployment
 
+Comprobación del 21-10-2026 posterior al menú de cuenta: los archivos públicos seguían coincidiendo con la interfaz anterior a `2ac0e4c`; el ingreso autenticado con el administrador funcionó. La captura del usuario confirmó `f760035` como producción activa y dos intentos de `2ac0e4c` en cola, después cancelados según informó. El usuario también informa push del commit vacío `80927ab`, sin un nuevo deployment visible a los dos minutos. No se ha establecido la causa de esa ausencia. El siguiente commit contiene cambios reales de interfaz para un nuevo intento; no se ejecutó push ni deployment desde esta revisión. Que `.DS_Store` quede sin seguimiento no impide publicar los archivos versionados. No repetir migraciones ni bootstrap: este ajuste no cambia el esquema.
+
 1. Abrir `/api/me` sin sesión: debe responder JSON 401. Un 503 JSON indica configuración/inicialización pendiente; HTML indica que todavía no corre el Worker correcto. No debe aparecer `Unexpected token '<'` en la vista Cuenta.
 2. Abrir `/data/inventario/items/catalogo-excel.js`, `/migrations/0001_core.sql`, `/worker/index.js` y `/_worker.js`: deben devolver 404. No publicar libros ni scripts de inicialización.
 3. Ingresar con el administrador personal, cambiar su contraseña temporal y volver a ingresar. Comprobar cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict y Path `/` en herramientas del navegador.

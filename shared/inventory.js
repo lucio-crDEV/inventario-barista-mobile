@@ -13,8 +13,13 @@ import {
 export class SharedInventory {
   static async create() {
     const data = await authenticated("/api/bootstrap");
-    identityBar(data.user);
-    return new SharedInventory(data.user, data);
+    const inventory = new SharedInventory(data.user, data);
+    identityBar(data.user, async () => {
+      await inventory.sync();
+      return inventory.pendingState();
+    });
+    inventory.state(inventory.pendingState());
+    return inventory;
   }
   constructor(user, data) {
     this.user = user;
@@ -32,6 +37,11 @@ export class SharedInventory {
   }
   state(text) {
     setSync(text);
+  }
+  pendingState() {
+    return Object.keys(this.drafts.all()).length
+      ? "Pendiente de enviar · borradores conservados"
+      : "Sincronizado";
   }
   draft(item) {
     return this.drafts.get(item.id);
@@ -343,11 +353,10 @@ export class SharedInventory {
     this.data = data;
     this.onPermissions?.(data);
   }
-  poll() {
-    let running = false;
-    const tick = async () => {
-      if (document.hidden || running) return;
-      running = true;
+  sync() {
+    // Manual refresh and polling share one in-flight read. Neither sends drafts.
+    if (this.syncing) return this.syncing;
+    this.syncing = (async () => {
       try {
         const r = await api(
           `/api/sync?cycle=${encodeURIComponent(this.cycleId)}&cursor=${this.cursor}`,
@@ -381,9 +390,18 @@ export class SharedInventory {
           this.onRender?.();
       } catch (e) {
         this.handleError(e);
+        throw e;
       } finally {
-        running = false;
+        this.syncing = null;
       }
+    })();
+    return this.syncing;
+  }
+  poll() {
+    const tick = async () => {
+      if (document.hidden) return;
+      // sync() already presents failures; background reads must not reject unhandled.
+      await this.sync().catch(() => {});
     };
     this.timer = setInterval(tick, 5000);
     document.addEventListener("visibilitychange", tick);
