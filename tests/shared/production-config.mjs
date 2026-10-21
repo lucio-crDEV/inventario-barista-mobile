@@ -33,6 +33,13 @@ await test("Producción sin DB, origen HTTPS o ciclo configurado rechaza sin fix
       env,
     );
     assert.equal(r.status, 503);
+    assert.equal(r.headers.get("X-Content-Type-Options"), "nosniff");
+    assert.equal(r.headers.get("X-Frame-Options"), "DENY");
+    assert.ok(
+      r.headers
+        .get("Content-Security-Policy")
+        .includes("frame-ancestors 'none'"),
+    );
   }
 });
 await test("Esquema o ciclo sin inicializar devuelve 503 JSON sin datos de inventario", async () => {
@@ -57,6 +64,13 @@ await test("Esquema o ciclo sin inicializar devuelve 503 JSON sin datos de inven
       env,
     );
     assert.equal(r.status, 503);
+    assert.equal(r.headers.get("X-Content-Type-Options"), "nosniff");
+    assert.equal(r.headers.get("X-Frame-Options"), "DENY");
+    assert.ok(
+      r.headers
+        .get("Content-Security-Policy")
+        .includes("frame-ancestors 'none'"),
+    );
     const data = await r.json();
     assert.equal(data.code, "NOT_INITIALIZED");
     assert.ok(!("items" in data));

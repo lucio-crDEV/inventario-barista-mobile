@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Exportación D1 real con manifiesto SHA-256, carpeta 0700, archivos 0600 y rechazo de sobrescritura",
+    "Restauración en otra D1 local: datos, permisos, catálogo, conteo, historial y deduplicación idénticos; integridad y claves foráneas válidas",
+    "Todas las sesiones restauradas quedan revocadas y el destino existente se protege",
+    "Los triggers restaurados aceptan una nueva edición y un reintento previo no duplica ni restaura un valor antiguo",
+    "Un respaldo alterado se rechaza antes de crear el destino",
+    "Retención: consulta sin cambios, limpieza limitada a 1000 filas por tabla, conserva sesiones recientes, cuota vigente, auditoría e IDs de operación",
+    "Se rechazan opciones remotas incompletas; restauración automatizada exclusivamente local"
+  ],
+  "remoteDatabaseTouched": false,
+  "sourceAndRestore": "Dos bases D1 locales desechables e independientes de desarrollo",
+  "inventoryPreserved": true
+}

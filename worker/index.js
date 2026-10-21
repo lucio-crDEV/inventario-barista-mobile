@@ -607,6 +607,17 @@ async function api(req, env, url) {
   }
   fail(404, "NOT_FOUND");
 }
+function secured(res) {
+  const headers = new Headers(res.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "same-origin");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+  );
+  return new Response(res.body, { status: res.status, headers });
+}
 export default {
   async fetch(req, env) {
     try {
@@ -620,35 +631,29 @@ export default {
       )
         res = json({ code: "NOT_FOUND" }, 404);
       else res = await env.ASSETS.fetch(req);
-      const headers = new Headers(res.headers);
-      headers.set("X-Content-Type-Options", "nosniff");
-      headers.set("Referrer-Policy", "same-origin");
-      headers.set("X-Frame-Options", "DENY");
-      headers.set(
-        "Content-Security-Policy",
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
-      );
-      return new Response(res.body, { status: res.status, headers });
+      return secured(res);
     } catch (e) {
       const known = e.status || /LAST_ADMIN|UNIQUE constraint/.test(e.message);
       if (!known) console.error("API failure", e.message);
-      return json(
-        {
-          code:
-            e.code ||
-            (/LAST_ADMIN/.test(e.message)
-              ? "LAST_ADMIN"
-              : /UNIQUE constraint/.test(e.message)
-                ? "DUPLICATE"
-                : "SERVER_ERROR"),
-          message: e.status
-            ? e.message
-            : /LAST_ADMIN/.test(e.message)
-              ? "Debe quedar un administrador activo."
-              : "No se pudo completar la operación.",
-          ...(e.current !== undefined ? { current: e.current } : {}),
-        },
-        e.status || (known ? 409 : 500),
+      return secured(
+        json(
+          {
+            code:
+              e.code ||
+              (/LAST_ADMIN/.test(e.message)
+                ? "LAST_ADMIN"
+                : /UNIQUE constraint/.test(e.message)
+                  ? "DUPLICATE"
+                  : "SERVER_ERROR"),
+            message: e.status
+              ? e.message
+              : /LAST_ADMIN/.test(e.message)
+                ? "Debe quedar un administrador activo."
+                : "No se pudo completar la operación.",
+            ...(e.current !== undefined ? { current: e.current } : {}),
+          },
+          e.status || (known ? 409 : 500),
+        ),
       );
     }
   },

@@ -22,7 +22,13 @@
     "test:extended": "node --test tests/shared/extended.mjs",
     "test:sync": "node tests/shared/sync.mjs",
     "test:ux": "node tests/shared/ux.mjs",
-    "test:bootstrap": "python3 -m unittest discover -s tests -p '*_test.py'"
+    "test:bootstrap": "python3 -m unittest discover -s tests -p '*_test.py'",
+    "backup": "node scripts/backup.mjs",
+    "restore:local": "node scripts/restore-local.mjs",
+    "maintenance": "node scripts/maintenance.mjs",
+    "test:operations": "node tests/shared/operations.mjs",
+    "profile:local": "node scripts/profile-local.mjs",
+    "verify:public": "node scripts/verify-public.mjs"
   },
   "dependencies": {
     "bcryptjs": "3.0.3"

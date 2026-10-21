@@ -59,6 +59,22 @@ Para el paquete de Pages por HTTPS: `npm run build:pages`, abrir `npm run test:p
 
 No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas locales no certifican capacidad ni habilitación de producción. La revisión de asignaciones/unidades (2), supervisión/cierre avanzado (3B), exportación fiel (4) y offline completo siguen pendientes.
 
+## Cierre técnico y recuperación
+
+3A tiene funcionalidad y pruebas locales; el piloto con el equipo está aplazado por decisión del usuario. Antes del uso real falta resolver CPU/plan: Free se supone provisionalmente y la derivación de contraseñas todavía no está validada contra su presupuesto de CPU. [Estado, evidencia y guía de recuperación](docs/cierre-tecnico-3a.md). [Incrementos siguientes de 3B](docs/etapa-3b.md).
+
+```sh
+npm run test:operations
+npm run profile:local
+npm run backup -- --local --directory .backups/ensayo-3a
+npm run restore:local -- --directory .backups/ensayo-3a --state .wrangler/recovery-3a
+npm run maintenance -- --local
+```
+
+El ensayo de operaciones crea y elimina únicamente bases temporales. El respaldo exige destino nuevo y privado; la restauración solo admite un destino local nuevo y revoca sesiones recuperadas. `maintenance` solo consulta salvo `--apply`; conserva historial, conteos e IDs/resultados de operaciones. No hay mantenimiento programado ni escrituras remotas en build. Los comandos remotos explícitos y límites de recuperación están en la guía.
+
+Después de un deployment, `npm run verify:public` realiza 16 GET anónimos al sitio, sin ingresar ni modificar datos; falla si rutas/JSON/no-store/cabeceras no cumplen. La evidencia actual distingue el sitio publicado del Worker local corregido. No ejecutar pruebas con fixtures o carga contra el sitio.
+
 ## Rama y envío
 
 `inventory-v3` parte de `inventory-v2` en `3d2331919ea8bdf39daf1f095ea09877d69e6dd0` y añade toda la etapa 3A. `inventory-v2` permanece en ese commit anterior; no recibe usuarios, Workers ni los cambios de colaboración. El paquete y los Workers se identifican como `inventory-v3` / `inventory-v3-local`.
@@ -69,4 +85,4 @@ La rama v3 ya tiene seguimiento remoto. Para enviar los nuevos commits sin actua
 git push -u origin inventory-v3
 ```
 
-El usuario publicó una primera versión en un proyecto Pages separado. Esta revisión no ejecutó push, despliegue ni cambios remotos; deja el paquete corregido preparado localmente. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).
+El usuario publicó hasta `fb67ecb` en un proyecto Pages separado, incluidas las mejoras UX. Este cierre técnico no ejecutó push, despliegue ni cambios remotos; deja las herramientas y la corrección de cabeceras de errores listas localmente. No requiere nuevas migraciones ni bootstrap. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).

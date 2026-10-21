@@ -1,0 +1,44 @@
+{
+  "environment": "Node v24.21.0, bcryptjs 3.0.3 con el módulo real de contraseñas",
+  "bcryptCost": 12,
+  "productionBillingMeasurement": false,
+  "warning": "CPU del proceso Node local. No equivale a CPU facturada de Workers, no incluye D1 y no certifica compatibilidad con el plan Free.",
+  "samples": [
+    {
+      "operation": "hash",
+      "round": 1,
+      "wallMs": 331,
+      "processCpuMs": 325
+    },
+    {
+      "operation": "verify",
+      "round": 1,
+      "wallMs": 274,
+      "processCpuMs": 274
+    },
+    {
+      "operation": "hash",
+      "round": 2,
+      "wallMs": 307,
+      "processCpuMs": 299
+    },
+    {
+      "operation": "verify",
+      "round": 2,
+      "wallMs": 323,
+      "processCpuMs": 298
+    },
+    {
+      "operation": "hash",
+      "round": 3,
+      "wallMs": 287,
+      "processCpuMs": 283
+    },
+    {
+      "operation": "verify",
+      "round": 3,
+      "wallMs": 277,
+      "processCpuMs": 276
+    }
+  ]
+}

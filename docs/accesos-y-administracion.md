@@ -15,7 +15,9 @@ La administración mínima de usuarios y ámbitos pertenece a **3A**. Tablero co
 
 La administración usa búsqueda y cuentas plegables, explica el alcance de cada ámbito y confirma el restablecimiento antes de revocar sesiones. Los nombres y contraseñas de fixtures pertenecen solo a desarrollo local; el primer administrador del sitio se crea con una cuenta personal y contraseña privada por el procedimiento fuera de línea de [despliegue-pages.md](despliegue-pages.md).
 
-La habilitación de producción y aceptación operativa permanecen pendientes; ver las comprobaciones reales en [verification.md](verification.md).
+La app ya está publicada y el usuario informa funcionamiento. La aceptación operativa permanece abierta: piloto con equipo aplazado por decisión del usuario, comprobación remota autenticada completa y resolución de CPU/plan pendientes. Se conserva bcrypt coste 12; Free se considera una suposición provisional, no un plan certificado para esa carga. Ver [cierre técnico](cierre-tecnico-3a.md) y comprobaciones reales en [verification.md](verification.md).
+
+Los respaldos son privados y no se sirven desde la app. Una restauración local ensayada revoca todas las sesiones recuperadas; no cambia la identidad estable de los autores. El mantenimiento explícito elimina únicamente sesiones e intentos vencidos según la política de dos días, con lotes limitados y auditoría. No elimina usuarios, ámbitos, conteos, historial ni IDs/resultados de operación. La futura administración 3B se define en [etapa-3b.md](etapa-3b.md).
 
 <details>
 <summary>Análisis histórico del 20-10-2026, conservado como referencia; las alternativas incompatibles siguientes están sustituidas</summary>

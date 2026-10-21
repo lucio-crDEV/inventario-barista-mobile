@@ -1,12 +1,28 @@
 # Verificación de etapa 3A — 21-10-2026
 
-Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d69e6dd0`. Se preservaron los cambios previos. No se modificaron libros, catálogos de referencia, `sources/` ni Pedido. Esta revisión no ejecutó push, despliegue ni escrituras remotas. El usuario publicó una primera versión y preparó D1 por su cuenta; la habilitación corregida queda en [despliegue-pages.md](despliegue-pages.md).
+Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d69e6dd0`. Se preservaron los cambios previos. No se modificaron libros, catálogos de referencia, `sources/` ni Pedido. Esta revisión no ejecutó push, despliegue ni escrituras remotas. El usuario preparó D1 y publicó por su cuenta, incluido `fb67ecb` con las mejoras UX; configuración en [despliegue-pages.md](despliegue-pages.md).
 
 Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3, esbuild 0.28.2; Chromium 141 mediante Playwright 1.56.1. Los conjuntos automatizados usan bases desechables separadas del desarrollo: Worker 8790 y Pages HTTPS 8791.
 
+## Cierre técnico adicional — 21-10-2026
+
+El usuario aplazó la prueba operativa con el equipo. Se completó el trabajo independiente disponible; la aceptación operativa permanece abierta y no impide desarrollar 3B. [Guía de recuperación, retención y pendientes](cierre-tecnico-3a.md).
+
+- `npm run test:operations`: **7/7 grupos**, con migraciones y exportación/importación Wrangler reales sobre dos D1 locales temporales. Respaldo privado 0700/0600 y SHA-256; rechazo de destinos públicos/existentes y SQL alterado; tablas de cuentas/permisos/catálogo/ciclo/conteos/historial/resultados idénticas; integridad y claves foráneas válidas; revocación de sesiones y auditoría de restauración. Los triggers siguen funcionando; reintentar una operación anterior no repite escritura ni recupera un valor superado.
+- Retención: consulta sin cambios; dos ejecuciones eliminan 1.005 sesiones y 1.005 claves antiguas en lotes máximos de 1.000 por tabla. Conserva sesión recientemente vencida, cuota vigente, conteos, auditoría e IDs de operación. No se ejecutó ninguna limpieza remota. Informe: [operaciones-local-3a.json](operaciones-local-3a.json).
+- `npm run verify:public`: **16/16 rutas públicas correctas**, cero solicitudes mutantes, sin credenciales. Inicio/Cuenta/código de skeleton publicados; seis API rechazan con JSON 401/no-store; catálogo, SQL, bootstrap, Worker, libro y carpetas privadas inaccesibles. La prueba global **falla por cabeceras ausentes en los seis 401 publicados**, no por fuga de datos. Informe sin cuerpos ni credenciales: [publico-3a.json](publico-3a.json). No certifica sesiones del dominio, permisos autenticados ni carga remota.
+- Corrección: todas las respuestas del Worker, incluidos errores, reciben CSP, protección de marcos, nosniff y política de referencia. `npm test` pasa **15/15** con aserciones de errores 503; el verificador sobre Worker local pasa **16/16 incluyendo cabeceras**, en [publico-local-3a.json](publico-local-3a.json). Pendiente publicar y repetir el verificador remoto; su salida fallida se conserva como evidencia del deployment observado.
+- `npm run test:integration`: **11/11**, 10,98 s en esta ronda, con versiones, sumas concurrentes, cuotas, permisos revocados y rollback por fallo de historial. Se conserva el informe anterior de carga de 15 clientes; no se repite sin cambiar reglas de conteo.
+- Se repitieron `npm run test:extended` (**5/5**) y `npm run test:pages` (**6/6**) con el Worker actualizado: sesiones en dos dispositivos, autoría estable, cookie segura, guardado/reintento HTTPS, permisos y cierre de sesión.
+- `npm run profile:local`: **6 muestras** de bcrypt coste 12 con el módulo real; CPU del proceso Node entre **274 y 325 ms**, tiempo transcurrido 274–331 ms. No es CPU facturada en Workers, no incluye D1 ni certifica Free. Informe: [perfil-local-3a.json](perfil-local-3a.json). El intento de perfilado con inspector workerd no produjo medición utilizable; no se declara aprobado.
+
+El usuario **supone** Workers Free porque no contrató pagos; no confirmó el panel. El límite publicado es 10 ms CPU/solicitud. Por la evidencia local no se puede aprobar compatibilidad del ingreso actual con Free. Falta confirmar plan y medir CPU/errores reales de ingreso, creación/restablecimiento y cambio de contraseña; resolver alojamiento antes del uso real. No se debilitó bcrypt ni se modificó facturación. Fuentes: [límites](https://developers.cloudflare.com/workers/platform/limits/), [medición CPU](https://developers.cloudflare.com/workers/observability/dev-tools/cpu-usage/).
+
+Las conexiones loopback y el runtime de D1 fueron bloqueados inicialmente por el sandbox (`EPERM`); se repitieron con permiso de ejecución local y pasaron. No es un fallo de la API. Los respaldos/remotos, copia externa, Time Travel, Android físico y piloto no se certifican con este ensayo local.
+
 ## Revisión UX y reducción de espera — 21-10-2026
 
-El usuario aportó el log exitoso del deployment `ec80d9c` en Pages y confirmó que funciona. La inspección pública posterior mostró la vista nueva de ingreso, JSON `SESSION_REQUIRED` en `/api/me` y `/api/bootstrap` y `NOT_FOUND` en el archivo de catálogo global. Esta evidencia verifica esos accesos públicos, no todos los recorridos autenticados o el rendimiento del entorno real. Las mejoras de esta revisión todavía requieren un nuevo push del usuario.
+El usuario aportó los logs exitosos de `ec80d9c` y después `fb67ecb` en Pages y confirmó que funciona. La inspección pública mostró la vista nueva de ingreso, JSON `SESSION_REQUIRED` en `/api/me` y `/api/bootstrap` y `NOT_FOUND` en el archivo de catálogo global; el verificador posterior también confirma los skeletons publicados. Esta evidencia verifica esos accesos públicos, no todos los recorridos autenticados o el rendimiento del entorno real. El cierre técnico posterior requiere un nuevo push del usuario.
 
 `npm run test:ux`: **8/8 grupos** sobre Worker/D1 local, navegador móvil y peticiones retenidas/liberadas de forma controlada. Informe en [ux-local-v3.json](ux-local-v3.json), capturas en `test-results/ux/`. Se verifica:
 
@@ -27,7 +43,7 @@ Regresiones repetidas con este cambio: 15 pruebas generales, 11 grupos de integr
 | `npm test` | **15/15**: 12 originales, distinción de cantidades/cero y dos grupos de configuración/inicialización cerrada |
 | `npm run test:bootstrap` | **4/4**: contraseña corta, límite UTF-8, discrepancia y generación real privada sin texto plano ni sobrescritura |
 | `python3 tests/workbook_contract.py` | **1.151 filas** coinciden; cero diferencias en ID, nombre, unidad y categoría |
-| `npm run test:integration` | **11/11** grupos sobre Worker + D1; última ejecución 11,40 s |
+| `npm run test:integration` | **11/11** grupos sobre Worker + D1; última ejecución 10,98 s |
 | `npm run test:extended` | **5/5** grupos adicionales de identidad, dos dispositivos, cantidades, sincronización y sesiones |
 | `npm run test:browser` | **14 recorridos**, seis contextos independientes a 390 × 844; sin errores JavaScript |
 | `npm run test:views` | **7 grupos** de ingreso, cambio y administración; 320/390/1024 px, ambos temas, sin desborde ni errores JavaScript |
@@ -35,6 +51,9 @@ Regresiones repetidas con este cambio: 15 pruebas generales, 11 grupos de integr
 | `npm run test:sync` | **3 comprobaciones** de pantalla oculta/visible simulada y preservación de edición |
 | `npm run test:pages` | **6 comprobaciones** del paquete avanzado de Pages + D1 aislado, HTTPS local y cookie segura |
 | `npm run test:load` | **15 clientes**, 496 solicitudes, 6.919 ms; cero errores inesperados |
+| `npm run test:operations` | **7/7** grupos de respaldo/restauración y retención local |
+| Verificador público anónimo | **16/16** rutas correctas; cabeceras de los seis errores pendientes de publicar; local completo aprobado |
+| `npm run profile:local` | 6 muestras; CPU Node 274–325 ms; no mide CPU facturada de Workers |
 | Migraciones y bootstrap D1 vacío separado | 0001 y 0002 desde cero; 1.227 ítems/ubicaciones, árbol real, primer administrador temporal y auditoría; repetición rechazada |
 | Sintaxis, compilación y diff | Módulos válidos, paquete Pages construido y `git diff --check` sin errores |
 
@@ -74,7 +93,7 @@ Las capturas reproducibles quedan en `test-results/3a/`, excluido de Git. Se ins
 
 [pages-local-3a.json](pages-local-3a.json): `_worker.js` construido con esbuild, rutas completas y D1 independiente. Sin sesión `/api/me` y `/api/status` devuelven JSON 401. Catálogo global, servidor, SQL, bootstrap, libros y `/_worker.js` no se entregan como archivos. Cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict, Path `/`, no visible en `document.cookie`. Se obtiene catálogo filtrado de Barra, se guarda y reintenta idéntica operación sin duplicarla, se rechaza otro origen y se revoca sesión al salir.
 
-La revisión pública previa de `inventario-login.pages.dev` detectó una publicación estática que devuelve HTML en la API y expone el archivo de catálogo. El paquete que lo corrige se probó **localmente**, todavía no desplegado por esta tarea. La salida de terminal aportada por el usuario confirma migraciones/ciclo remotos y, posteriormente el 21-10-2026, la importación exitosa del primer administrador `admin` (cuatro consultas). Esta evidencia no prueba el ingreso/cambio de contraseña ni los ajustes de integración Git/bindings. El deployment `ec80d9c` se confirmó después mediante el log del usuario y los accesos públicos descritos en la revisión UX. El recorrido autenticado completo de la guía sigue pendiente de verificación independiente.
+La revisión pública inicial de `inventario-login.pages.dev` detectó una publicación estática que devolvía HTML en la API y exponía el archivo de catálogo. Se corrigió con el paquete Worker; el usuario lo desplegó y se comprobó públicamente el aislamiento. La terminal aportada confirma migraciones/ciclo y bootstrap del administrador `admin` (cuatro consultas). Los logs posteriores confirman `ec80d9c` y `fb67ecb`. Esto no certifica el recorrido autenticado completo ni sustituye inspección del panel privado. No se recibieron contraseñas personales.
 
 ## Simulación repetible de 15 clientes
 
@@ -92,7 +111,7 @@ No extrapolar este ensayo local a capacidad garantizada en producción ni al dí
 
 [README](../README.md) y [operación](operacion-3a.md) describen `test:prepare`, los servidores y el orden de suites. Detener los servidores de ensayo antes de recrear sus bases; no ejecutar conjuntos mutantes simultáneamente. Las suites anteriores a esta revisión usaban fixtures de desarrollo; ahora todas apuntan a `.wrangler/test-state` o `.wrangler/pages-test-state`, independientes de `.wrangler/state`. Nunca ejecutar fixtures o carga contra D1 publicada.
 
-**3A implementada y verificada localmente; aceptación operativa pendiente.** El despliegue automático inicial está confirmado por el log y el usuario informa funcionamiento. Faltan publicar estas mejoras UX, completar los recorridos autenticados remotos y comprobar CPU/plan y consumo, respaldos/restauración, retención, Android físico y piloto con trabajadores/señal real. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
+**3A funcional implementada y verificada localmente; aceptación operativa abierta.** El despliegue automático de las mejoras UX está confirmado y el usuario informa funcionamiento. Respaldo/restauración y retención ya tienen herramientas y pruebas locales. Faltan publicar el cierre técnico, repetir cabeceras públicas, completar recorridos autenticados remotos, resolver CPU/plan y consumo, ensayar recuperación remota/copia externa y evaluar Android físico. El piloto con trabajadores/señal real queda aplazado por decisión del usuario, sin bloquear el desarrollo 3B. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
 
 Etapa 2 conserva cinco unidades ausentes de Pastelería, 18 entradas de Barra sin referencia y dos conversiones pendientes. No se inventaron equivalencias. El rechazo de sumar con unidad desconocida se probó en servidor; no hay ensayo visual específico de las cinco filas. 3B: tablero, historial administrativo avanzado, rectificación/anulación, activación operativa y revisión/cierre/reapertura. Etapa 4: exportación fiel. Exportación, SMS/correo y conteo offline completo no están implementados ni se declaran probados.
 

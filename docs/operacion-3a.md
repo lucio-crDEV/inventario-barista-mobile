@@ -1,6 +1,6 @@
 # Operación local y preparación de producción — 3A
 
-Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El avance quedó en commits locales de `inventory-v3` tras la solicitud de separación. En esta revisión no se ejecutó push, despliegue ni modificación remota; el usuario publicó por su cuenta una primera versión y preparó D1. El despliegue automático corregido se documenta en [despliegue-pages.md](despliegue-pages.md). El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
+Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El usuario preparó D1, hizo push y publicó hasta `fb67ecb`, incluidas las mejoras UX. Esta tarea no ejecuta push, despliegue ni modificación remota; el cierre técnico posterior se prepara localmente. El despliegue automático se documenta en [despliegue-pages.md](despliegue-pages.md). El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
 
 ## Iniciar el entorno local
 
@@ -51,7 +51,7 @@ python3 scripts/first-admin.py /tmp/primer-admin.bootstrap.sql
 
 El script pregunta usuario, nombre y contraseña con entrada oculta; no pasa la contraseña en argumentos ni la guarda. Crea un archivo nuevo con permisos 0600 que contiene el hash bcrypt con sal, UUID y una auditoría de bootstrap. El SQL exige una tabla de usuarios vacía; no se usa para añadir o promover cuentas en una instalación ya inicializada. Para ensayar con una base local vacía usar `wrangler d1 execute ... --local --file /tmp/primer-admin.bootstrap.sql`; no ejecutar además los fixtures sobre esa base.
 
-Para el sitio del usuario, usar `wrangler.pages.production.jsonc` con D1 `inventario-login-v3`, ciclo `piloto-v3` y origen HTTPS exacto. El procedimiento completo y los ajustes del panel están en [despliegue-pages.md](despliegue-pages.md). El usuario ya aplicó migraciones y ciclo y confirmó el bootstrap del administrador `admin` el 21-10-2026: cuatro consultas importadas sin error. No repetir el bootstrap en esta instalación; retirar el SQL temporal después de su aplicación. Queda por comprobar el primer ingreso y el cambio obligatorio de contraseña en el sitio publicado. Generar el archivo y aplicarlo son pasos distintos; usar `&&` entre ellos para no ejecutar SQL tras un error de validación. Un error de contraseña corta no crea archivo ni cuenta. No usar los usuarios ni contraseña de ensayo en la base pública.
+Para el sitio del usuario, usar `wrangler.pages.production.jsonc` con D1 `inventario-login-v3`, ciclo `piloto-v3` y origen HTTPS exacto. El procedimiento completo y los ajustes del panel están en [despliegue-pages.md](despliegue-pages.md). El usuario ya aplicó migraciones y ciclo y confirmó el bootstrap del administrador `admin` el 21-10-2026: cuatro consultas importadas sin error. No repetir el bootstrap en esta instalación; retirar el SQL temporal después de su aplicación. Después informó funcionamiento; no se verificó independientemente el recorrido autenticado completo. Generar el archivo y aplicarlo son pasos distintos; usar `&&` entre ellos para no ejecutar SQL tras un error de validación. Un error de contraseña corta no crea archivo ni cuenta. No usar los usuarios ni contraseña de ensayo en la base pública.
 
 Para otro despliegue Workers, partir de `wrangler.production.example.jsonc`; para Pages, de `wrangler.pages.example.jsonc`. El archivo principal sigue sin DB de producción ni origen válido por defecto. Las configuraciones de ejemplo no habilitan recursos ni usuarios por sí mismas.
 
@@ -69,7 +69,9 @@ Las contraseñas usan bcryptjs 3.0.3, coste 12 y sal individual, sin truncar ent
 
 ## Criterios que siguen pendientes
 
-3A está implementada y verificada en entorno local, **no declarada operativa en producción**. Se probó Pages por HTTPS local con cookies seguras; faltan publicación corregida y prueba del dominio/cookies reales, CPU/límites y consumo en el plan elegido, respaldos/restauración D1, política de retención, evaluación en Android físico y piloto con trabajadores/señal real. No se han probado SMS/correo, exportación ni offline completo porque no forman parte de esta entrega.
+3A está implementada y verificada en entorno local, **no declarada operativa en producción**. El usuario publicó `fb67ecb` y se comprobaron API protegida, archivos privados y skeletons públicos. Respaldo/restauración y retención tienen herramientas y siete grupos de prueba D1 local; instrucciones en [cierre-tecnico-3a.md](cierre-tecnico-3a.md). Falta ensayo de recuperación remota/copia externa, recorrido autenticado/cookies del dominio, evaluación en Android físico y CPU/límites/consumo. El piloto con trabajadores/señal real queda aplazado por decisión del usuario; puede continuar el desarrollo [3B](etapa-3b.md).
+
+El usuario supone Free por no haber contratado pagos, sin comprobar el panel. El perfil de bcrypt coste 12 da 274–325 ms de CPU del proceso Node local, que no mide CPU facturada de Workers; frente al límite Free publicado de 10 ms por solicitud no se puede declarar compatible el alojamiento. Confirmar plan/CPU real y resolverlo antes del uso operativo. No se cambió coste ni facturación. No se han probado SMS/correo, exportación ni offline completo porque no forman parte de esta entrega.
 
 Las cinco unidades ausentes de Pastelería siguen ausentes. Se permite registrar el valor explícito sin inventar unidad, pero Sumar se bloquea cuando la unidad es desconocida. No se certifica ese dato para Excel. Continúan las 18 entradas de Barra sin referencia, dos conversiones pendientes y revisión física de etapa 2.
 
@@ -80,7 +82,7 @@ Los datos de `inventario-session-v2` permanecen intactos en su origen anterior. 
 
 El paquete y Worker de esta rama se llaman `inventory-v3`; el entorno local, `inventory-v3-local`. El ejemplo genérico Workers usa `inventory-v3-production`; la configuración Pages del sitio usa la base separada `inventario-login-v3` con el UUID suministrado por el usuario. No reutilizar la aplicación, dominio o base de producción de `inventory-v2` al preparar v3. El UUID local ficticio se conserva para no perder los datos de ensayo ya preparados. El identificador inmutable de catálogo `inventory-v2-2026-10-21` se conserva: identifica los datos heredados, no el nombre de la rama o del Worker.
 
-El envío preparado es `git push -u origin inventory-v3`; no se ha ejecutado. Detalles y límites respecto de configuraciones externas de Cloudflare: [separacion-inventory-v3.md](separacion-inventory-v3.md).
+El usuario ya publicó los commits anteriores. Para este cierre técnico queda preparado `git push origin inventory-v3`, sin ejecutarlo desde la tarea. Detalles y límites respecto de configuraciones externas de Cloudflare: [separacion-inventory-v3.md](separacion-inventory-v3.md).
 
 
 ## Pruebas sin alterar el desarrollo local
