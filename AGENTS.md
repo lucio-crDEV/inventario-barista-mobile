@@ -1,8 +1,8 @@
-# AGENTS.md — inventory-v2
+# AGENTS.md — inventory-v3
 
 ## Propósito
 
-Este repositorio desarrolla `inventory-v2`: una aplicación web modular para gestionar inventario y, en una rama de trabajo separada, pedidos internos. No confundirlo con la aplicación anterior **Inventario Barra** ni trasladar automáticamente a esta rama sus límites de producto o su roadmap.
+Este repositorio desarrolla `inventory-v3`: una aplicación web modular para gestionar inventario y, en una rama de trabajo separada, pedidos internos. No confundirlo con la aplicación anterior **Inventario Barra** ni trasladar automáticamente a esta rama sus límites de producto o su roadmap.
 
 Para conocer estado, decisiones y trabajo pendiente, consulta `docs/project-context.md` y `docs/roadmap.md`. Para cambios de interfaz, lee también `docs/style-guide.md` y `docs/verification.md`. Este archivo contiene reglas de trabajo, no una copia del contexto completo.
 
@@ -19,9 +19,9 @@ El código muestra lo implementado, no necesariamente todas las decisiones de pr
 
 ## Ramas y alcance
 
-El proyecto mantiene líneas de trabajo diferenciadas: `main` corresponde a la versión estable anterior de Inventario Barra; `warehouse-order` corresponde al trabajo de Pedido a Bodega; `inventory-v2` es la evolución del sistema de inventario. Comprueba la rama antes de tareas que dependan de esa separación y no mezcles cambios entre ramas por conveniencia.
+El proyecto mantiene líneas de trabajo diferenciadas: `main` corresponde a la versión estable anterior de Inventario Barra; `warehouse-order` corresponde al trabajo de Pedido a Bodega; `inventory-v2` conserva la versión anterior al conteo compartido; `inventory-v3` continúa desde esa base e incorpora usuarios, permisos y conteo compartido con Workers + D1. Todo nuevo trabajo de esta funcionalidad pertenece a `inventory-v3`; no moverlo ni fusionarlo a `inventory-v2` sin solicitud explícita. Comprueba la rama antes de tareas que dependan de esa separación y no mezcles cambios entre ramas por conveniencia.
 
-El objetivo vigente de `inventory-v2` es contar Cocina, Panadería, Pastelería, Servicio y Bodega Principal, y generar el archivo `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` conservando su estructura, identificadores y datos de referencia; solo deben actualizarse las cantidades contadas. Servicio se cuenta en Barra, Armado/Línea/Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Los catálogos y la navegación pueden avanzar por etapas. No confundas una lista cargada con un flujo completo ni con sincronización entre teléfonos.
+El objetivo vigente de `inventory-v3` es contar Cocina, Panadería, Pastelería, Servicio y Bodega Principal, y generar el archivo `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` conservando su estructura, identificadores y datos de referencia; solo deben actualizarse las cantidades contadas. Servicio se cuenta en Barra, Armado/Línea/Copería, Mercadito y Garzones; Garzones distingue Zona Privada, Salón y Terraza. Los catálogos y la navegación pueden avanzar por etapas. No confundas una lista cargada con un flujo completo ni con sincronización entre teléfonos.
 
 El módulo de Pedido está separado del módulo de Inventario. No asumir que sus datos, flujos o decisiones son intercambiables.
 
@@ -33,7 +33,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - «Ver ítems» abre el panel sin enfocar el buscador ni activar el teclado móvil; la lupa del encabezado sí enfoca la búsqueda. En cada apertura, solo se despliega la categoría del producto actual y se sitúa el producto a la vista; desde una vista sin producto actual todos los grupos empiezan cerrados. Los botones no cambian color ni relieve al pasar el puntero o al pulsarlos; se conserva el foco visible para teclado. Volver y el toggle liberan el foco tras un toque. La luna y el sol se dibujan con SVG para conservar su apariencia entre plataformas. Al cambiar de vista o de producto se vuelve al inicio de la página.
 - En el resumen, el encabezado solo conserva título y controles: no repetir allí la barra ni el contador y no añadir el subtítulo descriptivo. El progreso se concentra en la tarjeta de avance.
 - El indicador breve del resumen es decorativo: el contenido está disponible de inmediato, no intercepta interacción y se omite con movimiento reducido. Los avisos superiores usan color uniforme translúcido, sin degradados; duran cuatro segundos, entran desde arriba y salen hacia arriba, no bloquean gestos y tienen alternativa opaca para transparencia reducida.
-- En `inventory-v2` no existen estados AM/PM ni el flujo de Pedido; verifica la rama correspondiente antes de cambiar esas funciones. No incluyas el nombre del empleador en textos de la app o documentación pública.
+- En `inventory-v3` no existen estados AM/PM ni el flujo de Pedido; verifica la rama correspondiente antes de cambiar esas funciones. No incluyas el nombre del empleador en textos de la app o documentación pública.
 
 ## Inspección antes de editar
 
@@ -48,7 +48,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - Mantén cambios acotados al objetivo solicitado.
 - Sigue la estructura modular existente bajo `pages/` y `data/`.
 - Conserva HTML, CSS y JavaScript nativos mientras resuelvan el problema.
-- No incorpores integraciones, persistencia remota o dependencias por anticipado. Las áreas y sus catálogos pertenecen al objetivo vigente.
+- Workers + D1, autenticación y colaboración 3A ya forman parte de esta rama. No incorpores integraciones o dependencias adicionales por anticipado. Las áreas y sus catálogos pertenecen al objetivo vigente.
 - Mantén identificadores y datos existentes salvo que el cambio solicitado los requiera.
 - Mantén separados los grupos para contar (`countCategory`) de la categoría y demás datos de salida (`exportCategory`, hoja, fila, ID y unidad). En Bodega / Principal, Cocina, Panadería y Pastelería los grupos prácticos se definen por fila en `data/inventario/items/`; cada fila de su hoja debe aparecer exactamente una vez. Reorganizar la pantalla nunca debe cambiar la referencia del Excel.
 - Prioriza uso móvil, controles claros, lectura rápida y prevención de pérdida accidental de datos.

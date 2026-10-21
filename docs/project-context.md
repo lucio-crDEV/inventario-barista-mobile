@@ -1,8 +1,12 @@
-# Contexto del proyecto — inventory-v2
+# Contexto del proyecto — inventory-v3
+
+## Separación de versiones — 21-10-2026
+
+Por decisión del usuario, la etapa 3A y todo este avance continúan en `inventory-v3`, creada desde `inventory-v2` en `3d23319`. La rama `inventory-v2` conserva íntegro su commit anterior sin estas modificaciones. Se trasladaron también los cambios de documentación que ya existían antes de implementar 3A. El catálogo versionado y las claves de datos mantienen sus identificadores originales por compatibilidad. Ver [separacion-inventory-v3.md](separacion-inventory-v3.md).
 
 ## Objetivo vigente
 
-`inventory-v2` debe permitir contar el inventario completo desde la app y producir un archivo con la misma estructura que `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`. El archivo `inventarios_og/INVENTARIOS_2026-2027_jefa-turno.xlsx` describe el reparto manual del conteo. El archivo totalizado es la referencia de salida: se conservan hojas, filas, identificadores, nombres, unidades, fórmulas y presentación; las cantidades de stock proceden del nuevo conteo.
+`inventory-v3` debe permitir contar el inventario completo desde la app y producir un archivo con la misma estructura que `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`. El archivo `inventarios_og/INVENTARIOS_2026-2027_jefa-turno.xlsx` describe el reparto manual del conteo. El archivo totalizado es la referencia de salida: se conservan hojas, filas, identificadores, nombres, unidades, fórmulas y presentación; las cantidades de stock proceden del nuevo conteo.
 
 El uso operativo puede organizarse de forma distinta del Excel. Cada producto debe vincularse a una fila de salida y contar con una conversión explícita entre su unidad en pantalla y la unidad de esa fila. Una cantidad pendiente no equivale a cero confirmado. Los productos nuevos o sin correspondencia requieren revisión antes de incluirlos en la salida.
 
@@ -35,7 +39,7 @@ Inicio y pantallas obtienen la proyección autorizada desde la API. Los contened
 
 ## Interfaz y catálogo conservados
 
-La rama `inventory-v2` usa HTML, CSS y JavaScript nativos. La página inicial muestra las cinco áreas. El módulo de inventario permite elegir sector en Servicio y zona en Garzones. En cada zona de Garzones se muestran directamente sus 16 ítems; las demás áreas y sectores conservan categorías prácticas antes de los productos. Durante el conteo, un botón abre un panel lateral con todos los ítems del área o zona activa, su estado y búsqueda por nombre. El catálogo de la app se deriva de las filas del archivo totalizado y de las asignaciones del libro manual. Se conservan los ID internos existentes de Barra cuando se puede vincular el mismo producto por nombre o por una equivalencia confirmada. Los ID de GetJusto y números de fila del Excel se guardan como referencias de salida sin modificarlos; los ID ausentes permanecen ausentes.
+La rama `inventory-v3` usa HTML, CSS y JavaScript nativos. La página inicial muestra las cinco áreas. El módulo de inventario permite elegir sector en Servicio y zona en Garzones. En cada zona de Garzones se muestran directamente sus 16 ítems; las demás áreas y sectores conservan categorías prácticas antes de los productos. Durante el conteo, un botón abre un panel lateral con todos los ítems del área o zona activa, su estado y búsqueda por nombre. El catálogo de la app se deriva de las filas del archivo totalizado y de las asignaciones del libro manual. Se conservan los ID internos existentes de Barra cuando se puede vincular el mismo producto por nombre o por una equivalencia confirmada. Los ID de GetJusto y números de fila del Excel se guardan como referencias de salida sin modificarlos; los ID ausentes permanecen ausentes.
 
 La interfaz usa un fondo blanco crema uniforme (#faf8f3), acentos cian y tarjetas de área con tintes propios en modo claro. El modo oscuro usa un fondo carbón profundo (#111315) y superficies oscuras uniformes. Fondos, tarjetas, botones y paneles no llevan degradados; se conservan transparencia y desenfoque moderados. Los botones no cambian color ni relieve al hover o al pulsarlos; el foco visible se reserva para teclado. Volver y el toggle liberan el foco tras un toque. El único control de tema del encabezado permanece arriba a la derecha; el engranaje de la referencia visual queda pendiente. La preferencia se guarda en el navegador y los iconos de luna y sol son SVG para evitar diferencias de fuente en Android. Las superficies compartidas de navegación, conteo y resumen emplean transparencia moderada con alternativa opaca para la preferencia de transparencia reducida; los encabezados y el botón de tema no tienen borde de tarjeta. El resumen muestra un anillo SVG calculado con los conteos reales. Su encabezado conserva título y controles, pero oculta la barra y el contador duplicados; se retiró el subtítulo descriptivo y se redujo el espacio anterior al contenido. El panel lateral de ítems conserva la transparencia, permite buscar y plegar categorías, y se abre también desde el botón de búsqueda en el encabezado de categorías. Al abrirlo, solo la categoría del producto actual queda desplegada y el producto se sitúa a la vista; en una vista sin producto todos los grupos empiezan cerrados. «Ver ítems» no enfoca el buscador ni activa el teclado; el botón de búsqueda sí enfoca el campo. En celulares, las categorías usan una cuadrícula compacta de dos columnas; los controles de conteo conservan separación y foco visible. La guía visual y de interacción está en `docs/style-guide.md`.
 
@@ -58,7 +62,7 @@ La revisión del 20-10-2026 comprobó 1.151 filas de referencia contra el Excel 
 
 ## Contexto de ramas
 
-`main` es la versión estable anterior de Inventario Barra; `warehouse-order` es la línea de Pedido a Bodega; `inventory-v2` es esta evolución. Las decisiones de `inventory-v2` reemplazan los límites de la versión anterior.
+`main` es la versión estable anterior de Inventario Barra; `warehouse-order` es la línea de Pedido a Bodega; `inventory-v2` conserva la base local anterior y `inventory-v3` es la evolución compartida actual. Las decisiones de `inventory-v2` reemplazan los límites de la versión anterior.
 
 ## Evaluación histórica de la siguiente etapa — 20-10-2026
 

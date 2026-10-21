@@ -1,5 +1,5 @@
 {
-  "name": "inventory-v2",
+  "name": "inventory-v3",
   "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
   "assets": {
@@ -15,7 +15,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "BASE-REAL",
+      "database_name": "inventory-v3-production",
       "database_id": "UUID-REAL",
       "migrations_dir": "migrations",
     },

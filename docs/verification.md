@@ -1,6 +1,6 @@
 # Verificación de etapa 3A — 21-10-2026
 
-Rama `inventory-v2`. Se conservaron los cambios de documentación existentes al iniciar. Ningún libro ni archivo sincronizado se editó; no se ejecutó commit, push, despliegue ni acceso a recursos remotos. Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3; navegador Chromium 141 mediante Playwright 1.56.1.
+Implementación inicialmente probada sobre el árbol de trabajo de `inventory-v2`, trasladada a `inventory-v3` sin cambiar la base de v2. Se conservaron los cambios de documentación existentes al iniciar. Ningún libro ni archivo sincronizado se editó; la implementación quedó posteriormente en commits locales de `inventory-v3` por solicitud del usuario. No se ejecutó push, despliegue ni acceso a recursos remotos en la separación. Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3; navegador Chromium 141 mediante Playwright 1.56.1.
 
 ## Resultados actuales
 

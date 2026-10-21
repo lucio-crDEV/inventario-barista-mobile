@@ -1,6 +1,8 @@
-# Roadmap — inventory-v2
+# Roadmap — inventory-v3
 
 > Referencia histórica del 20-10-2026 (sustituida en 3A el 21-10-2026): consultar [la siguiente etapa de conteo compartido](etapa-conteo-compartido.md). Precisa usuarios, reparto físico, conflictos y cierre; revisa la suma indiscriminada de aportes de esta propuesta. Son recomendaciones aún no implementadas.
+
+La etapa 3A y siguientes se desarrollan en `inventory-v3`. `inventory-v2` permanece en su commit anterior al trabajo compartido. La separación no cambia la numeración de etapas: versión 3 de la aplicación y etapa 3A del roadmap son conceptos distintos. Ver [separación de ramas](separacion-inventory-v3.md).
 
 ## Meta
 

@@ -1,6 +1,6 @@
 # Operación local y preparación de producción — 3A
 
-Implementación del 21-10-2026 en `inventory-v2`. No se ejecutó commit, push, despliegue ni modificación remota. El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
+Implementación del 21-10-2026, trasladada completa a `inventory-v3` por decisión del usuario. `inventory-v2` queda en su base anterior sin 3A. El avance quedó en commits locales de `inventory-v3` tras la solicitud de separación. No se ejecutó push, despliegue ni modificación remota. El contrato está en [contrato-3a.md](contrato-3a.md). Las pruebas actúan sobre fixtures locales y no deben apuntar a una base operativa.
 
 ## Iniciar el entorno local
 
@@ -72,3 +72,10 @@ Las contraseñas usan bcryptjs 3.0.3, coste 12 y sal individual, sin truncar ent
 Las cinco unidades ausentes de Pastelería siguen ausentes. Se permite registrar el valor explícito sin inventar unidad, pero Sumar se bloquea cuando la unidad es desconocida. No se certifica ese dato para Excel. Continúan las 18 entradas de Barra sin referencia, dos conversiones pendientes y revisión física de etapa 2.
 
 Los datos de `inventario-session-v2` permanecen intactos en su origen anterior. No se leen, migran ni consolidan automáticamente; la transición/importación revisada queda pendiente. No hay botón de borrado compartido. Los borradores son almacenamiento local por usuario/ciclo, no una bóveda frente al propietario del navegador; la interfaz impide transferirlos entre identidades. No se promete conteo completo sin conexión.
+
+
+## Identidad de versión y despliegue
+
+El paquete y Worker de esta rama se llaman `inventory-v3`; el entorno local, `inventory-v3-local`. La configuración de producción de ejemplo usa una base separada `inventory-v3-production` con UUID aún por configurar. No reutilizar la aplicación, dominio o base de producción de `inventory-v2` al preparar v3. El UUID local ficticio se conserva para no perder los datos de ensayo ya preparados. El identificador inmutable de catálogo `inventory-v2-2026-10-21` se conserva: identifica los datos heredados, no el nombre de la rama o del Worker.
+
+El envío preparado es `git push -u origin inventory-v3`; no se ha ejecutado. Detalles y límites respecto de configuraciones externas de Cloudflare: [separacion-inventory-v3.md](separacion-inventory-v3.md).

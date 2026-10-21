@@ -1,4 +1,4 @@
-# inventory-v2
+# inventory-v3
 
 Aplicación web móvil para contar el inventario por área y generar, en una etapa posterior, el libro `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` con las cantidades nuevas y el resto de su estructura intacta.
 
@@ -45,6 +45,14 @@ npm run test:load
 
 No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas locales no certifican capacidad ni habilitación de producción. La revisión de asignaciones/unidades (2), supervisión/cierre avanzado (3B), exportación fiel (4) y offline completo siguen pendientes.
 
-## Envío de esta rama
+## Rama y envío
 
-Los cambios de interfaz y documentación se preparan en `inventory-v2`. Después de revisar el commit local, el comando de envío es `git push origin inventory-v2`. El remoto usa SSH; se necesita una clave con acceso a `lucio-crDEV/inventario-barista-mobile` para ejecutar ese comando.
+`inventory-v3` parte de `inventory-v2` en `3d2331919ea8bdf39daf1f095ea09877d69e6dd0` y añade toda la etapa 3A. `inventory-v2` permanece en ese commit anterior; no recibe usuarios, Workers ni los cambios de colaboración. El paquete y los Workers se identifican como `inventory-v3` / `inventory-v3-local`.
+
+Los cambios están en commits locales. Para subir esta rama nueva sin actualizar `inventory-v2`:
+
+```sh
+git push -u origin inventory-v3
+```
+
+No se ejecutó push ni despliegue. Se necesita acceso SSH al remoto. Ver [separación de versiones y despliegues](docs/separacion-inventory-v3.md).
