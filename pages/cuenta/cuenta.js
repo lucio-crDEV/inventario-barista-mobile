@@ -1,3 +1,4 @@
+import { loading, reveal, pendingButton } from "/shared/loading.js";
 import { api, escapeHtml as esc, logout } from "/shared/client.js";
 const content = document.querySelector("#account-content"),
   message = document.querySelector("#message");
@@ -12,6 +13,7 @@ function notify(text) {
 function passwordField(label, name, autocomplete) {
   return `<label>${label}<span class="password-field"><input name="${name}" type="password" autocomplete="${autocomplete}" required ${name === "currentPassword" || name === "password" ? "" : 'minlength="12"'}><button type="button" class="reveal-password" aria-label="Mostrar ${label.toLowerCase()}" aria-pressed="false">Ver</button></span></label>`;
 }
+const finishLoading = loading(content);
 let user,
   unavailable = false;
 try {
@@ -26,6 +28,7 @@ try {
     );
   }
 }
+finishLoading();
 if (unavailable) {
   content.innerHTML = `<section class="account-card"><div class="account-symbol">${lock}</div><h2>Inventario no disponible</h2><p>El acceso estará disponible cuando el administrador termine de habilitar el servicio.</p><button class="button button-primary" id="retry-service" type="button">Reintentar conexión</button></section>`;
   document.querySelector("#retry-service").onclick = () => location.reload();
@@ -52,8 +55,10 @@ if (unavailable) {
     }
     delete b.confirmPassword;
     const button = form.querySelector("[type=submit]");
-    button.disabled = true;
-    button.setAttribute("aria-busy", "true");
+    const restore = pendingButton(
+      button,
+      user ? "Guardando contraseña…" : "Ingresando…",
+    );
     message.hidden = true;
     try {
       const result = await api(user ? "/api/password" : "/api/login", b);
@@ -66,8 +71,9 @@ if (unavailable) {
       }
     } catch (err) {
       notify(err.message || "No se pudo conectar. Inténtalo de nuevo.");
-      button.disabled = false;
-      button.removeAttribute("aria-busy");
+      restore();
     }
   };
 }
+
+reveal(content);

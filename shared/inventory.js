@@ -1,7 +1,8 @@
-import { describeCountValue } from './count-display.js';
+import { loading, reveal, pendingButton, historyLoading } from "./loading.js";
+import { describeCountValue } from "./count-display.js";
 import {
   api,
-  requireUser,
+  authenticated,
   identityBar,
   setSync,
   draftsFor,
@@ -11,10 +12,9 @@ import {
 } from "./client.js";
 export class SharedInventory {
   static async create() {
-    const user = await requireUser();
-    identityBar(user);
-    const data = await api("/api/bootstrap");
-    return new SharedInventory(user, data);
+    const data = await authenticated("/api/bootstrap");
+    identityBar(data.user);
+    return new SharedInventory(data.user, data);
   }
   constructor(user, data) {
     this.user = user;
@@ -84,15 +84,24 @@ export class SharedInventory {
         : "");
     info.after(controls);
     controls.querySelector("#record-history").onclick = async () => {
+      const el = dialog(
+        "Historial del producto",
+        `<div class="history-content">${historyLoading()}</div><button type="button">Cerrar</button>`,
+      );
+      const body = el.querySelector(".history-content");
+      el.querySelector("button").onclick = () => el.close();
+      const finishLoading = loading(body);
       try {
         const r = await api(this.recordURL("/api/history", item));
-        const el = dialog(
-          "Historial del producto",
-          `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${esc(h.after_record.quantity)} ${esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : "Contado"}</p>${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}<button type="button">Cerrar</button>`,
-        );
-        el.querySelector("button").onclick = () => el.close();
+        if (!el.open) return;
+        body.innerHTML = `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${esc(h.after_record.quantity)} ${esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : "Contado"}</p>${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}`;
+        reveal(body);
       } catch (e) {
+        if (el.open)
+          body.textContent = e.message || "No se pudo cargar el historial.";
         this.handleError(e);
+      } finally {
+        finishLoading();
       }
     };
     this.pendingUI(item);
@@ -117,7 +126,7 @@ export class SharedInventory {
     for (const field of document.querySelectorAll("#quantity,#note"))
       field.readOnly = !!pending;
     let retry = document.querySelector("#retry-operation");
-    if (pending && !retry) {
+    if (pending && !retry && !this.busy) {
       retry = document.createElement("button");
       retry.id = "retry-operation";
       retry.type = "button";
@@ -174,15 +183,39 @@ export class SharedInventory {
       );
       return false;
     }
-    return this.send(item, d, op);
+    return this.send(item, d, op, !!old?.operation);
   }
-  async send(item, d, op) {
+  async send(item, d, op, revalidate = false) {
     this.busy = true;
-    this.state("Pendiente de enviar");
+    this.state("Pendiente de enviar · guardando…");
+    this.pendingUI(item);
+    const buttons = [
+      ...document.querySelectorAll(
+        "#app-content button, #header-back-to-categories, #header-open-item-drawer, dialog[open] button",
+      ),
+    ];
+    const active = buttons.includes(document.activeElement)
+      ? document.activeElement
+      : document.querySelector(
+          "#confirm-choice:not([hidden]), #retry-operation",
+        ) ||
+        document.querySelector(
+          op.outOfStock
+            ? "#save-out-of-stock"
+            : op.status === "partial"
+              ? "#save-partial"
+              : "#save-counted",
+        );
+    const disabled = buttons.map((button) => [button, button.disabled]);
+    const restore = pendingButton(active, "Guardando…");
+    for (const button of buttons) button.disabled = true;
     try {
-      await api("/api/count", op);
-      // An idempotent retry returns its historical result. Read current state afterwards.
-      const { record } = await api(this.recordURL("/api/record", item));
+      const accepted = await api("/api/count", op);
+      // A new acknowledgement already contains the accepted record. An uncertain
+      // retry can return an old snapshot, so only retries require a fresh read.
+      const record = revalidate
+        ? (await api(this.recordURL("/api/record", item))).record
+        : accepted.record;
       this.onRecord?.(record, item.id);
       this.drafts.remove(item.id);
       this.modal?.close();
@@ -219,6 +252,9 @@ export class SharedInventory {
       } else this.handleError(e);
       return false;
     } finally {
+      restore();
+      for (const [button, wasDisabled] of disabled)
+        button.disabled = wasDisabled;
       this.busy = false;
       this.pendingUI(item);
     }
@@ -231,7 +267,7 @@ export class SharedInventory {
   }
   resolve(item, d, current) {
     this.modal?.close();
-    const label = r=>describeCountValue(r,item.unit);
+    const label = (r) => describeCountValue(r, item.unit);
     const el = dialog(
       "Revisar registro de otra persona",
       `<p><strong>${esc(item.name)}</strong> · ${esc(this.locationName(item))}</p><p>Último autor: ${esc(current.authorName)} · versión ${current.version}</p><table><thead><tr><th>Dato</th><th>Vigente</th><th>Tu propuesta</th></tr></thead><tbody><tr><th>Cantidad</th><td>${esc(label(current))}</td><td>${esc(label({ ...d, quantity: Number(d.quantity) }))}</td></tr><tr><th>Estado</th><td>${current.status === "partial" ? "Avance" : "Contado"}</td><td>${d.status === "partial" ? "Avance" : "Contado"}</td></tr><tr><th>Nota</th><td>${esc(current.note || "Sin nota")}</td><td>${esc(d.note || "Sin nota")}</td></tr></tbody></table><button type="button" id="discard">Descartar mi cambio</button><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? "disabled" : ""}>Sumar mi cantidad</button><button type="button" id="choose-overwrite">Sobrescribir</button>${d.outOfStock ? "<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>" : !item.unit ? "<p>La unidad está pendiente de confirmar. No se puede sumar.</p>" : ""}<p id="result-preview" role="status"></p><button type="button" id="confirm-choice" hidden>Confirmar resultado</button><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
@@ -334,7 +370,14 @@ export class SharedInventory {
         }
         for (const record of r.changes) this.onRecord?.(record, record.itemId);
         this.cursor = r.cursor;
-        if (!this.modal && !document.querySelector("#quantity") && !this.busy)
+        if (
+          r.changes.length &&
+          !this.modal &&
+          !document.querySelector("#quantity") &&
+          !this.busy &&
+          !document.querySelector(".item-drawer.is-open") &&
+          !document.activeElement?.matches("input,textarea,select")
+        )
           this.onRender?.();
       } catch (e) {
         this.handleError(e);

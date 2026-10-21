@@ -12,7 +12,7 @@ La interfaz usa blanco crema en modo claro y carbón profundo en modo oscuro, co
 
 Las listas de productos se derivan de los dos inventarios originales en `inventarios_og/`. `data/inventario/items/catalogo-excel.js` contiene las filas e ID de la salida y las asignaciones de Servicio. `data/inventario/items/barra.js` conserva los ID internos del catálogo anterior de Barra.
 
-El modo compartido usa Cloudflare Workers + D1: usuarios personales, contraseñas, ámbitos múltiples, administración mínima, historial y resolución de registros ajenos con Descartar, Sumar o Sobrescribir. Los guardados propios son directos con control de versión. Los datos locales anteriores permanecen intactos y no se importan automáticamente. No se implementó exportación Excel ni el flujo de Pedido.
+El modo compartido usa Cloudflare Workers + D1: usuarios personales, contraseñas, ámbitos múltiples, administración mínima, historial y resolución de registros ajenos con Descartar, Sumar o Sobrescribir. Los guardados propios son directos con control de versión. Las pantallas muestran skeletons mientras cargan, transiciones breves y estados claros de envío; Inicio obtiene solo los ámbitos autorizados sin descargar el catálogo. Los datos locales anteriores permanecen intactos y no se importan automáticamente. No se implementó exportación Excel ni el flujo de Pedido.
 
 ## Entorno compartido local
 
@@ -49,6 +49,7 @@ npm run test:extended
 npm exec playwright install chromium
 npm run test:browser
 npm run test:views
+npm run test:ux
 npm run test:sync
 npm run test:load
 npm run test:bootstrap

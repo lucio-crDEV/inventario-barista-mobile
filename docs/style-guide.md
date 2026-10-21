@@ -61,3 +61,12 @@ Ingreso, cambio de contraseña y Usuarios y accesos reutilizan los tokens `--ui-
 La contraseña puede mostrarse u ocultarse; el cambio exige repetirla y los errores reciben foco. La administración presenta cuentas plegables, búsqueda y alta separada. Cada asignación explica sus descendientes; restablecer contraseña requiere una confirmación que permite cancelar conservando el campo. Un envío en curso deshabilita la acción para evitar dobles toques.
 
 La comparación distingue «Sin conteo», cero en avance, cero contado y «Sin stock». Antes de Sumar muestra operación y total; antes de Sobrescribir muestra el resultado. El historial usa etiquetas y fechas en español, preservando notas multilínea con autor. Verificación ejecutada a 320, 390 y 1024 px en ambos temas, sin desborde horizontal; Android físico, lector de pantalla y teclado virtual siguen pendientes.
+
+
+### Carga y transiciones — 21-10-2026
+
+Ingreso, Inicio, Inventario y Usuarios y accesos incluyen skeletons en el HTML inicial; el historial abre un diálogo con su estructura de carga antes de consultar. Son bloques uniformes crema/carbón con pulso leve de opacidad, sin degradados ni datos de otra sesión. No representan cantidades, progreso ni número real de cuentas. El área pendiente usa `aria-busy` y las formas decorativas quedan ocultas a tecnologías de asistencia. Tras cuatro segundos aparece una explicación de demora; errores retiran el estado de carga y mantienen el reintento donde corresponde. Nunca se impone una duración mínima ni se bloquea contenido listo por una animación.
+
+Las vistas se revelan con un fundido de 180 ms; los diálogos entran en 180 ms con desplazamiento de 6 px y el menú en 140 ms. Inventario aplica el efecto solo al cambiar de vista o producto. La sincronización sin cambios no redibuja categorías; un panel abierto o campo en edición se conserva. No hay efectos de hover o pulsación nuevos. Movimiento reducido deja los skeletons estáticos y omite fundidos, desplazamientos y giro de envío; transparencia reducida mantiene superficies opacas.
+
+Ingresar, crear/restablecer cuentas, cambiar contraseña y guardar muestran una etiqueta de envío con indicador. En el conteo se protegen campos y navegación mientras se espera la respuesta; el éxito se anuncia después de la aceptación del servidor. Un resultado incierto conserva el borrador y ofrece el reintento seguro. El historial puede cerrarse mientras llega la respuesta sin que se vuelva a abrir ni se pierdan campos editados.

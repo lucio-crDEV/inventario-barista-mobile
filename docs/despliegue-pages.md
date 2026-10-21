@@ -4,11 +4,11 @@ Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proy
 
 ## Estado comprobado y lo que falta
 
-El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 el usuario confirmó también la aplicación exitosa del SQL del primer administrador `admin`: D1 procesó las cuatro consultas sin error. No repetir migraciones, creación del ciclo ni bootstrap en esta instalación. Sigue pendiente comprobar el ingreso y el cambio obligatorio de contraseña en el sitio publicado.
+El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 el usuario confirmó también la aplicación exitosa del SQL del primer administrador `admin`: D1 procesó las cuatro consultas sin error. No repetir migraciones, creación del ciclo ni bootstrap en esta instalación. Posteriormente el usuario confirmó funcionamiento y aportó el log exitoso del despliegue automático `ec80d9c`. El recorrido autenticado completo y el rendimiento real aún no se verificaron de manera independiente.
 
-La revisión pública inicial encontró HTML en `/api/me` y `/api/bootstrap`, y el catálogo global accesible como archivo. El arreglo está en esta rama: publicar **`dist` generado con `npm run build:pages`**, que contiene el Worker. Se comprobó API, autorización, cookie segura y reintento idempotente en Pages + D1 por HTTPS local; no se certifica aún el sitio remoto actualizado.
+La revisión pública inicial encontró HTML en `/api/me` y `/api/bootstrap`, y el catálogo global accesible como archivo. El arreglo está en esta rama: publicar **`dist` generado con `npm run build:pages`**, que contiene el Worker. Se comprobó API, autorización, cookie segura y reintento idempotente en Pages + D1 por HTTPS local; La comprobación pública posterior del deployment `ec80d9c` confirmó la pantalla nueva, API JSON que exige sesión y catálogo global inaccesible. Las mejoras UX posteriores de esta revisión aún requieren un nuevo push.
 
-Esta tarea deja código, documentación y commits locales. No ejecuta push, despliegue, cambios en el panel Cloudflare ni escrituras remotas. Los ajustes del panel de abajo deben guardarse una vez por el propietario; su estado actual no se verificó.
+Esta tarea deja código, documentación y commits locales. No ejecuta push, despliegue, cambios en el panel Cloudflare ni escrituras remotas. El log aportado confirma `npm run build:pages`, compilación del Worker, carga de `_routes.json` y publicación exitosa de `ec80d9c`. Se conserva abajo la configuración reproducible; no se inspeccionó el panel privado.
 
 ## 1. Configurar una vez el despliegue automático
 
@@ -111,3 +111,8 @@ No ejecutar migraciones ni bootstrap de administrador como parte del comando de 
 8. Restablecer/desactivar una cuenta y comprobar que sus sesiones dejan de funcionar. Revisar ambas apariencias en un teléfono real y verificar tiempos de ingreso/guardado en la red del local.
 
 No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y los límites del piloto están en [verification.md](verification.md). La fase 3A tiene implementación y pruebas locales completas para el alcance descrito, pero su aceptación operativa sigue pendiente del ingreso/cambio de contraseña y de este recorrido remoto, CPU/plan, respaldos/restauración, retención y prueba con trabajadores. 3B continúa con supervisión, historial administrativo avanzado, rectificaciones/anulaciones, activación operativa y revisión/cierre/reapertura; Excel corresponde a etapa 4.
+
+
+## Publicar la revisión de UX
+
+Se conservan rama, build, salida, D1, variables y ciclo anteriores. Para publicar skeletons, transiciones y menos peticiones basta enviar los nuevos commits de `inventory-v3` con el mismo `git push origin inventory-v3`. **No repetir migraciones ni bootstrap de usuarios**: esta revisión no cambia el esquema. Comprobar en Deployments el nuevo commit y luego revisar Cuenta, Inicio, conteo e Historial. El aviso del log sobre el Wrangler de desarrollo es compatible con este flujo configurado desde el panel; la confirmación relevante es la compilación/carga de `_worker.js` y el estado final de éxito.

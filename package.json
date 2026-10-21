@@ -21,6 +21,7 @@
     "test:pages:server": "node scripts/dev-pages.mjs --https --test",
     "test:extended": "node --test tests/shared/extended.mjs",
     "test:sync": "node tests/shared/sync.mjs",
+    "test:ux": "node tests/shared/ux.mjs",
     "test:bootstrap": "python3 -m unittest discover -s tests -p '*_test.py'"
   },
   "dependencies": {

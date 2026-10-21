@@ -1,17 +1,23 @@
-import { api, requireUser, identityBar, escapeHtml } from "./client.js";
-const nav = document.querySelector("nav");
+import { api, authenticated, identityBar, escapeHtml } from "./client.js";
+import { loading, reveal } from "./loading.js";
+const nav = document.querySelector("nav"),
+  placeholder = document.querySelector("#home-loading");
+const finishLoading = loading(placeholder);
 try {
-  const user = await requireUser();
+  const data = await authenticated("/api/navigation");
+  const user = data.user;
   identityBar(user);
-  const data = await api("/api/bootstrap");
   for (const link of nav.querySelectorAll("a")) {
     const id = new URL(link.href).searchParams.get("area");
     if (!data.scopes.some((x) => x.id === id)) link.remove();
   }
-  if (!data.items.length)
+  if (!data.scopes.length)
     nav.innerHTML =
       "<p>No tienes áreas asignadas. Contacta al administrador</p>";
+  finishLoading();
+  placeholder.remove();
   nav.hidden = false;
+  reveal(nav);
   // Permissions are rechecked on entering any area; refresh the home projection too.
   let revision = user.revision;
   const tick = async () => {
@@ -26,6 +32,10 @@ try {
   setInterval(tick, 5000);
   document.addEventListener("visibilitychange", tick);
 } catch (e) {
+  finishLoading();
+  placeholder.remove();
   nav.hidden = false;
-  nav.innerHTML = `<p class="error">${escapeHtml(e.message)}. Inténtalo de nuevo más tarde.</p>`;
+  nav.innerHTML = `<p class="error">${escapeHtml(e.message)}</p><button class="button button-primary" type="button">Reintentar conexión</button>`;
+  nav.querySelector("button").onclick = () => location.reload();
+  reveal(nav);
 }

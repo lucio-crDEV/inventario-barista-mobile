@@ -308,6 +308,16 @@ async function api(req, env, url) {
     );
   if (p === "/api/status" && req.method === "GET")
     return json({ ready: true, stage: "3A" });
+  if (p === "/api/navigation" && req.method === "GET") {
+    const scopes = await db
+      .prepare(
+        actorCTE +
+          `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN allowed a ON a.id=cl.descendant WHERE cl.ancestor=s.id)`,
+      )
+      .bind(hash)
+      .all();
+    return json({ user: userDTO(u), scopes: scopes.results });
+  }
   if (p.startsWith("/api/admin/")) {
     if (u.role !== "admin") fail(403, "ADMIN_REQUIRED");
     if (p === "/api/admin/users" && req.method === "GET") {
@@ -319,6 +329,7 @@ async function api(req, env, url) {
         db.prepare("SELECT * FROM scopes"),
       ]);
       return json({
+        user: userDTO(u),
         users: rows[0].results.map((x) => ({
           ...userDTO(x),
           grants: rows[1].results

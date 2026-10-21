@@ -1,14 +1,19 @@
 import { SharedInventory } from "/shared/inventory.js";
+import { loading, reveal } from "/shared/loading.js";
+const initialContent = document.querySelector('#app-content');
+const finishLoading = loading(initialContent);
 let shared;
 try { shared = await SharedInventory.create(); }
 catch (error) {
-    const content = document.querySelector('#app-content');
+    finishLoading();
+    const content = initialContent;
     content.textContent = error.message || 'No se pudo conectar con el inventario.';
     const retry = document.createElement('button');
     retry.className='button button-primary'; retry.textContent='Reintentar conexión';
     retry.onclick=()=>location.reload(); content.append(retry);
     await new Promise(()=>{});
 }
+finishLoading();
 const items = shared.data.items;
 const areas = shared.data.scopes.filter(x => !x.parent).map(x => ({...x, active:true}));
 const serviceSectors = shared.data.scopes.filter(x => x.parent === 'servicio').map(x => ({...x,id:x.id.split(':').at(-1)}));
@@ -963,6 +968,9 @@ function updateProgress() {
 // ============================================================
 
 function render() {
+    // Only animate intentional view/product changes, never background refreshes.
+    const transitionKey = [scopeKey, session.view, session.currentIndex].join(':');
+    reveal(appContent, transitionKey);
     if (!items.length) {
         appContent.textContent = "No tienes áreas asignadas. Contacta al administrador";
         document.querySelector('#progress-bar-container').hidden = true;

@@ -16,7 +16,6 @@
     nav { display: grid; gap: 12px; }
     a { display: flex; align-items: center; justify-content: space-between; min-height: 74px; padding: 16px 20px; border: 1px solid #ddd; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 4%); color: inherit; text-decoration: none; font-size: 1.08rem; font-weight: 700; -webkit-tap-highlight-color: transparent; }
     a:focus-visible { outline: 3px solid #777; outline-offset: 2px; }
-    a:active { transform: scale(.99); }
     .arrow { color: #777; font-size: 1.4rem; }
   </style>
   <link rel="stylesheet" href="./theme.css">
@@ -28,6 +27,7 @@
       <h1>Inventario</h1>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Activar modo oscuro" title="Activar modo oscuro"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="theme-icon-moon" d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/><g class="theme-icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></g></svg></button>
     </div>
+    <section id="home-loading" aria-busy="true"><div class="loading-state loading-navigation"><p class="loading-label" role="status">Cargando tus áreas…<small data-loading-hint></small></p><div class="skeleton-stack" aria-hidden="true"><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div></div></div></section>
     <nav hidden class="area-nav" aria-label="Áreas de inventario">
       <a class="area-link area-principal" href="./pages/inventario/?area=principal"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 14 16 5l12 9v13H4zM10 27V17h12v10M4 14h24M13 21h6M13 24h6"/></svg></span><span class="area-name">Bodega / Principal</span><span class="arrow" aria-hidden="true">›</span></a>
       <a class="area-link area-cocina" href="./pages/inventario/?area=cocina"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 21a6 6 0 0 1-2-10 6 6 0 0 1 10-5 6 6 0 0 1 10 5 6 6 0 0 1-2 10v6H8zM8 20h16"/></svg></span><span class="area-name">Cocina</span><span class="arrow" aria-hidden="true">›</span></a>

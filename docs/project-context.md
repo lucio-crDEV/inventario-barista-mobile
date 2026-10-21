@@ -45,6 +45,14 @@ La comprobación pública encontró HTML en `/api/me` y `/api/bootstrap` en luga
 
 Ingreso, cambio de contraseña, identidad y administración se ajustaron a la guía visual vigente. Se ampliaron pruebas de contraseñas, sesiones, dos dispositivos, cantidades/cero, pantallas, visibilidad y Pages. La simulación de 15 clientes pasó con 151 escrituras, 150 reintentos sin duplicación y 14 conflictos esperados. Los ensayos automatizados usan bases desechables independientes de la base local de desarrollo; resultados y límites en [verification.md](verification.md).
 
+## Respuesta de la interfaz — 21-10-2026
+
+El usuario confirmó que funciona el sitio y aportó el log exitoso del deployment `ec80d9c`. Se observó públicamente la pantalla nueva, API JSON que exige sesión y catálogo global inaccesible. El aviso de configuración Wrangler del log no impidió la compilación ni la publicación del Worker de `dist`. La validación operativa completa sigue pendiente; no se recibieron credenciales personales.
+
+La revisión UX posterior añade skeletons inmediatos y uniformes en Cuenta, Inicio, Inventario, Administración e Historial; estados visibles de envío; fundidos de 180 ms y entrada breve de diálogos/menú, con alternativas para movimiento reducido. No se retrasa contenido listo ni se muestran cantidades/progreso ficticios. El historial abre antes de completar la lectura y puede cerrarse conservando el borrador.
+
+Se redujeron viajes de red: Inicio consulta solo identidad y ámbitos en `/api/navigation`, sin descargar el catálogo; Inventario usa la identidad del bootstrap y Administración la de su respuesta. El guardado nuevo usa el registro aceptado de la respuesta; un reintento incierto sigue consultando el vigente después, para no restaurar datos superados. Toda autorización continúa en servidor, sin caché nueva de inventario ni cambios de contraseñas/esquema. La sincronización sin cambios no reconstruye la vista. Pruebas y tamaños reales del ensayo en [verification.md](verification.md) y [ux-local-v3.json](ux-local-v3.json). Esta mejora necesita un nuevo push para llegar a Pages.
+
 ## Interfaz y catálogo conservados
 
 La rama `inventory-v3` usa HTML, CSS y JavaScript nativos. La página inicial muestra las cinco áreas. El módulo de inventario permite elegir sector en Servicio y zona en Garzones. En cada zona de Garzones se muestran directamente sus 16 ítems; las demás áreas y sectores conservan categorías prácticas antes de los productos. Durante el conteo, un botón abre un panel lateral con todos los ítems del área o zona activa, su estado y búsqueda por nombre. El catálogo de la app se deriva de las filas del archivo totalizado y de las asignaciones del libro manual. Se conservan los ID internos existentes de Barra cuando se puede vincular el mismo producto por nombre o por una equivalencia confirmada. Los ID de GetJusto y números de fila del Excel se guardan como referencias de salida sin modificarlos; los ID ausentes permanecen ausentes.

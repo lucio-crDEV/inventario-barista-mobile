@@ -57,6 +57,18 @@ export async function api(path, body) {
 export function loginRedirect() {
   location.replace("/pages/cuenta/");
 }
+// Inventory/admin responses already include the authenticated identity.
+export async function authenticated(path) {
+  try {
+    return await api(path);
+  } catch (e) {
+    if (e.status === 401 || e.code === "PASSWORD_CHANGE_REQUIRED") {
+      loginRedirect();
+      return await new Promise(() => {});
+    }
+    throw e;
+  }
+}
 export async function requireUser() {
   try {
     const { user } = await api("/api/me");

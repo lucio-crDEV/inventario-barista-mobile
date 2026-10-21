@@ -583,3 +583,156 @@ html[data-theme="dark"] .state-chip.is-inactive {
   white-space: pre-wrap;
   color: var(--ui-muted);
 }
+
+/* Loading placeholders never contain previous accounts or inventory values. */
+.loading-state {
+  margin: 0 0 24px;
+  color: var(--ui-muted);
+}
+.loading-label {
+  margin: 0 0 18px;
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.loading-label small {
+  display: block;
+  min-height: 1.5em;
+  font-size: 0.8rem;
+}
+.skeleton-stack {
+  display: grid;
+  gap: 14px;
+}
+.skeleton {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  background: var(--ui-muted);
+  opacity: 0.12;
+  animation: skeleton-pulse 1.7s ease-in-out infinite;
+}
+.skeleton-line {
+  width: 62%;
+  height: 16px;
+}
+.skeleton-field {
+  width: 100%;
+  height: 48px;
+}
+.skeleton-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  margin-bottom: 14px;
+}
+.skeleton-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+}
+.loading-account {
+  padding: clamp(20px, 5vw, 32px);
+  min-height: 480px;
+  border: 1px solid var(--ui-border);
+  border-radius: 18px;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+}
+.loading-account .skeleton-stack {
+  gap: 22px;
+}
+.loading-navigation .skeleton-card {
+  min-height: 90px;
+}
+.loading-navigation .skeleton-field {
+  height: 12px;
+  width: 35%;
+}
+.loading-users .skeleton-card {
+  min-height: 110px;
+}
+.loading-users .skeleton-field {
+  height: 20px;
+  width: 40%;
+}
+.loading-inventory .skeleton-stack {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.loading-inventory .skeleton-card {
+  min-height: 150px;
+}
+.loading-inventory .skeleton-field {
+  height: 8px;
+  align-self: end;
+}
+.loading-inventory .skeleton-card:last-child {
+  display: none;
+}
+.history-content {
+  min-height: 120px;
+}
+.shared-dialog[open] {
+  animation: dialog-appear 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.account-menu[open] > div {
+  animation: dialog-appear 140ms ease-out;
+}
+button.is-pending {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+button.is-pending::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: pending-spin 0.8s linear infinite;
+}
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.22;
+  }
+}
+@keyframes pending-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dialog-appear {
+  from {
+    opacity: 0.3;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  button.is-pending::before,
+  .shared-dialog[open],
+  .account-menu[open] > div {
+    animation: none !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .loading-account,
+  .skeleton-card {
+    background: var(--ui-solid);
+  }
+}
+.count-actions .is-pending {
+  padding-inline: 8px;
+  font-size: 0.8rem;
+  gap: 6px;
+}
