@@ -6,8 +6,6 @@ La etapa 3A y siguientes se desarrollan en `inventory-v3`. `inventory-v2` perman
 
 Estado local al 22-10-2026: 3A conserva aceptación operativa abierta; **3B en curso**, con el incremento de usuarios/Servicio probado localmente. Tablero y administración avanzada de conteos siguen pendientes. Último sitio revisado `5d80658`, anterior a ese incremento. [Contrato y publicación del incremento](usuarios-y-servicio-3b.md), [diagrama y tecnologías](tecnologias-y-roadmap.md).
 
-La revisión móvil de Usuarios y accesos separa Cuenta/Accesos/Seguridad y agrupa las zonas; ya tiene comprobaciones locales de formularios, teclado y ambos temas. No cambia el estado de las etapas ni añade migraciones al incremento. Antes de publicar todo el avance, aplicar las migraciones 0003/0004 y preparar el ciclo nuevo siguiendo la guía enlazada arriba.
-
 ## Meta
 
 Generar desde la app un inventario completo con la estructura de `inventarios_og/11_10-INVENTARIO-totalizado.xlsx`. La experiencia de conteo se organiza por área, sector y zona cuando corresponde; las categorías prácticas se usan donde simplifican la búsqueda. Garzones abre directamente sus 16 ítems por zona.

@@ -23,7 +23,6 @@
     "test:users-service": "node --test tests/shared/users-service.mjs",
     "test:migration-service": "node tests/shared/migration-service.mjs",
     "test:users-service:browser": "node tests/shared/users-service-browser.mjs",
-    "test:admin-layout": "node tests/shared/admin-layout.mjs",
     "test:sync": "node tests/shared/sync.mjs",
     "test:refresh": "node tests/shared/refresh.mjs",
     "test:ux": "node tests/shared/ux.mjs",
