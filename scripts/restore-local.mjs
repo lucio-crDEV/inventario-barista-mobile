@@ -1,9 +1,6 @@
 import { parseArgs } from "node:util";
-import { mkdirSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { execFileSync } from "node:child_process";
 import {
   localDatabase,
   verifiedBackup,
@@ -26,12 +23,8 @@ if (existsSync(state))
 mkdirSync(dirname(state), { recursive: true });
 mkdirSync(state, { mode: 0o700 });
 const db = localDatabase(state);
-const temporary = mkdtempSync(join(tmpdir(), "inventory-restore-sql-"));
 try {
-  const ordered = join(temporary, "ordered.sql");
-  // Parse only; never execute the source SQL in Python or alter the backup/hash.
-  execFileSync("python3", [resolve("scripts/operations/order-restore.py"), sql, ordered], { stdio: "pipe" });
-  wrangler(["execute", "DB", ...db.args, "--file", ordered]);
+  wrangler(["execute", "DB", ...db.args, "--file", sql]);
   // Recovery must never revive a session that was revoked after the snapshot.
   wrangler([
     "execute",
@@ -44,6 +37,5 @@ try {
     `Restauración local completada, sesiones revocadas: ${state}. Verifica integridad y permisos antes de usarla.`,
   );
 } finally {
-  rmSync(temporary, { recursive: true, force: true });
   db.close();
 }

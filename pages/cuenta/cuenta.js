@@ -30,21 +30,6 @@ finishLoading();
 if (unavailable) {
   content.innerHTML = `<section class="account-card"><div class="account-symbol">${lock}</div><h2>Inventario no disponible</h2><p>El acceso estará disponible cuando el administrador termine de habilitar el servicio.</p><button class="button button-primary" id="retry-service" type="button">Reintentar conexión</button></section>`;
   document.querySelector("#retry-service").onclick = () => location.reload();
-} else if (user && !user.mustChange && new URLSearchParams(location.search).has("profile")) {
-  identityBar(user);
-  document.querySelector("#account-back").hidden = false;
-  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${esc(user.username)}</p><h2>Mi perfil</h2></div></div><form><label>Nombre visible<input name="name" value="${esc(user.name)}" required maxlength="80" autocomplete="name"></label><p class="field-hint">Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo ${esc(user.username)}.</p><button class="button button-primary" type="submit">Guardar nombre visible</button></form></section>`;
-  content.querySelector("form").onsubmit = async e => {
-    e.preventDefault();
-    const form = e.target, button = form.querySelector("button"), restore = pendingButton(button,"Guardando nombre…");
-    message.hidden = true; message.textContent = "";
-    try {
-      const result = await api("/api/profile", { name: new FormData(form).get("name"), expectedRevision: user.revision });
-      user = result.user; identityBar(user);
-      message.hidden = false; message.dataset.tone = "success"; message.textContent = "Nombre visible actualizado.";
-    } catch (error) { notify(error.message); }
-    finally { restore(); }
-  };
 } else {
   if (user) identityBar(user);
   document.querySelector("#account-back").hidden = !user || user.mustChange;
@@ -72,7 +57,7 @@ if (unavailable) {
         location.replace("/pages/cuenta/");
       } else {
         sessionStorage.setItem("inventory-user", result.user.id);
-        location.replace(result.user.mustChange ? "/pages/cuenta/" : result.homeUrl || "/");
+        location.replace(result.user.mustChange ? "/pages/cuenta/" : "/");
       }
     } catch (err) {
       notify(err.message || "No se pudo conectar. Inténtalo de nuevo.");

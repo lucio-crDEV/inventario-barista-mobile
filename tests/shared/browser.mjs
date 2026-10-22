@@ -37,7 +37,7 @@ async function session(username) {
   await page.locator("[name=username]").fill(username);
   await page.locator("[name=password]").fill(password);
   await page.getByRole("button", { name: "Ingresar", exact: true }).click();
-  await page.waitForURL(url => !url.pathname.startsWith("/pages/cuenta"));
+  await page.waitForURL(origin + "/");
   await expect(page.locator(".identity-bar")).toBeAttached();
   return { context, page };
 }
@@ -74,9 +74,9 @@ try {
     M = await session("multiple"),
     D = await session("admin-prueba"),
     N = await session("sin-areas");
-  await expect(A.page).toHaveURL(/area=servicio&sector=barra$/);
-  await expect(K.page).toHaveURL(/area=cocina$/);
-  await expect(K.page.locator("#page-title")).toContainText("Cocina");
+  await expect(A.page.locator("nav a")).toHaveCount(1);
+  await expect(K.page.locator("nav a")).toHaveCount(1);
+  await expect(K.page.locator("nav a")).toContainText("Cocina");
   await expect(N.page.locator("nav")).toContainText(
     "No tienes áreas asignadas. Contacta al administrador",
   );
@@ -231,9 +231,9 @@ try {
   await B.page.locator("[name=username]").fill("cocina");
   await B.page.locator("[name=password]").fill(password);
   await B.page.getByRole("button", { name: "Ingresar", exact: true }).click();
-  await B.page.waitForURL(/area=cocina$/);
-  await expect(B.page.locator("#page-title")).toContainText("Cocina");
-  await expect(B.page.locator("nav")).toHaveCount(0);
+  await B.page.waitForURL(origin + "/");
+  await expect(B.page.locator("nav a")).toHaveCount(1);
+  await expect(B.page.locator("nav a")).toContainText("Cocina");
   await B.page.goto(origin + "/pages/inventario/?area=cocina");
   await B.page.locator(".category-card").first().click();
   await expect(B.page.locator("#quantity")).toHaveValue("");

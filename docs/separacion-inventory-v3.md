@@ -1,9 +1,5 @@
 # Separación de inventory-v3 — 21-10-2026
 
-Continuación local del 22-10: usuarios/jefatura/Servicio se desarrollan en la misma rama v3, sin actualizar `inventory-v2`. Hay dos migraciones nuevas y un catálogo distinto para ciclos nuevos; [procedimiento](usuarios-y-servicio-3b.md). El resto de este documento conserva el registro de la separación inicial y de la publicación anterior.
-
-Este documento conserva el registro histórico de la separación. Estado posterior: el usuario ya publicó v3 hasta `5d80658` en un proyecto Pages y D1 propios, con revisión básica del dominio aprobada. La configuración de previews fue consultada en lectura y sigue pendiente de restringir; no se alteraron ajustes remotos. Estado vigente en [despliegue](despliegue-pages.md) y [verificación](verification.md). Las referencias a “no desplegado” o “no consultado” de abajo corresponden al momento de la separación.
-
 ## Base conservada
 
 `inventory-v3` se creó desde `inventory-v2` en el commit `3d2331919ea8bdf39daf1f095ea09877d69e6dd0` (`fix: restore cached summary counts in meeting workbook`). Incluye toda la historia y los archivos de esa base. No hubo reset, borrado, traslado de archivos a otro repositorio ni modificación de libros.

@@ -1056,21 +1056,3 @@ body.settings-open {
     -webkit-backdrop-filter: none;
   }
 }
-.shared-view .button-danger,
-.shared-dialog .button-danger {
-  color: var(--ui-pending, #b72f4b);
-  background: transparent;
-  border: 1px solid currentColor;
-}
-.delete-account {
-  border-top: 1px solid var(--ui-border, rgb(82 108 138 / 20%));
-  margin-top: 24px;
-  padding-top: 16px;
-}
-html[data-theme="dark"] .shared-view .button-danger,
-html[data-theme="dark"] .shared-dialog .button-danger { color: #ff9fac; }
-.shared-dialog #cancel-delete {
-  background: var(--ui-nav);
-  color: var(--ui-text);
-  border-color: var(--ui-border);
-}

@@ -4,7 +4,6 @@ import { cocinaCountGroups } from "./cocina.js";
 import { pasteleriaCountGroups } from "./pasteleria.js";
 import { panaderiaCountGroups } from "./panaderia.js";
 import { principalCountGroups } from "./principal.js";
-import { serviceLayout } from "./service-layout.js";
 
 function countGroupsByRow(sheet, groups) {
   const byRow = new Map();
@@ -214,11 +213,11 @@ function serviceItems(sectorId, zoneId = null) {
   });
 }
 
-export const items = serviceLayout([
+export const items = [
   ...directItems,
   ...barraItems,
   ...pendingBarraItems,
   ...serviceItems("armado-linea-coperia"),
   ...serviceItems("mercadito"),
   ...["privada", "salon", "terraza"].flatMap(zone => serviceItems("garzones", zone)),
-]);
+];

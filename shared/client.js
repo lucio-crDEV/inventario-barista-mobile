@@ -1,6 +1,5 @@
 import { settingsAccount } from "./settings.js";
 import { refreshLimit } from "./refresh-limit.js";
-import { roleNames, managesUsers } from "./roles.js";
 export const escapeHtml = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -20,7 +19,7 @@ export async function api(path, body) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(path === "/api/count" || path === "/api/profile" || path.startsWith("/api/admin/")
+            ...(path === "/api/count"
               ? {
                   "X-Inventory-User":
                     sessionStorage.getItem("inventory-user") || "",
@@ -103,7 +102,7 @@ export function identityBar(user, refresh) {
   const bar = document.createElement("section");
   bar.className = "identity-bar";
   bar.setAttribute("aria-label", "Cuenta y sincronización");
-  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(roleNames[user.role] || user.role)} · Compartido</small></span></div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg></button></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?profile=1">Mi perfil</a><a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (managesUsers(user) ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
+  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${user.role === "admin" ? "Administrador" : "Trabajador"} · Compartido</small></span></div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg></button></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (user.role === "admin" ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
   settingsAccount(bar);
   const button = bar.querySelector(".sync-refresh");
   const limit = refreshLimit(user.id);

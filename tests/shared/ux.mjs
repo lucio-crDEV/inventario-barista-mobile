@@ -211,15 +211,14 @@ try {
   );
 
   const worker = await context("ana");
-  const home = await context("admin-prueba");
-  let stop = measure(home.p);
-  const releaseHome = await gate(home.p, "**/api/navigation");
-  await home.p.goto(origin + "/", { waitUntil: "commit" });
-  await expect(home.p.locator("#home-loading")).toBeVisible();
-  await expect(home.p.locator("nav")).toBeHidden();
-  await captureLoading(home.p, "skeleton-inicio");
+  let stop = measure(worker.p);
+  const releaseHome = await gate(worker.p, "**/api/navigation");
+  await worker.p.goto(origin + "/", { waitUntil: "commit" });
+  await expect(worker.p.locator("#home-loading")).toBeVisible();
+  await expect(worker.p.locator("nav")).toBeHidden();
+  await captureLoading(worker.p, "skeleton-inicio");
   await releaseHome();
-  await expect(home.p.locator("nav a")).toHaveCount(5);
+  await expect(worker.p.locator("nav a")).toHaveCount(1);
   requests.home = stop();
   assert.deepEqual(requests.home, ["/api/navigation"]);
   const nav = await a.request("/api/navigation"),

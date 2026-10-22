@@ -1,6 +1,5 @@
 import { SharedInventory } from "/shared/inventory.js";
 import { loading, reveal } from "/shared/loading.js";
-import { homeScope, canonicalScope, scopeURL } from "/shared/navigation.js";
 const initialContent = document.querySelector('#app-content');
 const finishLoading = loading(initialContent);
 let shared;
@@ -63,14 +62,6 @@ const confirmNewSessionButton =
 
 
 const params = new URLSearchParams(window.location.search);
-const requestedScope = [params.get("area"),params.get("sector"),params.get("zone")].filter(Boolean).join(":");
-const entryScope = homeScope(shared.data.scopes);
-const canonical = canonicalScope(requestedScope, shared.data.scopes);
-if (canonical && canonical !== requestedScope) {
-    location.replace(scopeURL(canonical));
-    await new Promise(() => {});
-}
-const forbiddenScope = requestedScope && !shared.data.scopes.some(s => s.id === requestedScope);
 const selectedArea = areas.find(area => area.id === params.get("area"));
 const selectedSector = selectedArea?.id === "servicio"
     ? serviceSectors.find(sector => sector.id === params.get("sector"))
@@ -977,13 +968,6 @@ function updateProgress() {
 // ============================================================
 
 function render() {
-    if (forbiddenScope && items.length) {
-        appContent.innerHTML = '<p>No tienes acceso a este ámbito.</p><a href="/">Ir a mi inicio</a>';
-        headerBackButton.hidden = true;
-        document.querySelector('#progress-bar-container').hidden = true;
-        progressText.hidden = true;
-        return;
-    }
     // Only animate intentional view/product changes, never background refreshes.
     const transitionKey = [scopeKey, session.view, session.currentIndex].join(':');
     reveal(appContent, transitionKey);
@@ -1002,7 +986,7 @@ function render() {
             ? `Garzones · ${selectedZone.name}`
             : selectedSector?.name || selectedArea?.name || "Inventario";
     }
-    headerBackButton.hidden = !selectedArea || (scopeKey === entryScope && session.view === "categories");
+    headerBackButton.hidden = !selectedArea;
 
     const choosingScope = !selectedArea ||
         (selectedArea.id === "servicio" && !selectedSector) ||

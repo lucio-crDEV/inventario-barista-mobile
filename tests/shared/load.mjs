@@ -105,7 +105,7 @@ const report = {
   note: "Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan.",
 };
 await writeFile(
-  "docs/carga-local-3b.json",
+  "docs/carga-local-3a.json",
   JSON.stringify(report, null, 2) + "\n",
 );
 console.log(JSON.stringify(report, null, 2));

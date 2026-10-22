@@ -1,14 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { hashPassword, validPassword } from "../worker/password.js";
-import { catalogVersion } from "../worker/catalog.js";
 const quote = (x) => `'${String(x).replaceAll("'", "''")}'`;
 const fixtures = process.argv.includes("--fixtures");
 let users;
 if (fixtures) {
   users = [
     ["admin-prueba", "Administrador ficticio", "admin", []],
-    ["jefa-servicio", "Jefa de servicio ficticia", "service_lead", []],
-    ["jefa-servicio-2", "Segunda jefa ficticia", "service_lead", []],
     ["ana", "Ana ficticia", "worker", ["servicio:barra"]],
     ["bruno", "Bruno ficticio", "worker", ["servicio:barra"]],
     ["cocina", "Cocina ficticia", "worker", ["cocina"]],
@@ -63,5 +60,5 @@ for (const [username, name, role, grants, password] of users) {
 console.log("DELETE FROM guards;");
 if (fixtures)
   console.log(
-    `INSERT INTO cycles VALUES('prueba-compartida','Inventario compartido de prueba','${catalogVersion}','open');`,
+    "INSERT INTO cycles VALUES('prueba-compartida','Inventario compartido de prueba','inventory-v2-2026-10-21','open');",
   );

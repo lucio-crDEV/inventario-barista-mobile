@@ -1,8 +1,6 @@
 # Etapa 3B — supervisión y administración del inventario
 
-Estado al 22-10-2026: **3B en curso**. Primer incremento local de usuarios y Servicio implementado: jefatura acotada, username administrado, perfil propio, eliminación irreversible, navegación directa y reparto Copería/Vitrina. [Contrato, pruebas y migración](usuarios-y-servicio-3b.md). La administración mínima anterior sigue perteneciendo a 3A; no se vuelve a contar como avance nuevo. Ver [cierre técnico y pendientes de 3A](cierre-tecnico-3a.md).
-
-La revisión de 3A está comprobada en el dominio hasta `5d80658`. El incremento del 22-10 sigue local y requiere nuevas migraciones/ciclo antes de publicar su reparto. El tablero y los incrementos siguientes todavía no están implementados. [Vista de tecnologías y etapas](tecnologias-y-roadmap.md).
+Estado al 21-10-2026: alcance preparado, **sin implementación 3B**. La administración mínima de cuentas y ámbitos ya pertenece a 3A y no se vuelve a contar como avance 3B. Ver [cierre técnico y pendientes de 3A](cierre-tecnico-3a.md).
 
 ## Orden de implementación
 

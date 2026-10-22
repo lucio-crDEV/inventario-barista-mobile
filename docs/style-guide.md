@@ -1,13 +1,5 @@
 # Guía de estilo UX/UI — inventory-v3
 
-## Ajustes vigentes del 22-10-2026
-
-Inicio conserva solo selectores con alternativas: un área entra a sus categorías, solo Servicio a sus subáreas y solo Garzones a sus zonas. Varias áreas mantienen Inicio. La jefa entra a Servicio sin flecha al menú global; las vistas interiores conservan un regreso útil. Copería aparece separada de Línea/Armado y Mercadito muestra la categoría Vitrina.
-
-Roles visibles: Administrador, Jefa de servicio, Trabajador, sin coletilla de acceso global en el selector. En altas se conservan nombre visible y usuario; la edición administrativa muestra Usuario y el nombre visible solo como referencia. Mi perfil permite cambiar el nombre propio con el mismo encabezado en fila. Cuentas mixtas muestran únicamente los campos de accesos de Servicio a una jefa.
-
-Eliminar usuario usa un diálogo nativo translúcido, foco inicial en Cancelar, Escape seguro y aviso explícito irreversible. La acción destructiva es de borde/texto rojo, con contraste específico oscuro; cancelar mantiene la cuenta. Una versión cambiada exige revisar de nuevo. El texto explica que conteos e historial se conservan. Los avisos anteriores se limpian al comenzar una nueva solicitud; no se muestra éxito antes de la respuesta.
-
 ## Dirección visual
 
 La referencia de cinco pantallas entregada el 20 de octubre de 2026 define una interfaz móvil clara, compacta y luminosa: base **blanco crema**, acento cian, tarjetas de color suave, iconos de trazo simple y progreso visible. La revisión posterior elimina todos los degradados de fondos, tarjetas, botones y paneles. El modo oscuro conserva esa jerarquía sobre un **carbón profundo**; el cian ilumina controles y progreso sin volver azul el fondo. Se usa CSS nativo y tipografía del sistema.

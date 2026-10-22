@@ -4,8 +4,6 @@ import {
   validPassword,
   dummyHash,
 } from "./password.js";
-import { accountRequest } from "./accounts.js";
-import { homeURL } from "../shared/navigation.js";
 const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
     status,
@@ -22,8 +20,8 @@ const digest = async (s) =>
   hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)));
 const token = () => hex(crypto.getRandomValues(new Uint8Array(32)));
 const now = () => Math.floor(Date.now() / 1000);
-const actorCTE = `WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.deleted_at IS NULL AND u.must_change=0),
- allowed AS (SELECT p.scope_id id FROM inventory_permissions p JOIN actor a ON a.id=p.user_id) `;
+const actorCTE = `WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.must_change=0),
+ allowed AS (SELECT sc.id FROM scopes sc, actor a WHERE a.role='admin' OR EXISTS(SELECT 1 FROM grants g JOIN scope_closure cl ON cl.ancestor=g.scope_id WHERE g.user_id=a.id AND cl.descendant=sc.id)) `;
 const cookieName = (env) =>
   env.APP_ENV === "local"
     ? "inventory_session_local"
@@ -66,12 +64,31 @@ async function auth(req, env) {
     fail(401, "SESSION_REQUIRED", "Inicia sesión para continuar.");
   const hash = await digest(raw);
   const u = await env.DB.prepare(
-    "SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=? AND s.expires>? AND u.active=1 AND u.deleted_at IS NULL",
+    "SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=? AND s.expires>? AND u.active=1",
   )
     .bind(hash, now())
     .first();
   if (!u) fail(401, "SESSION_REQUIRED", "La sesión terminó. Inicia sesión.");
   return { u, hash };
+}
+function adminGuard(db, hash) {
+  return db
+    .prepare(
+      `INSERT INTO guards SELECT CASE WHEN EXISTS(SELECT 1 FROM sessions s JOIN users u ON s.user_id=u.id WHERE s.hash=? AND s.expires>unixepoch() AND u.role='admin' AND u.active=1 AND u.must_change=0) THEN 1 ELSE 0 END`,
+    )
+    .bind(hash);
+}
+async function auditBatch(db, hash, actor, target, action, detail, stmts) {
+  await db.batch([
+    adminGuard(db, hash),
+    ...stmts,
+    db
+      .prepare(
+        "INSERT INTO admin_audit(actor,target,action,detail) VALUES(?,?,?,?)",
+      )
+      .bind(actor, target, action, JSON.stringify(detail)),
+    db.prepare("DELETE FROM guards"),
+  ]);
 }
 async function quota(db, key, max) {
   const window = Math.floor(now() / 900);
@@ -131,9 +148,9 @@ async function boot(db, hash, cycle) {
     db
       .prepare(
         actorCTE +
-          `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=s.id AND ci.location_id IN(SELECT id FROM allowed))`,
+          `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN allowed a ON a.id=cl.descendant WHERE cl.ancestor=s.id)`,
       )
-      .bind(hash, cycle),
+      .bind(hash),
     db
       .prepare(
         actorCTE +
@@ -163,7 +180,7 @@ async function boot(db, hash, cycle) {
       );
     }),
     counts: results[2].results.map((r) => JSON.parse(r.record)),
-    scopes: results[3].results.map(s => results[0].results[0]?.catalog_version === "inventory-v2-2026-10-21" && s.id === "servicio:armado-linea-coperia" ? { ...s, name: "Armado / Línea / Copería (ciclo anterior)" } : s),
+    scopes: results[3].results,
     cursor: results[4].results[0].cursor,
   };
 }
@@ -186,8 +203,7 @@ async function api(req, env, url) {
     const ready = await env.DB.prepare(
       `SELECT 1 ready FROM cycles c WHERE c.id=?
       AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version)
-      AND EXISTS(SELECT 1 FROM users WHERE role='admin' AND active=1)
-      AND EXISTS(SELECT 1 FROM sqlite_schema WHERE name='inventory_permissions' AND type='view')`,
+      AND EXISTS(SELECT 1 FROM users WHERE role='admin' AND active=1)`,
     )
       .bind(env.ACTIVE_CYCLE_ID)
       .first();
@@ -225,7 +241,7 @@ async function api(req, env, url) {
     );
     await quota(db, "user:" + (await digest(username)), 10);
     const u = await db
-      .prepare("SELECT * FROM users WHERE username=? AND deleted_at IS NULL")
+      .prepare("SELECT * FROM users WHERE username=?")
       .bind(username)
       .first();
     const valid =
@@ -242,14 +258,13 @@ async function api(req, env, url) {
     // Password/reset/disable may race verification: compare the verified hash atomically.
     const inserted = await db
       .prepare(
-        "INSERT INTO sessions SELECT ?,id,? FROM users WHERE id=? AND password_hash=? AND username=? AND active=1 AND deleted_at IS NULL",
+        "INSERT INTO sessions SELECT ?,id,? FROM users WHERE id=? AND password_hash=? AND active=1",
       )
-      .bind(hash, now() + 43200, u.id, u.password_hash, u.username)
+      .bind(hash, now() + 43200, u.id, u.password_hash)
       .run();
     if (!inserted.meta.changes)
       fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
-    const navigation = await db.prepare(actorCTE + `SELECT sc.* FROM scopes sc WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=sc.id AND ci.location_id IN(SELECT id FROM allowed))`).bind(hash, env.ACTIVE_CYCLE_ID).all();
-    return json({ user: userDTO(u), homeUrl: homeURL(navigation.results) }, 200, { "Set-Cookie": cookie(env, raw) });
+    return json({ user: userDTO(u) }, 200, { "Set-Cookie": cookie(env, raw) });
   }
   const { u, hash } = await auth(req, env);
   if (p === "/api/logout" && req.method === "POST") {
@@ -292,21 +307,130 @@ async function api(req, env, url) {
       "Debes cambiar tu contraseña temporal.",
     );
   if (p === "/api/status" && req.method === "GET")
-    return json({ ready: true, stage: "3B", increment: "usuarios-servicio" });
+    return json({ ready: true, stage: "3A" });
   if (p === "/api/navigation" && req.method === "GET") {
     const scopes = await db
       .prepare(
         actorCTE +
-          `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=s.id AND ci.location_id IN(SELECT id FROM allowed))`,
+          `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN allowed a ON a.id=cl.descendant WHERE cl.ancestor=s.id)`,
       )
-      .bind(hash, env.ACTIVE_CYCLE_ID)
+      .bind(hash)
       .all();
     return json({ user: userDTO(u), scopes: scopes.results });
   }
-  if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
-    fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
-  if (p.startsWith("/api/admin/") || p === "/api/profile")
-    return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO });
+  if (p.startsWith("/api/admin/")) {
+    if (u.role !== "admin") fail(403, "ADMIN_REQUIRED");
+    if (p === "/api/admin/users" && req.method === "GET") {
+      const rows = await db.batch([
+        db.prepare(
+          "SELECT id,username,name,role,active,must_change,revision FROM users ORDER BY username",
+        ),
+        db.prepare("SELECT * FROM grants"),
+        db.prepare("SELECT * FROM scopes"),
+      ]);
+      return json({
+        user: userDTO(u),
+        users: rows[0].results.map((x) => ({
+          ...userDTO(x),
+          grants: rows[1].results
+            .filter((g) => g.user_id === x.id)
+            .map((g) => g.scope_id),
+        })),
+        scopes: rows[2].results,
+      });
+    }
+    if (p === "/api/admin/users" && req.method === "POST") {
+      const b = await body(req);
+      if (
+        !/^[a-z0-9._-]{3,40}$/.test(b.username) ||
+        typeof b.name !== "string" ||
+        !b.name.trim() ||
+        b.name.length > 80 ||
+        !validPassword(b.password) ||
+        !["worker", "admin"].includes(b.role)
+      )
+        fail(400, "INVALID_USER");
+      const id = crypto.randomUUID(),
+        h = await hashPassword(b.password);
+      await auditBatch(
+        db,
+        hash,
+        u.id,
+        id,
+        "create",
+        { username: b.username, name: b.name, role: b.role },
+        [
+          db
+            .prepare(
+              "INSERT INTO users(id,username,name,password_hash,role) VALUES(?,?,?,?,?)",
+            )
+            .bind(id, b.username, b.name.trim(), h, b.role),
+        ],
+      );
+      return json({ id }, 201);
+    }
+    const match = p.match(/^\/api\/admin\/users\/([a-f0-9-]+)(\/password)?$/);
+    if (match && req.method === "POST") {
+      const target = match[1],
+        b = await body(req);
+      if (
+        !(await db
+          .prepare("SELECT id FROM users WHERE id=?")
+          .bind(target)
+          .first())
+      )
+        fail(404, "USER_NOT_FOUND");
+      if (match[2]) {
+        if (!validPassword(b.password)) fail(400, "PASSWORD_POLICY");
+        const h = await hashPassword(b.password);
+        await auditBatch(db, hash, u.id, target, "reset-password", {}, [
+          db
+            .prepare(
+              "UPDATE users SET password_hash=?,must_change=1,revision=revision+1 WHERE id=?",
+            )
+            .bind(h, target),
+        ]);
+      } else {
+        if (
+          typeof b.name !== "string" ||
+          !b.name.trim() ||
+          b.name.length > 80 ||
+          typeof b.active !== "boolean" ||
+          !["worker", "admin"].includes(b.role) ||
+          !Array.isArray(b.grants) ||
+          b.grants.length > 20 ||
+          new Set(b.grants).size !== b.grants.length
+        )
+          fail(400, "INVALID_USER");
+        const validScopes = (
+          await db.prepare("SELECT id FROM scopes").all()
+        ).results.map((x) => x.id);
+        if (b.grants.some((x) => !validScopes.includes(x)))
+          fail(400, "INVALID_SCOPE");
+        await auditBatch(
+          db,
+          hash,
+          u.id,
+          target,
+          "update-user",
+          { name: b.name, active: b.active, role: b.role, grants: b.grants },
+          [
+            db
+              .prepare(
+                "UPDATE users SET name=?,active=?,role=?,revision=revision+1 WHERE id=?",
+              )
+              .bind(b.name.trim(), b.active ? 1 : 0, b.role, target),
+            db.prepare("DELETE FROM grants WHERE user_id=?").bind(target),
+            ...b.grants.map((s) =>
+              db.prepare("INSERT INTO grants VALUES(?,?)").bind(target, s),
+            ),
+          ],
+        );
+      }
+      return json({ ok: true });
+    }
+    fail(404, "NOT_FOUND");
+  }
   const cycle = url.searchParams.get("cycle") || env.ACTIVE_CYCLE_ID;
   if (p === "/api/bootstrap" && req.method === "GET")
     return json({ ...(await boot(db, hash, cycle)), user: userDTO(u) });

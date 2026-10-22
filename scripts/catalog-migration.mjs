@@ -1,4 +1,3 @@
-throw Error("0002 es un catálogo histórico aplicado. Para el reparto nuevo usar scripts/service-catalog-migration.mjs y una migración nueva.");
 import { writeFile } from "node:fs/promises";
 import { catalog, catalogVersion, scopes } from "../worker/catalog.js";
 export const quote = (x) => `'${String(x).replaceAll("'", "''")}'`;

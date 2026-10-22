@@ -6,7 +6,6 @@ import {
   operation,
   record,
   updateUser,
-  resetPassword,
   urlFor,
 } from "./helpers.mjs";
 const db = database();
@@ -28,8 +27,7 @@ await test("Identidad histórica estable al renombrar y propio actualizado sin d
     note: "Original Ana",
   });
   assert.equal(r.status, 200);
-  let me = await a.request("/api/me");
-  assert.equal((await a.request("/api/profile", { name: "Ana nombre nuevo", expectedRevision: me.data.user.revision })).status,200);
+  await updateUser(admin, "ana", { name: "Ana nombre nuevo" });
   try {
     const latest = await record(a, x);
     assert.equal(latest.authorId, a.user.id);
@@ -44,8 +42,7 @@ await test("Identidad histórica estable al renombrar y propio actualizado sin d
       ),
     );
   } finally {
-    me = await a.request("/api/me");
-    await a.request("/api/profile", { name: "Ana ficticia", expectedRevision: me.data.user.revision });
+    await updateUser(admin, "ana", { name: "Ana ficticia" });
   }
 });
 await test("Dos dispositivos propios: el segundo recibe obsolescencia y no restaura un total anterior", async () => {
@@ -162,9 +159,9 @@ await test("Ocho caracteres: alta, ingreso, cambio y restablecimiento; siete se 
   assert.equal((await person.request("/api/me")).status, 401);
   await person.login(username, "Nueva-08");
   const path = `/api/admin/users/${created.data.id}/password`;
-  assert.equal((await resetPassword(admin, created.data.id, "Reset-0")).status, 400);
+  assert.equal((await admin.request(path, { password: "Reset-0" })).status, 400);
   assert.equal((await person.request("/api/me")).status, 200);
-  assert.equal((await resetPassword(admin, created.data.id, "Reset-08")).status, 200);
+  assert.equal((await admin.request(path, { password: "Reset-08" })).status, 200);
   assert.equal((await person.request("/api/me")).status, 401);
   await person.login(username, "Reset-08");
   assert.equal(person.user.mustChange, true);

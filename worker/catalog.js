@@ -4,8 +4,7 @@ import {
   serviceSectors,
   garzonZones,
 } from "../data/inventario/areas.js";
-export const legacyCatalogVersion = "inventory-v2-2026-10-21";
-export const catalogVersion = "inventory-v3-2026-10-22";
+export const catalogVersion = "inventory-v2-2026-10-21";
 export const scopes = [
   ...areas.map((x) => ({ ...x, parent: null })),
   ...serviceSectors.map((x) => ({
@@ -18,7 +17,6 @@ export const scopes = [
     id: `servicio:garzones:${x.id}`,
     parent: "servicio:garzones",
   })),
-  { id: "servicio:mercadito:vitrina", name: "Vitrina", parent: "servicio:mercadito" },
 ];
 export const locationOf = (x) =>
   [x.areaId, x.sectorId, x.zoneId].filter(Boolean).join(":");

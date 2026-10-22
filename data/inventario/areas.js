@@ -12,8 +12,7 @@ export const serviceSectors = [
   { id: "garzones", name: "Garzones" },
   { id: "mercadito", name: "Mercadito" },
   { id: "barra", name: "Barra" },
-  { id: "armado-linea-coperia", name: "Línea / Armado" },
-  { id: "coperia", name: "Copería" },
+  { id: "armado-linea-coperia", name: "Armado / Línea / Copería" },
 ];
 
 export const garzonZones = [
