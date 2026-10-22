@@ -87,6 +87,7 @@ try {
   db.exec(
     "INSERT INTO sessions VALUES('recent-expiry','worker-ops',unixepoch()-3600); INSERT INTO attempts VALUES('current-key',CAST(unixepoch()/900 AS INTEGER),2); COMMIT;",
   );
+  db.exec("INSERT INTO activity_hourly VALUES(unixepoch()-1300000,'worker-ops','sync','none','200',1,unixepoch()-1300000)");
   const tables = [
     "users",
     "grants",
@@ -148,6 +149,7 @@ try {
       t,
     );
   assert.equal(copy.prepare("SELECT count(*) n FROM sessions").get().n, 0);
+  assert.deepEqual(copy.prepare("SELECT * FROM activity_hourly").all(), db.prepare("SELECT * FROM activity_hourly").all());
   assert.equal(
     copy
       .prepare("SELECT count(*) n FROM admin_audit WHERE action='restore'")
@@ -221,6 +223,7 @@ try {
   const preview = JSON.parse(run("maintenance", ["--local", "--state", state]));
   assert.equal(preview.mode, "read-only");
   assert.equal(preview.remaining.expired_sessions, 1005);
+  assert.equal(preview.remaining.expired_activity_buckets, 1);
   assert.equal(
     db.prepare("SELECT count(*) n FROM sessions").get().n,
     beforeSessions,
@@ -230,6 +233,7 @@ try {
   );
   assert.equal(cleaned.remaining.expired_sessions, 5);
   assert.equal(cleaned.remaining.expired_attempt_keys, 5);
+  assert.equal(cleaned.remaining.expired_activity_buckets, 0);
   run("maintenance", ["--local", "--state", state, "--apply"]);
   assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 2);
   assert.equal(db.prepare("SELECT count(*) n FROM attempts").get().n, 1);

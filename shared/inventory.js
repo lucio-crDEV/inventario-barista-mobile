@@ -357,6 +357,8 @@ export class SharedInventory {
   sync({ manual = false } = {}) {
     // Manual refresh and polling share one in-flight read. Neither sends drafts.
     if (this.syncing) return this.syncing;
+    if (Date.now() < (this.retrySyncAt || 0))
+      return Promise.reject(Object.assign(Error("Espera antes de volver a sincronizar. Borrador conservado."), { status: 429 }));
     // A recent accepted poll already performed this read; do not ask D1 again.
     if (manual && Date.now() - this.lastSyncAt < 5000)
       return Promise.resolve();
@@ -384,6 +386,8 @@ export class SharedInventory {
         for (const record of r.changes) this.onRecord?.(record, record.itemId);
         this.cursor = r.cursor;
         this.lastSyncAt = Date.now();
+        this.syncFailures = 0;
+        this.retrySyncAt = 0;
         if (
           r.changes.length &&
           !this.modal &&
@@ -394,6 +398,8 @@ export class SharedInventory {
         )
           this.onRender?.();
       } catch (e) {
+        this.syncFailures = Math.min(6, (this.syncFailures || 0) + 1);
+        this.retrySyncAt = Date.now() + Math.max(e.retryAfter || 0, Math.min(60, 2 ** this.syncFailures)) * 1000;
         this.handleError(e);
         throw e;
       } finally {

@@ -1,5 +1,9 @@
 # Verificación — inventory-v3
 
+## Refuerzo 3A nuevo, posterior al traspaso — 22-10-2026
+
+`npm test` 25/25 y Python 7/7; npm audit completo sin avisos. Runner `npm run test:security:isolated`: 17 etapas aprobadas en scratch, Worker/D1 y Pages HTTPS separados de 8790. Última simulación: 15 clientes, 528 solicitudes totales (496 cronometradas), 151 escrituras/150 retries deduplicados, 14 conflictos esperados, cero errores inesperados; 6.332 ms, p50 34/p95 84/máx 4.206 ms. No mide CPU ni filas facturadas Cloudflare. Recuperación, migración 0005 nueva/poblada, retención, paquete sin internos/sourcemaps, permisos, backoff, fallos de telemetría y cookies HTTPS locales comprobados. No pruebas de la app remota en este encargo; evidencia anterior es histórica. [Resultados estructurados](seguridad-observabilidad-local-2026-10-22.json), [cobertura, intentos intermedios, límites y pendientes](seguridad-observabilidad-3a.md). 0005 remota/preflight/deploy y aceptación operativa pendientes. No se sobrescribieron informes históricos.
+
 ## Revisión al retomar con Hermes — 22-10-2026
 
 Estado actual y alcance completo en [revision-hermes-2026-10-22.md](revision-hermes-2026-10-22.md); evidencia estructurada nueva en [revision-hermes-2026-10-22.json](revision-hermes-2026-10-22.json), sin sobrescribir informes anteriores.

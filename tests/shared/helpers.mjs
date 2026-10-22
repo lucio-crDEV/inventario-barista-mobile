@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import { readdirSync } from "node:fs";
-export const origin = "http://127.0.0.1:8790";
+export const origin = process.env.INVENTORY_TEST_ORIGIN || "http://127.0.0.1:8790";
+if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) throw Error("Tests require local loopback HTTP.");
 export const password = "Solo-pruebas-2026";
 export const cycleId = "prueba-compartida";
 export function database() {
@@ -15,10 +16,12 @@ export function database() {
   return db;
 }
 export class Client {
+  static requests = 0;
   constructor() {
     this.cookie = "";
   }
   async request(path, body, headers = {}) {
+    Client.requests++;
     const start = performance.now();
     const response = await fetch(origin + path, {
       headers: {

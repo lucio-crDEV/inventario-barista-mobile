@@ -1,5 +1,9 @@
 # Contexto del proyecto — inventory-v3
 
+## Refuerzo local de 3A — posterior al traspaso, 22-10-2026
+
+Readiness/preflight de esquema/catálogo/ciclo, JSON limitado por bytes, paquete público restringido, cuotas autenticadas aproximadas, backoff, métricas mínimas solo admin y telemetría horaria best-effort implementados localmente. Usuarios/Servicio se conservan; resto 3B y Excel no se desarrollan. Migración aditiva 0005 probada en bases nuevas/pobladas pero NO aplicada en demo: preparar antes del push. [Informe, riesgos y procedimiento](seguridad-observabilidad-3a.md), [evidencia nueva](seguridad-observabilidad-local-2026-10-22.json). Sin solicitudes a la app remota ni cambios remotos. 3A operativa sigue pendiente.
+
 ## Última decisión y traslado local — 22-10-2026
 
 Raíz trasladada de `/Users/lucio/workspace/inventario-barista-mobile` a `/Users/lucio/workspace/inventario_brioche`, sin cambiar remoto, rama, identificadores, bases ni credenciales. HEAD y seguimiento local `origin/inventory-v3` coinciden en `cfece26`; la lectura viva de GitHub falló por clave SSH. Pages sí confirma `cfece26`, despliegue canónico `7df21f3c` correcto; el usuario confirmó funcionamiento. D1 ya se reparó y hubo un `exceededCpu` histórico distinto. La revisión actual encuentra dos errores posteriores `exceededResources` a las 17:18 UTC, sin ruta ni diagnóstico individual; no prueba fallo permanente ni causa exacta. Free se mantiene y Supabase no está integrado ni es obligatorio. [Evidencia y límites actuales](revision-hermes-2026-10-22.md), [traspaso](traspaso-hermes.md).

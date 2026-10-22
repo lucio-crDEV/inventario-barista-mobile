@@ -1,0 +1,146 @@
+{
+  "observedAt": "2026-10-22T18:48:44.739Z",
+  "branch": "inventory-v3",
+  "environment": "Local workerd/D1 and Pages HTTPS; no production requests",
+  "runs": [
+    {
+      "script": "scripts/build-pages.mjs",
+      "durationMs": 73,
+      "passed": true
+    },
+    {
+      "script": "scripts/prepare-tests.mjs",
+      "durationMs": 15181,
+      "passed": true
+    },
+    {
+      "script": "scripts/preflight.mjs",
+      "durationMs": 1586,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/preflight-negative.mjs",
+      "durationMs": 2447,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/integration.mjs",
+      "durationMs": 10778,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/extended.mjs",
+      "durationMs": 4691,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service.mjs",
+      "durationMs": 4730,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/load.mjs",
+      "durationMs": 6380,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/sync.mjs",
+      "durationMs": 1635,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/backoff.mjs",
+      "durationMs": 769,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/refresh.mjs",
+      "durationMs": 10364,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service-browser.mjs",
+      "durationMs": 11866,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/security-live.mjs",
+      "durationMs": 1750,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/migration-service.mjs",
+      "durationMs": 5468,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/operations.mjs",
+      "durationMs": 11386,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/package-security.mjs",
+      "durationMs": 124,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/pages.mjs",
+      "durationMs": 1753,
+      "passed": true
+    }
+  ],
+  "durationMs": 102794,
+  "unitTests": {
+    "node": 25,
+    "python": 7,
+    "failed": 0
+  },
+  "load": {
+    "environment": "Workers/workerd + D1 local; no garantiza capacidad de producción",
+    "clients": 15,
+    "rounds": 10,
+    "durationMs": 6332,
+    "measuredRequests": 496,
+    "totalRequestsIncludingVerification": 528,
+    "statuses": {
+      "200": 482,
+      "409": 14
+    },
+    "expectedConflicts": 14,
+    "unexpectedErrors": 0,
+    "acceptedWrites": 151,
+    "duplicateRetries": 150,
+    "localStorage": {
+      "telemetryObservations": 92,
+      "pageGrowth": 74,
+      "pageSizeBytes": 4096,
+      "cloudflareCpuAndBilledRows": "Not measurable from this local simulation"
+    },
+    "latencyMs": {
+      "p50": 34,
+      "p95": 84,
+      "max": 4206
+    },
+    "consistency": "151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas",
+    "note": "Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan."
+  },
+  "audit": {
+    "allDependencies": true,
+    "advisories": 0
+  },
+  "isolation": {
+    "active8790Preserved": true,
+    "fixtureDatabaseInScratch": true,
+    "workerRestartedBetweenSuites": true,
+    "loadUninterrupted": true
+  },
+  "notVerified": [
+    "Remote CPU/billed rows and daily quotas",
+    "Remote login/counts/permissions/cookies",
+    "Remote recovery and private external backup",
+    "Physical Android",
+    "Repository visibility",
+    "Sustained real-user workload"
+  ],
+  "evidenceDirectory": "/Users/lucio/.hermes/cache/scratch/inventory-security-LzfvrK"
+}

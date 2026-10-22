@@ -1,7 +1,8 @@
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { writeFile, mkdir } from "node:fs/promises";
-const base = "https://127.0.0.1:8791";
+const base = process.env.INVENTORY_PAGES_ORIGIN || "https://127.0.0.1:8791";
+if (!/^https:\/\/127\.0\.0\.1:\d+$/.test(base)) throw Error("Pages tests require loopback HTTPS.");
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({
   ignoreHTTPSErrors: true,
@@ -36,7 +37,7 @@ try {
   assert.equal(r.status(), 200);
   r = await context.request.get(base + "/api/status");
   assert.equal(r.status(), 200);
-  assert.deepEqual(await r.json(), { ready: true, stage: "3A" });
+  assert.deepEqual(await r.json(), { ready: true, stage: "3A", increment: "usuarios-servicio" });
   const cookie = (await context.cookies()).find(
     (c) => c.name === "__Host-inventory_session",
   );

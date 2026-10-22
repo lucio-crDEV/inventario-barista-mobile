@@ -9,7 +9,7 @@ const roles = ["worker", "service_lead", "admin"];
 const validUsername = value => typeof value === "string" && /^[a-z0-9._-]{3,40}$/.test(value);
 
 export async function accountRequest(req, db, path, { u, hash }, helpers) {
-  const { body, fail, json, userDTO } = helpers;
+  const { body, fail, json, userDTO, quota, event } = helpers;
   const guard = (target, revision, mode = "account", createRole = "worker") => {
     let condition;
     if (mode === "profile") condition = `a.id=?2 AND a.revision=?3`;
@@ -26,6 +26,11 @@ export async function accountRequest(req, db, path, { u, hash }, helpers) {
         db.prepare("INSERT INTO admin_audit(actor,target,action,detail) VALUES(?,?,?,?)").bind(u.id, target || detail.id, action, JSON.stringify(detail)),
         db.prepare("DELETE FROM guards"),
       ]);
+      event.target = target || detail.id;
+      event.action = action;
+      if (["reset-password", "delete-user"].includes(action) ||
+          (action === "update-user" && detail.after.username !== undefined && (detail.before.username !== detail.after.username || !detail.after.active)))
+        event.sessionsRevoked = true;
     } catch (e) {
       if (/CHECK constraint failed: value=1/.test(e.message))
         fail(409, "ACCOUNT_CHANGED", "La cuenta o tus permisos cambiaron. Recarga y revisa antes de guardar.");
@@ -68,6 +73,7 @@ export async function accountRequest(req, db, path, { u, hash }, helpers) {
     if (Object.keys(b).some(k => !["username", "name", "role", "password"].includes(k)) || !validUsername(b.username) || typeof b.name !== "string" || !b.name.trim() || b.name.length > 80 || !validPassword(b.password) || !roles.includes(b.role))
       fail(400, "INVALID_USER", "Revisa usuario, nombre, rol y contraseña temporal.");
     if (u.role === "service_lead" && b.role !== "worker") fail(403, "FORBIDDEN");
+    await quota(db, "admin-password:" + u.id, 10);
     const id = crypto.randomUUID(), h = await hashPassword(b.password);
     await write(null, null, "create", "create", { id, username: b.username, name: b.name.trim(), role: b.role }, [
       db.prepare("INSERT INTO users(id,username,name,password_hash,role,managed_scope) VALUES(?,?,?,?,?,?)").bind(id, b.username, b.name.trim(), h, b.role, u.role === "service_lead" ? "servicio" : null),
@@ -93,6 +99,7 @@ export async function accountRequest(req, db, path, { u, hash }, helpers) {
         return json({ ok: true, deleted: true });
       }
       if (!validPassword(b.password) || Object.keys(b).some(k => !["password", "expectedRevision"].includes(k))) fail(400, "PASSWORD_POLICY");
+      await quota(db, "admin-password:" + u.id, 10);
       const h = await hashPassword(b.password);
       await write(targetId, rev, "account", "reset-password", {}, [
         db.prepare("UPDATE users SET password_hash=?,must_change=1,revision=revision+1 WHERE id=?").bind(h, t.id),

@@ -1,5 +1,9 @@
 # Traspaso de Inventario Brioche a Hermes — 22-10-2026
 
+## Refuerzo posterior de 3A — leer antes de publicar
+
+El encargo posterior preservó este traspaso y cambios existentes en `98282ea`, por separado. Cambios funcionales locales: [informe nuevo y procedimiento](seguridad-observabilidad-3a.md), [resultados](seguridad-observabilidad-local-2026-10-22.json). NUEVA 0005 aditiva necesita preparación remota explícita antes de push; no aplicada aquí. 3A operativa sigue abierta, usuarios/Servicio conservados; resto 3B/Excel fuera de alcance. Pruebas de este encargo locales aisladas, sin reinicializar servidor/base 8790 ni probar app remota. Autorizados commits locales, no push/deploy/cambios remotos.
+
 ## Raíz, Git y entornos
 
 - Raíz canónica: `/Users/lucio/workspace/inventario_brioche`. Es el mismo repositorio trasladado, con `.git`, `node_modules`, `.wrangler`, respaldos privados y documentos. La carpeta anterior se retiró; no trabajar en una copia ni reconstruir el proyecto desde cero.

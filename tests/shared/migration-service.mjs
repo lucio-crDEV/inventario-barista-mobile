@@ -41,6 +41,14 @@ try {
   assert.deepEqual(db.prepare("SELECT * FROM operations").all(),before.operations);
   assert.deepEqual(db.prepare("SELECT * FROM counts").all(),before.counts);
   assert.deepEqual(db.prepare("SELECT * FROM history").all(),before.history);
+  const upgraded = Object.fromEntries(["users","grants",...tables].map(t=>[t,db.prepare(`SELECT * FROM ${t}`).all()]));
+  db.close();db=null;
+  execute(readFileSync("migrations/0005_activity.sql","utf8"));
+  db=new DatabaseSync(databaseFile);
+  for(const [table,rows] of Object.entries(upgraded)) assert.deepEqual(db.prepare(`SELECT * FROM ${table}`).all(),rows,table);
+  assert.equal(db.prepare("SELECT count(*) n FROM activity_hourly").get().n,0);
+  assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(),[]);
+  assert.equal(db.prepare("PRAGMA integrity_check").get().integrity_check,"ok");
   const report={environment:"Wrangler + D1 local real, base temporal separada",date:"2026-10-22",passed:true,checks:["0003 y 0004 sobre usuarios, sesiones, ciclo, conteo y operación previos","Claves foráneas e integridad válidas","Sesiones/UUID/conteos/historial/resultados previos idénticos","Catálogo anterior conservado y alcance combinado trasladado a Copería","Reintento previo no duplica ni modifica el conteo tras migrar"]};
   writeFileSync("docs/migracion-servicio-local-3b.json",JSON.stringify(report,null,2)+"\n");
   console.log(JSON.stringify(report,null,2));

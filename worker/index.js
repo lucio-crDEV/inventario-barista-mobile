@@ -6,6 +6,8 @@ import {
 } from "./password.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
+import { routeName, allowRequest, observe, logEvent, metrics } from "./telemetry.js";
+import { readinessSQL, fastReadinessSQL } from "./readiness.js";
 const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
     status,
@@ -33,8 +35,26 @@ const cookie = (env, value, age = 43200) =>
 async function body(req) {
   if (!req.headers.get("content-type")?.startsWith("application/json"))
     fail(415, "JSON_REQUIRED");
-  const raw = await req.text();
-  if (raw.length > 16384) fail(413, "TOO_LARGE");
+  const reader = req.body?.getReader();
+  const chunks = [];
+  let size = 0;
+  if (Number(req.headers.get("content-length")) > 16384) fail(413, "TOO_LARGE");
+  if (reader) {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 16384) {
+        await reader.cancel();
+        fail(413, "TOO_LARGE");
+      }
+      chunks.push(value);
+    }
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  const raw = new TextDecoder().decode(bytes);
   try {
     const b = JSON.parse(raw);
     if (!b || typeof b !== "object" || Array.isArray(b))
@@ -82,7 +102,7 @@ async function quota(db, key, max) {
     .bind(key, window)
     .first();
   if (r.n > max)
-    fail(429, "RATE_LIMIT", "Demasiados intentos. Espera 15 minutos.");
+    fail(429, "RATE_LIMIT", "Demasiados intentos. Espera 15 minutos.", { retryAfter: 900 });
 }
 const parseRecord = (r) => (r ? JSON.parse(r.record) : null);
 async function current(db, hash, cycle, item, location) {
@@ -167,7 +187,7 @@ async function boot(db, hash, cycle) {
     cursor: results[4].results[0].cursor,
   };
 }
-async function api(req, env, url) {
+async function api(req, env, url, event) {
   if (
     !env.DB ||
     !env.APP_ORIGIN ||
@@ -184,10 +204,7 @@ async function api(req, env, url) {
     fail(503, "NOT_CONFIGURED");
   try {
     const ready = await env.DB.prepare(
-      `SELECT 1 ready FROM cycles c WHERE c.id=?
-      AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version)
-      AND EXISTS(SELECT 1 FROM users WHERE role='admin' AND active=1)
-      AND EXISTS(SELECT 1 FROM sqlite_schema WHERE name='inventory_permissions' AND type='view')`,
+      ["/api/login", "/api/me", "/api/status", "/api/bootstrap"].includes(url.pathname) ? readinessSQL : fastReadinessSQL,
     )
       .bind(env.ACTIVE_CYCLE_ID)
       .first();
@@ -199,7 +216,7 @@ async function api(req, env, url) {
       );
   } catch (e) {
     if (e.status) throw e;
-    console.error("Inventory initialization failed", e.message);
+
     fail(
       503,
       "NOT_INITIALIZED",
@@ -248,10 +265,14 @@ async function api(req, env, url) {
       .run();
     if (!inserted.meta.changes)
       fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
+    event.actor = u.id;
     const navigation = await db.prepare(actorCTE + `SELECT sc.* FROM scopes sc WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=sc.id AND ci.location_id IN(SELECT id FROM allowed))`).bind(hash, env.ACTIVE_CYCLE_ID).all();
     return json({ user: userDTO(u), homeUrl: homeURL(navigation.results) }, 200, { "Set-Cookie": cookie(env, raw) });
   }
   const { u, hash } = await auth(req, env);
+  event.actor = u.id;
+  if (p !== "/api/logout" && !allowRequest(u.id, event.route))
+    fail(429, "RATE_LIMIT", "Demasiadas solicitudes. Espera un minuto.", { retryAfter: 60 });
   if (p === "/api/logout" && req.method === "POST") {
     await db.prepare("DELETE FROM sessions WHERE hash=?").bind(hash).run();
     return json({ ok: true }, 200, { "Set-Cookie": cookie(env, "", 0) });
@@ -281,6 +302,7 @@ async function api(req, env, url) {
       .bind(h, u.id, u.password_hash, hash)
       .run();
     if (!result.meta.changes) fail(401, "SESSION_REQUIRED");
+    event.sessionsRevoked = true;
     return json({ ok: true, loginRequired: true }, 200, {
       "Set-Cookie": cookie(env, "", 0),
     });
@@ -292,7 +314,11 @@ async function api(req, env, url) {
       "Debes cambiar tu contraseña temporal.",
     );
   if (p === "/api/status" && req.method === "GET")
-    return json({ ready: true, stage: "3B", increment: "usuarios-servicio" });
+    return json({ ready: true, stage: "3A", increment: "usuarios-servicio" });
+  if (p === "/api/admin/metrics" && req.method === "GET") {
+    if (u.role !== "admin") fail(403, "ADMIN_REQUIRED");
+    return json(await metrics(db, hash));
+  }
   if (p === "/api/navigation" && req.method === "GET") {
     const scopes = await db
       .prepare(
@@ -306,10 +332,13 @@ async function api(req, env, url) {
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
   if (p.startsWith("/api/admin/") || p === "/api/profile")
-    return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO });
+    return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event });
   const cycle = url.searchParams.get("cycle") || env.ACTIVE_CYCLE_ID;
-  if (p === "/api/bootstrap" && req.method === "GET")
-    return json({ ...(await boot(db, hash, cycle)), user: userDTO(u) });
+  if (p === "/api/bootstrap" && req.method === "GET") {
+    const data = await boot(db, hash, cycle);
+    event.scope = [...new Set(data.items.map(x => x.areaId))].sort().join(",") || "none";
+    return json({ ...data, user: userDTO(u) });
+  }
   if (p === "/api/sync" && req.method === "GET") {
     const cursor = Number(url.searchParams.get("cursor") || 0);
     if (!Number.isSafeInteger(cursor) || cursor < 0)
@@ -354,6 +383,7 @@ async function api(req, env, url) {
     const item = url.searchParams.get("item"),
       location = url.searchParams.get("location");
     await allowedItem(db, hash, cycle, item, location);
+    event.scope = location;
     if (p === "/api/record")
       return json({ record: await current(db, hash, cycle, item, location) });
     const rows = await db
@@ -421,6 +451,7 @@ async function api(req, env, url) {
         "Cantidad o registro inválidos. Máximo tres decimales.",
       );
     await allowedItem(db, hash, b.cycleId, b.itemId, b.locationId);
+    event.scope = b.locationId;
     const canonical = JSON.stringify(keys.map((k) => b[k])),
       fingerprint = await digest(canonical);
     try {
@@ -495,11 +526,27 @@ function secured(res) {
   return new Response(res.body, { status: res.status, headers });
 }
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
+    const started = Date.now();
+    const url = new URL(req.url);
+    const event = { requestId: crypto.randomUUID(), route: routeName(url.pathname), method: ["GET", "POST"].includes(req.method) ? req.method : "other", status: 500 };
+    const finish = (res) => {
+      event.status = res.status;
+      const response = secured(res);
+      response.headers.set("X-Request-ID", event.requestId);
+
+      if (url.pathname.startsWith("/api/")) {
+        // All errors and sensitive actions; ordinary reads are temporally sampled in D1.
+        if (res.status >= 400 || ["login", "logout", "password", "profile", "admin-users"].includes(event.route))
+          logEvent({ ...event, at: new Date().toISOString(), elapsedMs: Date.now() - started });
+        const pending = observe(env.DB, event);
+        if (ctx?.waitUntil) ctx.waitUntil(pending);
+      }
+      return response;
+    };
     try {
-      const url = new URL(req.url);
       let res;
-      if (url.pathname.startsWith("/api/")) res = await api(req, env, url);
+      if (url.pathname.startsWith("/api/")) res = await api(req, env, url, event);
       else if (
         !/^\/(?:$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,
@@ -507,11 +554,10 @@ export default {
       )
         res = json({ code: "NOT_FOUND" }, 404);
       else res = await env.ASSETS.fetch(req);
-      return secured(res);
+      return finish(res);
     } catch (e) {
       const known = e.status || /LAST_ADMIN|UNIQUE constraint/.test(e.message);
-      if (!known) console.error("API failure", e.message);
-      return secured(
+      return finish(
         json(
           {
             code:
@@ -529,6 +575,7 @@ export default {
             ...(e.current !== undefined ? { current: e.current } : {}),
           },
           e.status || (known ? 409 : 500),
+          e.retryAfter ? { "Retry-After": String(e.retryAfter) } : {},
         ),
       );
     }

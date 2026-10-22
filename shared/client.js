@@ -54,6 +54,7 @@ export async function api(path, body) {
   if (!r.ok)
     throw Object.assign(Error(data.message || data.code), data, {
       status: r.status,
+      retryAfter: Math.min(900, Math.max(0, Number(r.headers.get("Retry-After")) || 0)),
     });
   return data;
 }

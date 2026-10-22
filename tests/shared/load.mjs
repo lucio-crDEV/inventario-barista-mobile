@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import { Client, database, record, operation, cycleId } from "./helpers.mjs";
 const db = database();
+const telemetryBefore = db.prepare("SELECT coalesce(sum(observations),0) n FROM activity_hourly").get().n;
+const pagesBefore = db.prepare("PRAGMA page_count").get().page_count;
 db.exec("DELETE FROM attempts");
 const start = performance.now(),
   times = [],
@@ -94,11 +96,18 @@ const report = {
   rounds: 10,
   durationMs: Math.round(performance.now() - start),
   measuredRequests: requests,
+  totalRequestsIncludingVerification: Client.requests,
   statuses,
   expectedConflicts: 14,
   unexpectedErrors: 0,
   acceptedWrites: ops,
   duplicateRetries: 150,
+  localStorage: {
+    telemetryObservations: db.prepare("SELECT coalesce(sum(observations),0) n FROM activity_hourly").get().n - telemetryBefore,
+    pageGrowth: db.prepare("PRAGMA page_count").get().page_count - pagesBefore,
+    pageSizeBytes: db.prepare("PRAGMA page_size").get().page_size,
+    cloudflareCpuAndBilledRows: "Not measurable from this local simulation",
+  },
   latencyMs: { p50: pct(0.5), p95: pct(0.95), max: Math.round(times.at(-1)) },
   consistency:
     "151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas",

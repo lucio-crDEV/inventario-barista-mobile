@@ -114,6 +114,7 @@ try {
   const tab = await context.newPage();
   await tab.clock.install();
   await tab.goto(origin + "/");
+  await expect(tab.locator(".identity-bar")).toBeAttached();
   await tab.locator("[data-settings-toggle]").click();
   const otherButton = tab.getByRole("button", { name: "Actualizar sincronización", exact: true });
   await expect(otherButton).toBeDisabled();

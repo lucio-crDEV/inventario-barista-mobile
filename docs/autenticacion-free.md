@@ -1,5 +1,7 @@
 # Autenticación en Workers Free — punto de continuación 22-10-2026
 
+Refuerzo posterior local: cuotas a derivación administrativa y peticiones autenticadas, Retry-After/backoff, logs mínimos y métricas solo admin. No cambia bcrypt 12 ni resuelve/certifica CPU Free. [Pruebas, riesgos y medición remota pendiente](seguridad-observabilidad-3a.md). No integración Supabase ni cambios de facturación.
+
 ## Estado vigente — 22-10-2026
 
 El usuario publicó `cfece26` y confirmó funcionamiento. Pages confirma ese commit en el despliegue canónico `7df21f3c`, terminado correctamente; los 16 GET públicos pasan. D1 ya se reparó. Las métricas posteriores de Pages muestran dos errores `exceededResources` a las 17:18 UTC / 14:18 -03; no incluyen ruta ni `outcome=exceededCpu`, por lo que no prueban que fueran ingresos ni precisan la causa individual. **Free se mantiene; Supabase sigue como alternativa sin integrar, no una tarea obligatoria.** [Evidencia nueva y límites](revision-hermes-2026-10-22.md), [traspaso](traspaso-hermes.md).

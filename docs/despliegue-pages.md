@@ -1,5 +1,9 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
+## Preparación NUEVA pendiente antes del próximo push
+
+Esta entrega local añade `0005_activity.sql` (aditiva). NO aplicada remotamente. Revisar migraciones, copia/recuperación y variables efectivas; aplicar solo pendientes con autorización ANTES del push. Después `npm run preflight -- --remote --config wrangler.pages.production.jsonc --cycle piloto-v3-servicio` (solo lectura; pendiente autorización). Build no migra ni ejecuta consultas remotas. Mantener 0001–0004/ciclo/admin existentes, sin fixtures/bootstrap nuevo. [Secuencia completa, rollback por capa y comprobaciones controladas de mañana](seguridad-observabilidad-3a.md). Volver a cfece26 no revierte D1/config/datos; 0005 puede quedarse sin uso al revertir código. No declarar listo para push sin preparación.
+
 **Estado comprobado del 22-10-2026:** Pages confirma `cfece26`, despliegue canónico `7df21f3c-e662-443d-a953-b9e502863882`, etapa deploy `success`. Funcionamiento online confirmado por el usuario; 16 GET anónimos y cinco assets comprobados ahora. D1 ya se reparó con `0003`/`0004` y `piloto-v3-servicio`; siete cuentas constan en el informe histórico, sin recontarlas. Métricas posteriores registran dos errores `exceededResources`, sin ruta ni resultado CPU individual; no prueban caída permanente. **Mantener Free; Supabase no está integrado ni es obligatorio.** [Evidencia nueva](revision-hermes-2026-10-22.md), [registro](verification.md). No repetir bootstrap, migraciones aplicadas ni ciclo. Los comandos remotos siguientes son referencia y requieren autorización específica; no se ejecutan durante esta revisión.
 
 Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proyecto Pages `inventario-login`, repositorio `lucio-crDEV/inventario-barista-mobile`, rama `inventory-v3`. Mantener el proyecto y la rama `inventory-v2` separados.
