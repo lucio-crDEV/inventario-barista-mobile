@@ -8,6 +8,7 @@ import {
   record,
   urlFor,
   updateUser,
+  resetPassword,
   password,
 } from "./helpers.mjs";
 const db = database();
@@ -63,7 +64,7 @@ await test("Jerarquía, múltiples ámbitos, sin asignaciones, administrador y e
   assert.equal(empty.cycle, null);
   assert.ok(bar.length > 0 && bar.every((x) => x.sectorId === "barra"));
   assert.ok(cook.every((x) => x.areaId === "cocina"));
-  assert.equal(all.items.length, 1227);
+  assert.equal(all.items.length, 1268);
   const multi = new Client(),
     terra = new Client(),
     gar = new Client();
@@ -280,7 +281,7 @@ await test("Cambio, restablecimiento obligatorio, desactivación, revocación e 
   assert.equal(c.user.id, id);
   assert.equal((await c.boot()).items.length, 0);
   assert.equal(
-    (await admin.request("/api/admin/users/" + id + "/password", { password }))
+    (await resetPassword(admin, id, password))
       .status,
     200,
   );
@@ -295,7 +296,6 @@ await test("Cambio, restablecimiento obligatorio, desactivación, revocación e 
   assert.equal(
     (
       await updateUser(admin, username, {
-        name: "Nombre cambiado",
         active: false,
       })
     ).status,

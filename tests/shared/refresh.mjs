@@ -51,7 +51,7 @@ try {
   });
   assert.equal(login.status(), 200);
   await page.goto(origin + "/");
-  await expect(page.locator("nav a")).toBeVisible();
+  await expect(page.locator(".category-card").first()).toBeVisible();
   for (const width of [320, 390, 1024]) {
     await page.setViewportSize({ width, height: 844 });
     for (const theme of ["light", "dark"]) {

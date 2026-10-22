@@ -23,7 +23,7 @@ export class Client {
     const response = await fetch(origin + path, {
       headers: {
         cookie: this.cookie,
-        ...(path === "/api/count"
+        ...(path === "/api/count" || path === "/api/profile" || path.startsWith("/api/admin/")
           ? { "X-Inventory-User": this.user?.id || "" }
           : {}),
         ...(body === undefined
@@ -93,10 +93,17 @@ export async function updateUser(admin, user, changes) {
   const u = r.data.users.find((x) => x.username === user);
   assert.ok(u);
   return admin.request("/api/admin/users/" + u.id, {
-    name: u.name,
+    username: u.username,
+    expectedRevision: u.revision,
     active: u.active,
     role: u.role,
     grants: u.grants,
     ...changes,
   });
+}
+export async function resetPassword(admin, id, password) {
+  const r = await admin.request("/api/admin/users");
+  const target = r.data.users.find(u => u.id === id);
+  assert.ok(target);
+  return admin.request(`/api/admin/users/${id}/password`, { password, expectedRevision: target.revision });
 }

@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-22",
+  "origin": "https://inventario-login.pages.dev",
+  "authenticated": false,
+  "mutatingRequests": 0,
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/pages/cuenta/",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/shared/loading.js",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/api/me",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/bootstrap",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/navigation",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/sync?cursor=0",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/summary",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/api/history",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "securityHeaders": true,
+      "json": true,
+      "noStore": true
+    },
+    {
+      "path": "/data/inventario/items/catalogo-excel.js",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/migrations/0001_core.sql",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/scripts/bootstrap.mjs",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/_worker.js",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/inventarios_og/11_10-INVENTARIO-totalizado.xlsx",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/.backups/",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    },
+    {
+      "path": "/sources/",
+      "status": 404,
+      "expected": 404,
+      "passed": true,
+      "securityHeaders": true
+    }
+  ],
+  "routingPassed": true,
+  "securityHeadersPassed": true,
+  "passed": true
+}

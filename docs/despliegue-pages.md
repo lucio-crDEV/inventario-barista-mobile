@@ -1,18 +1,22 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
+**Estado del 22-10-2026:** demo en `94d3a83`, despliegue `982d494e`, con migraciones `0003`/`0004`, ciclo `piloto-v3-servicio` y siete cuentas mínimas preparados con autorización. El 503 `NOT_INITIALIZED` se corrigió; las 16 comprobaciones públicas pasan. **Ingreso y altas no son estables: error Cloudflare 1102, `exceededCpu` confirmado en logs.** Resolver alojamiento/CPU; no se cambió facturación ni bcrypt. [Evidencia](verification.md), [procedimiento para otros entornos](usuarios-y-servicio-3b.md). No repetir bootstrap, migraciones aplicadas ni creación del ciclo. El registro de `5d80658` de abajo es histórico del 21-10.
+
 Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proyecto Pages `inventario-login`, repositorio `lucio-crDEV/inventario-barista-mobile`, rama `inventory-v3`. Mantener el proyecto y la rama `inventory-v2` separados.
 
-## Estado comprobado y lo que falta
+## Registro histórico del 21-10-2026
 
-El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 el usuario confirmó también la aplicación exitosa del SQL del primer administrador `admin`: D1 procesó las cuatro consultas sin error. No repetir migraciones, creación del ciclo ni bootstrap en esta instalación. Posteriormente confirmó funcionamiento y aportó los logs exitosos de `ec80d9c` y `fb67ecb` (UX, skeletons y menos peticiones). El recorrido autenticado completo y el rendimiento real aún no se verificaron de manera independiente.
+El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 confirmó la aplicación exitosa del SQL del primer administrador `admin`: cuatro consultas sin error. **No repetir el bootstrap ni recrear `piloto-v3`; las migraciones nuevas y el ciclo separado del incremento del 22-10 sí se preparan según la guía inicial.** Último código publicado comprobado: `5d80658`, éxito confirmado mediante consulta de despliegues; URL de ese despliegue `https://0458b9d4.inventario-login.pages.dev`.
+
+En el dominio principal, cuatro archivos del ajuste coinciden exactamente con el commit local. Verificador anónimo **16/16** y recorrido básico de ingreso/cierre del administrador, Cuenta, menú, temas, refresco con espera de 30 segundos y lectura de cuentas aprobados. No se modificaron conteos, cuentas, contraseñas ni permisos; ingresar/salir utiliza los metadatos normales de sesión. Los conteos/conflictos y cambios de permisos con varias personas, atributos de cookie del dominio, CPU y recuperación remota siguen pendientes. [Detalle de comprobaciones](verification.md).
 
 La revisión pública inicial encontró HTML en `/api/me` y `/api/bootstrap`, y el catálogo global accesible como archivo. Se corrigió publicando **`dist` generado con `npm run build:pages`**, que contiene el Worker. Se comprobó API, autorización, cookie segura y reintento idempotente en Pages + D1 por HTTPS local; la comprobación pública posterior confirmó la pantalla nueva, API JSON que exige sesión y catálogo global inaccesible. Después se corrigieron cabeceras ausentes en seis errores 401. Tras esperar el despliegue, el usuario repitió el verificador el 21-10-2026: **16/16 comprobaciones aprobadas**, con `routingPassed`, `securityHeadersPassed` y `passed` en `true`. Informe: [publico-3a.json](publico-3a.json). No se modificaron esquema ni datos para esa corrección.
 
-Esta tarea deja código, documentación y commits locales. No ejecuta push, despliegue, cambios en el panel Cloudflare ni escrituras remotas. Los logs aportados confirman `npm run build:pages`, compilación del Worker, carga de `_routes.json` y publicación exitosa hasta `fb67ecb`. Se conserva abajo la configuración reproducible; no se inspeccionó el panel privado.
+Los pushes, despliegues e inicialización remota los realizó el usuario. La revisión consultó en lectura los despliegues y proyectos mediante Wrangler; no cambió la configuración de Cloudflare. Los logs confirman `build:pages`, compilación/carga del Worker y publicación. No se han certificado todos los ajustes del panel ni CPU remota. Se conserva abajo la configuración reproducible.
 
 ## 1. Configurar una vez el despliegue automático
 
-En Cloudflare → Workers & Pages → **inventario-login**, comprobar la integración Git con `lucio-crDEV/inventario-barista-mobile`. En Settings / Builds & deployments (o Build / Branch control según el panel), establecer:
+En Cloudflare → Workers & Pages → **inventario-login**, comprobar la integración Git con `lucio-crDEV/inventario-barista-mobile`. En Settings / Builds & deployments (o Build / Branch control según el panel), usar esta configuración objetivo. La fila de previews es una recomendación pendiente, no un cambio ya realizado:
 
 | Ajuste | Valor |
 | --- | --- |
@@ -23,7 +27,9 @@ En Cloudflare → Workers & Pages → **inventario-login**, comprobar la integra
 | Build command | `npm run build:pages` |
 | Build output directory | `dist` |
 | Variable de compilación `NODE_VERSION` | `24` |
-| Preview deployments | Desactivadas mientras no exista D1/origen de ensayo separado |
+| Preview deployments | Recomendado: desactivadas mientras no exista D1/origen de ensayo separado; todavía no aplicado |
+
+La consulta de proyectos del 21-10-2026 mostró previews para **todas las ramas** en los cuatro proyectos: `inventario-login` (producción `inventory-v3`), `inventario-local` (`inventory-v2`), `pedido-bodega` (`warehouse-order`) e `inventario-barra` (`main`). Un push a v3 puede generar tres builds de preview adicionales. Conviene restringir las previews irrelevantes preservando esas ramas de producción; **no se modificó esa configuración**. Esto puede consumir compilaciones, pero no demuestra por sí solo la causa de la demora observada.
 
 No publicar `.` ni la raíz del repositorio. `npm run build` por sí solo prepara assets para Workers, pero no añade el módulo requerido por Pages. `build:pages` empaqueta el mismo servidor en `dist/_worker.js` y hace pasar todas las rutas por él mediante `_routes.json`; no añade un framework.
 
@@ -41,7 +47,7 @@ En variables de ejecución de **Production**, guardar:
 | --- | --- |
 | `APP_ENV` | `production` |
 | `APP_ORIGIN` | `https://inventario-login.pages.dev` |
-| `ACTIVE_CYCLE_ID` | `piloto-v3` |
+| `ACTIVE_CYCLE_ID` | `piloto-v3-servicio` para el incremento del 22-10; crear primero ese ciclo |
 
 Usar fecha de compatibilidad `2026-10-01`. No poner una barra final en `APP_ORIGIN` ni sustituirlo por `*`; cambiar el dominio requiere actualizar el origen exacto y volver a desplegar. No habilitar fixtures en este proyecto.
 
@@ -101,24 +107,32 @@ No ejecutar migraciones ni bootstrap de administrador como parte del comando de 
 
 ## 4. Comprobar el sitio después del deployment
 
-Comprobación del 21-10-2026 posterior al menú de cuenta: los archivos públicos seguían coincidiendo con la interfaz anterior a `2ac0e4c`; el ingreso autenticado con el administrador funcionó. La captura del usuario confirmó `f760035` como producción activa y dos intentos de `2ac0e4c` en cola, después cancelados según informó. El usuario también informa push del commit vacío `80927ab`, sin un nuevo deployment visible a los dos minutos. No se ha establecido la causa de esa ausencia. El siguiente commit contiene cambios reales de interfaz para un nuevo intento; no se ejecutó push ni deployment desde esta revisión. Que `.DS_Store` quede sin seguimiento no impide publicar los archivos versionados. No repetir migraciones ni bootstrap: este ajuste no cambia el esquema.
+Última comprobación: `5d80658` publicado y revisado como se describe al inicio; no hay un despliegue pendiente de ese ajuste en esta revisión. Que `.DS_Store` quede sin seguimiento no impide publicar archivos versionados. No repetir migraciones ni bootstrap para cambios de interfaz/documentación.
 
 1. Abrir `/api/me` sin sesión: debe responder JSON 401. Un 503 JSON indica configuración/inicialización pendiente; HTML indica que todavía no corre el Worker correcto. No debe aparecer `Unexpected token '<'` en la vista Cuenta.
 2. Abrir `/data/inventario/items/catalogo-excel.js`, `/migrations/0001_core.sql`, `/worker/index.js` y `/_worker.js`: deben devolver 404. No publicar libros ni scripts de inicialización.
-3. Ingresar con el administrador personal, cambiar su contraseña temporal y volver a ingresar. Comprobar cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict y Path `/` en herramientas del navegador.
+3. Ingresar con el administrador personal. Solo para una cuenta temporal nueva, cambiar su contraseña y volver a ingresar; no repetir ese paso si ya se completó. Comprobar cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict y Path `/` en herramientas del navegador. El ingreso/cierre ya se revisó en el dominio; la inspección allí de esos atributos sigue pendiente.
 4. Crear dos cuentas personales con Barra y una con Cocina, con contraseñas temporales privadas. Sin asignaciones se permite ingreso/cambio de contraseña, pero no acceso al inventario. Usar sesiones de navegador independientes.
 5. Guardar 4 en Barra como A; proponer 3 como B. Descartar conserva 4; Sumar muestra 4 + 3 = 7; Sobrescribir muestra resultado 3. Restablecer el escenario entre ensayos. Una modificación remota mientras se confirma debe exigir nueva elección.
 6. Dar Barra + Armado/Línea/Copería a otra cuenta: no debe ver Mercadito/Garzones. Probar Garzones completo frente a Terraza sola. La cuenta Cocina no debe acceder a Barra por URL ni API.
 7. Con una edición pendiente, retirar Barra desde el administrador: la siguiente solicitud rechaza el acceso, desaparecen datos y queda aviso del borrador aislado. Cambiar de usuario no transfiere esos campos.
 8. Restablecer/desactivar una cuenta y comprobar que sus sesiones dejan de funcionar. Revisar ambas apariencias en un teléfono real y verificar tiempos de ingreso/guardado en la red del local.
 
-No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y límites están en [verification.md](verification.md). 3A tiene implementación y pruebas locales; respaldo/restauración y retención ya cuentan con herramientas ensayadas localmente. Su aceptación operativa sigue pendiente del recorrido autenticado remoto, CPU/plan, recuperación remota/copia externa y dispositivo físico. El piloto con equipo se aplazó por decisión del usuario. 3B puede comenzar por supervisión e historial administrativo de solo lectura, según [etapa-3b.md](etapa-3b.md); Excel corresponde a etapa 4.
+No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y límites están en [verification.md](verification.md). 3A tiene implementación, pruebas locales y revisión básica del dominio; respaldo/restauración y retención cuentan con herramientas ensayadas localmente. Su aceptación operativa sigue pendiente de conteos/conflictos y permisos con varias personas en el dominio, atributos de cookie allí, CPU/plan, recuperación remota/copia externa y dispositivo físico. El piloto con equipo se aplazó por decisión del usuario. 3B puede comenzar por supervisión e historial administrativo de solo lectura, según [etapa-3b.md](etapa-3b.md); Excel corresponde a etapa 4.
 
 El usuario supone Free por no haber contratado pagos, sin confirmación del panel. La medición local de bcrypt coste 12 no permite aprobar su compatibilidad con ese plan. Confirmar plan y resolver CPU antes de habilitar uso real; no cambiar coste ni facturación automáticamente. [Evidencia y procedimiento de recuperación](cierre-tecnico-3a.md).
 
 
-## Publicar el cierre técnico posterior a UX
+## Demora observada y publicaciones posteriores — 21-10-2026
 
-Los skeletons, transiciones y menos peticiones ya se publicaron en `fb67ecb`; después se publicó la corrección de cabeceras del cierre técnico. Se conservan rama, build, salida, D1, variables y ciclo. Los siguientes cambios se envían con `git push origin inventory-v3`. **No repetir migraciones ni bootstrap de usuarios** cuando no cambia el esquema. Después de cada deployment, comprobar el commit y ejecutar `npm run verify:public`: únicamente 16 GET anónimos, sin carga ni escrituras. La última ejecución del usuario pasa también las cabeceras de los errores; el informe anterior fallido queda en la historia de Git.
+Durante el primer intento de publicar el menú, producción aún servía `f760035`; dos intentos de `2ac0e4c` quedaron sin publicar, uno sustituido y otro cancelado por el usuario. Después se envió `80927ab`. Sus etapas registran **14 min 47 s en cola**; desde el comienzo de clonado hasta el éxito transcurrieron aproximadamente **22 s** (15:18:33–15:18:55 UTC). El tiempo de cola es distinto del tiempo de compilación/publicación.
+
+La captura de Cloudflare mostró un aviso explícito de degradación de eventos push procedentes de GitHub. El [incidente oficial de GitHub sobre retrasos en pull requests y webhooks](https://www.githubstatus.com/incidents/nms1dpzmh9d9) se abrió a las 14:52 UTC y seguía en investigación en la actualización consultada de las 15:36 UTC. Esta es evidencia histórica del incidente observado, no una afirmación sobre su estado actual ni una prueba de la causa de cada segundo de cola.
+
+Posteriormente se publicaron `80927ab`, `7dc005c` y finalmente `5d80658`; este último se comprobó en el dominio. No crear commits vacíos ni repetir pushes como método para resolver una demora externa. Comprobar primero commit recibido, estado de cola/build y avisos del proveedor.
+
+## Actualizaciones posteriores
+
+Menú, formularios y refresco compacto están incluidos en `5d80658`, además de skeletons y corrección de cabeceras. Se conservan rama, build, salida, D1, variables y ciclo. Los cambios futuros se envían con `git push origin inventory-v3` después de quedar en commits. **No repetir migraciones ni bootstrap de usuarios** cuando no cambia el esquema. Después de cada deployment, comprobar el commit y ejecutar `npm run verify:public`: únicamente 16 GET anónimos, sin carga ni escrituras. La última ejecución de esta tarea tras `5d80658` pasa también las cabeceras de los errores; el informe anterior fallido queda en la historia de Git.
 
 Los scripts de respaldo y mantenimiento son tareas explícitas del operador; el deploy no los ejecuta. El aviso del log sobre el Wrangler de desarrollo es compatible con este flujo configurado desde el panel; la confirmación relevante es la compilación/carga de `_worker.js` y el estado final de éxito.

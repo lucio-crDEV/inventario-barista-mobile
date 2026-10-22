@@ -1,8 +1,92 @@
-# Verificación de etapa 3A — 21-10-2026
+# Verificación — inventory-v3
 
-Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d69e6dd0`. Se preservaron los cambios previos. No se modificaron libros, catálogos de referencia, `sources/` ni Pedido. Esta revisión no ejecutó push, despliegue ni escrituras remotas. El usuario preparó D1 y publicó por su cuenta, incluido `fb67ecb` con las mejoras UX; configuración en [despliegue-pages.md](despliegue-pages.md).
+## Recuperación tras la reversión y punto de continuación — 22-10-2026
+
+El usuario subió la reversión `55dfc2b` y después pidió recuperar íntegramente el incremento. Se restituyeron localmente los árboles de `9dfef56`, `94d3a83` y `2c284cd`, conservando el historial. En esta recuperación: `npm test` **19/19**, `build:pages` correcto y pruebas Python del bootstrap/orden SQL **7/7**. No se repitieron suites completas de navegador, integración ni carga; sus resultados anteriores se conservan fechados más abajo. Sin push, despliegue ni modificaciones remotas en esta revisión.
+
+Comprobación pública breve después de la reversión: `/pages/cuenta/` 200, `/api/me` 401 JSON, y los archivos `/pages/cuenta/cuenta.js` y `/shared/client.js` coincidían mediante SHA-256 con el código revertido. Sin autenticación ni escrituras. No demuestra estabilidad de ingreso ni que la aplicación completa funcione en Free. Un primer intento de comparación usó una ruta local inexistente; se corrigió y solo se registran aquí los cuatro resultados válidos.
+
+La comparación entre `5d80658` y `2c284cd` confirma **cero cambios en `worker/password.js`**. El nuevo control de inicialización exigía la vista `inventory_permissions`, ausente al primer despliegue; esa incompatibilidad se corrigió con 0003/0004/ciclo. El error posterior 1102/`exceededCpu` es distinto y no se ha resuelto. No hay una medición comparativa de CPU remota que permita atribuir la diferencia entre versiones a las consultas nuevas. Reutilizar sesión evita bcrypt; un ingreso nuevo sí lo ejecuta.
+
+Decisión: mantener Free y preparar Supabase Auth conservando el formulario; el usuario configurará el proyecto en la próxima sesión. No hay integración, claves ni pruebas del proveedor. [Instrucciones y tareas pendientes](autenticacion-free.md). No publicar este punto de recuperación como corrección del ingreso.
+
+## Reparación de la demo publicada — 22-10-2026
+
+El usuario publicó `94d3a83` en `inventory-v3`; Pages registra el despliegue `0ffd646a` y los archivos públicos de administración/CSS coinciden con el código local. GET `/api/me` devuelve HTTP 503 JSON `NOT_INITIALIZED`, con no-store y cabeceras de seguridad. No es una compilación pendiente ni una versión antigua en caché.
+
+Consultas de solo lectura a la D1 remota `inventario-login-v3`: únicamente constan `0001_core.sql` y `0002_catalog.sql`; falta la vista `inventory_permissions` de 0003. Solo existe el ciclo abierto `piloto-v3`, con catálogo anterior. Una copia privada de la configuración de Pages confirma `DB` correcta, `APP_ENV=production`, origen correcto y `ACTIVE_CYCLE_ID=piloto-v3`. D1 informó cero filas escritas por el diagnóstico.
+
+El usuario autorizó la corrección y aclaró que el sitio es una demo con cuentas mínimas. Se completaron respaldo privado (ya iniciado antes de esa aclaración; SHA-256 y permisos verificados), migraciones 0003/0004 y ciclo nuevo. Pages conserva las demás variables y DB; `ACTIVE_CYCLE_ID=piloto-v3-servicio`. Reintento del commit aprobado `94d3a83`: despliegue `982d494e`, terminado correctamente, sin push ni cambios de código. No repetir esas migraciones/ciclo ni el primer administrador. [Procedimiento para otros entornos](usuarios-y-servicio-3b.md).
+
+Comprobación pública posterior: **16/16**, sin sesión ni solicitudes mutantes; API vuelve a responder 401 JSON cuando no hay sesión. [Informe nuevo, separado del histórico 3A](publico-servicio-3b.json). Un ingreso del administrador y las primeras altas por API funcionaron; después alta e ingreso fallaron con HTML 503/error Cloudflare **1102**. Una observación temporal de logs confirmó exactamente `outcome=exceededCpu` y `Worker exceeded CPU time limit.`; se cerró la observación. **La autenticación web no es estable y no está aprobada.** No se redujo bcrypt coste 12 ni se cambió facturación. Esto confirma el pendiente de presupuesto CPU, no una cuota de filas de D1. [Límites oficiales](https://developers.cloudflare.com/workers/platform/limits/), [precio de Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/).
+
+Cuentas de demo: **7 activas**, un Administrador conservado, una Jefa de servicio y cinco trabajadores (Bodega, Cocina, Panadería, Pastelería, Servicio). Tres altas por API se aceptaron; las tres restantes se inicializaron explícitamente en D1 con hashes del mismo módulo bcrypt coste 12 calculados localmente, sin rebajar parámetros ni habilitar fallback. Las tres cuentas antiguas de ensayo se retiraron con auditoría y conservación de su identidad histórica. Las seis nuevas mantienen cambio obligatorio de contraseña temporal. Credenciales individuales en un archivo privado e ignorado bajo `.backups/`; ninguna contraseña se incluye en docs o Git.
+
+Consultas remotas comprobaron siete cuentas, sus proyecciones de permisos (Administrador: 14 nodos; Jefa/Servicio: 10; cada área directa: 1), dos ciclos y los diez conteos antiguos conservados. Cero autores huérfanos en conteos/historial; no se guardaron conteos en el ciclo nuevo. `PRAGMA integrity_check` fue rechazado por D1 remota (`SQLITE_AUTH`); se sustituyó por consultas explícitas de referencias, sin declarar una verificación integral equivalente. [Informe de despliegue y límites](despliegue-demo-3b.json). No se hizo carga ni el recorrido autenticado completo sobre el ciclo nuevo. El siguiente paso depende de resolver el alojamiento/CPU; el usuario decide entre activar Paid o revisar una alternativa compatible con Free.
+
+## Orden de Usuarios y accesos en móvil — 22-10-2026
+
+Pestañas Cuenta/Accesos/Seguridad por usuario, jerarquía de ámbitos plegable y bloques separados para contraseña/eliminación. Se retiró el subtítulo; contador filtrado al lado de Cuentas existentes y avisos de alta en dos líneas. Sin cambios de API, esquema, catálogo, contraseñas ni recursos remotos.
+
+- `npm test`: **19/19**.
+- `npm run test:admin-layout`: **6 grupos**, cero errores JavaScript. Sin desborde a 320/390/1024 px en claro/oscuro, pestañas de 44 px, jerarquía de Servicio/Garzones, teclado/foco, total junto al título y ayuda en líneas separadas. Cambiar de pestaña conserva campos y asignaciones; el envío incluye los permisos de un panel oculto. Se intercepta un fallo para comprobar conservación sin escribir en D1. La variante visual de cuenta mixta usa un DTO simulado aislado; las restricciones reales de servidor pertenecen a las pruebas del incremento descritas más abajo. [Informe específico](usuarios-diseno-local-3b.json).
+- `test:views`: **8 grupos**; alta real local, contraseña temporal/cambio obligatorio, otorgar dos ámbitos en sesión activa y restablecer con cancelación/revocación conservados.
+- `test:users-service:browser`: **6 grupos**; jefa, alta/accesos, eliminación confirmada/versionada y foco, perfil propio, navegación directa y Copería/Vitrina. Se utiliza la segunda jefa ficticia disponible; no se restablece la contraseña ya modificada de la primera.
+
+Las comprobaciones de HTML detectaron que el patrón anterior de username no era válido con la sintaxis actual del navegador. Se corrigió sin cambiar la regla del servidor; un campo inválido oculto ahora abre Cuenta y recibe foco. Capturas de los tres paneles en `test-results/admin-layout/`; Seguridad clara y Accesos oscuro a 320 px se inspeccionaron visualmente. El navegador integrado rechazó observar la pestaña existente por su política de acceso; no se automatizó esa pestaña. Las pruebas anteriores usan el navegador aislado del repositorio y D1 local de ensayo, no producción. El servidor de revisión queda disponible en `http://127.0.0.1:8790/pages/admin/` para recarga manual. Android físico y lector de pantalla siguen pendientes; no se repitió carga de 15 clientes por este ajuste de presentación.
+
+Tras la revisión, el usuario confirmó conservar el cambio obligatorio de contraseña temporal sin flecha al inventario y con salida mediante menú → Cerrar sesión. No se editaron Cuenta, autenticación ni servidor por esa observación. El cierre documental no repite las suites funcionales ya aprobadas: revisa sintaxis, enlaces, informes y diff antes de preparar el commit. Sin push ni cambios remotos.
+
+## Incremento de usuarios y Servicio de 3B — 22-10-2026
+
+Cambios locales: rol Jefa de servicio, administración acotada de trabajadores/cuentas mixtas, username administrado, nombre visible propio, eliminación irreversible y navegación directa. Catálogo nuevo con 32 productos en Copería, 42 en Línea/Armado y 41 conteos de Vitrina. [Contrato y preparación del despliegue](usuarios-y-servicio-3b.md). No se ejecutaron cambios remotos, push ni despliegue; el sitio revisado `5d80658` es anterior a este incremento. Se conservaron los cambios documentales previos; `.DS_Store` no se incluye.
+
+| Comprobación ejecutada | Resultado |
+| --- | --- |
+| `npm test` | 19/19: referencias, cantidades/estados, navegación, rol acotado, migración con datos e irreversibilidad |
+| `test:bootstrap` | 7/7 Python: cuatro casos del administrador y tres de orden/seguridad del SQL de recuperación |
+| Contrato de libros | 1.151 filas originales sin diferencias y 41 referencias Vitrina cotejadas en producto/unidad; libros sin modificar |
+| `test:integration` / `test:extended` | 11/11 y 6/6; se adapta el renombrado al perfil y las mutaciones al contrato de revisión |
+| `test:users-service` | 9/9: dos jefas, límites por API, cuentas mixtas, alta temporal, perfil, username/revocación, identidad de pestaña, eliminación, último administrador y concurrencia |
+| `test:migration-service` | Migraciones 0003/0004 sobre D1 local con usuarios/sesiones/conteo/historial previos; datos idénticos, claves foráneas/integridad y reintento conservados |
+| `test:browser` / `test:views` / `test:ux` | 14, 8 y 8 recorridos/grupos, sin errores JavaScript |
+| `test:users-service:browser` | 6 grupos: jefa sin regreso global, alta/username, eliminación/versionado/foco/Escape, perfil, inicio directo y Copería/Vitrina; sin errores JavaScript |
+| `test:sync` / `test:refresh` | 3 y 7; borradores/campos conservados y espera/peticiones manuales limitadas |
+| `test:pages` | 6/6 sobre Pages HTTPS + D1 local separada, cookie segura, origen, guardado/reintento y logout |
+| `test:operations` | 7/7; exportación/importación D1 real, revocación recuperada, triggers, historial/deduplicación y retención |
+| `test:load` | 15 clientes, 496 solicitudes en 6.695 ms: 482 HTTP 200, 14 conflictos 409 esperados, cero errores inesperados |
+
+La simulación aceptó 151 escrituras y 150 reintentos sin duplicación; cantidades, operaciones, historial y resultados finales consistentes. Latencias locales: p50 36 ms, p95 99 ms, máximo 4.400 ms, incluyendo ingresos bcrypt. [Informe de carga de este incremento](carga-local-3b.json). No extrapolar a capacidad de producción ni a un día completo.
+
+Evidencia nueva: [API](usuarios-servicio-local-3b.json), [migración D1 poblada](migracion-servicio-local-3b.json) y [navegador](usuarios-servicio-vistas-3b.json). Capturas locales en `test-results/users-service/`; perfil revisado a 320/390/1024 px en ambos temas y eliminación inspeccionada en claro/oscuro después de completar la transición. El diálogo comienza en Cancelar, Escape devuelve el foco y una revisión cambiada impide borrar hasta revisar/confirmar otra vez.
+
+La prueba de recuperación detectó un fallo real del orden exportado tras reconstruir `users`: había datos de tablas hijas antes de crear esa tabla. Se corrigió el importador local para ordenar una copia temporal privada con un analizador de sentencias SQLite, sin ejecutar SQL en Python ni alterar el respaldo. Se repitió y pasó la recuperación completa. Los ensayos de navegador también se ajustaron al ingreso directo y a revisiones administrativas, incluida una contraseña que había cambiado desde abrir la cuenta; los resultados de la tabla son las repeticiones aprobadas.
+
+3B sigue abierta: tablero, consulta administrativa avanzada del historial, rectificaciones/anulaciones de conteo, activación global de productos, revisión/cierre/reapertura. 3A mantiene pendientes de CPU/plan, recorrido completo del dominio, recuperación remota/copia externa, Android físico y piloto. «Activar zonas» en este incremento son accesos por persona; no se implementó apagado global. La consolidación/exportación Excel continúa en etapa 4.
+
+## Registro de etapa 3A — 21-10-2026
+
+Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d69e6dd0`. Se preservaron los cambios previos. No se modificaron libros, catálogos de referencia, `sources/` ni Pedido. El usuario preparó D1 y publicó por su cuenta hasta `5d80658`; configuración en [despliegue-pages.md](despliegue-pages.md). Las comprobaciones posteriores no desplegaron ni modificaron conteos, cuentas o permisos. El ingreso/cierre de sesión sí crea/revoca los metadatos normales de sesión.
 
 Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3, esbuild 0.28.2; Chromium 141 mediante Playwright 1.56.1. Los conjuntos automatizados usan bases desechables separadas del desarrollo: Worker 8790 y Pages HTTPS 8791.
+
+## Última comprobación del sitio publicado — 21-10-2026, `5d80658`
+
+La consulta de despliegues de Pages confirmó éxito de `5d80658` en `inventario-login`, con URL de despliegue `https://0458b9d4.inventario-login.pages.dev`. En el dominio principal, los cuatro archivos `/shared/client.js`, `/shared/refresh-limit.js`, `/shared/shared.css` y `/shared/inventory.js` coincidieron exactamente con los de ese commit local al solicitarlos sin reutilizar caché. Los cambios de menú, formularios, mínimo de ocho caracteres e icono compacto ya están publicados.
+
+Se repitió `npm run verify:public` contra `https://inventario-login.pages.dev`: **16/16**, `routingPassed`, `securityHeadersPassed` y `passed` en `true`, sin autenticación y **cero solicitudes mutantes**. El resultado coincide con [publico-3a.json](publico-3a.json), que conserva exclusivamente esa comprobación anónima.
+
+Recorrido manual en navegador contra el dominio real:
+
+- Cierre de sesión e ingreso nuevo con la cuenta administradora existente; Inicio muestra las cinco áreas por su rol global.
+- Login sin menú, con toggle de tema, ayuda centrada y ojos SVG; cambio de contraseña con cabecera en fila, ayuda de ocho caracteres y flecha superior. No se cambió la contraseña.
+- Panel de cuenta desde la derecha, punto/texto de sincronización a la izquierda e icono pequeño cian a la derecha. Al pulsarlo pasa a «Actualizando…» y después «Sincronizado»; queda deshabilitado con espera de 30 segundos y vuelve a habilitarse al terminar.
+- Administración abre y carga las cuatro cuentas existentes; comprobación de lectura, sin altas, cambios de acceso ni restablecimientos.
+- Apariencia oscura y vuelta a clara en el menú.
+
+Este recorrido no comprueba conteos ni conflictos con trabajadores en producción, revocación de permisos/sesiones de terceros, atributos de cookie en herramientas del dominio, CPU facturada, recuperación remota, dispositivo Android físico ni carga real. Esos criterios siguen abiertos. Las suites completas y la simulación de 15 clientes que siguen son **locales**; no se repitieron contra la base pública. No se guardan credenciales en los informes ni en el repositorio.
+
+La revisión documental posterior contrastó estos resultados con contexto, roadmap, accesos, operación y despliegue: **12 documentos, 95 enlaces locales, 24 comandos de `package.json` y 11 informes JSON**, sin errores; `git diff --check` correcto. No volvió a ejecutar suites funcionales por cambios exclusivamente documentales. En esa revisión documental del 21-10 todavía no había implementación 3B.
 
 ## Actualización manual en el panel de cuenta — 21-10-2026
 
@@ -14,7 +98,7 @@ Consulta incremental en Inventario (una página, límite existente de 250 movimi
 
 Regresiones repetidas en esta revisión: `test:sync` **3**, `test:views` **8**, `test:browser` **14** y `test:pages` **6** por HTTPS local, con D1 separadas y cero errores JavaScript en las suites de navegador. Sintaxis de los cuatro módulos modificados/nuevos, construcción `build:pages` y `git diff --check` correctos.
 
-Sin cambios en servidor, migraciones, catálogo o contraseñas. No se repitió la carga de 15 clientes ni se declara publicado el ajuste. `.DS_Store` permanece sin seguimiento y fuera del commit. 3B sigue pausada durante la comprobación de despliegue; la aceptación operativa de 3A conserva los pendientes documentados.
+Sin cambios en servidor, migraciones, catálogo o contraseñas. No se repitió la carga de 15 clientes. El ajuste se publicó en `5d80658` y se comprobó como se describe arriba. `.DS_Store` permanece sin seguimiento y fuera de los commits. La comprobación de despliegue solicitada ya está realizada; en ese momento 3B seguía sin implementación y 3A conservaba sus pendientes operativos.
 
 ## Menú, formularios y mínimo de contraseña — 21-10-2026
 
@@ -24,7 +108,7 @@ Resultados de esta ronda: `npm test` **16/16**, primer administrador **4/4** con
 
 Se comprueba panel derecho anclado tras su transición, contenido de fondo inerte, Tab/Shift+Tab contenido, Escape/toque exterior y devolución de foco; persistencia del tema y alternancia accesible del ojo sin alterar el campo. Las capturas están en `test-results/3a/`; se inspeccionaron login claro, menú oscuro y cambio de contraseña de la app local. La regresión de conteo conserva las tres acciones, borradores, reintento seguro y aislamiento al cambiar de usuario.
 
-Decisión confirmada: mínimo **8 caracteres**, máximo técnico de 72 bytes UTF-8 sin truncamiento y bcrypt coste 12. La ayuda de pantalla no muestra bytes. Sin migración de credenciales existentes, datos ni esquema; CPU/plan permanece pendiente. No se ejecutó carga remota ni se repitió la simulación local de 15 clientes, al no cambiar reglas de conteo. Esta revisión UI requiere un nuevo push para publicarse; el verificador público inferior corresponde a la versión ya desplegada anteriormente.
+Decisión confirmada: mínimo **8 caracteres**, máximo técnico de 72 bytes UTF-8 sin truncamiento y bcrypt coste 12. La ayuda de pantalla no muestra bytes. Sin migración de credenciales existentes, datos ni esquema; CPU/plan permanece pendiente. No se ejecutó carga remota ni se repitió la simulación local de 15 clientes, al no cambiar reglas de conteo. Esta revisión UI ya está publicada e incluida en la comprobación de `5d80658` de arriba.
 
 ## Cierre técnico adicional — 21-10-2026
 
@@ -71,10 +155,12 @@ Regresiones repetidas con este cambio: 15 pruebas generales, 11 grupos de integr
 | `npm run test:views` | **8 grupos** de ingreso, menú derecho, cambio y administración; 320/390/1024 px, ambos temas, sin desborde ni errores JavaScript |
 | `npm run test:ux` | **8/8 grupos** de carga lenta, menor número de peticiones y reintento tras cambio remoto |
 | `npm run test:sync` | **3 comprobaciones** de pantalla oculta/visible simulada y preservación de edición |
+| `npm run test:refresh` | **7/7 grupos**: control compacto, espera de 30 s entre páginas/pestañas, peticiones limitadas y campos/borradores/conteos intactos |
 | `npm run test:pages` | **6 comprobaciones** del paquete avanzado de Pages + D1 aislado, HTTPS local y cookie segura |
 | `npm run test:load` | **15 clientes**, 496 solicitudes, 6.919 ms; cero errores inesperados |
 | `npm run test:operations` | **7/7** grupos de respaldo/restauración y retención local |
-| Verificador público anónimo | **16/16** comprobaciones aprobadas después del despliegue, incluidas cabeceras de los seis errores; salida compartida por el usuario |
+| Verificador público anónimo | **16/16** tras `5d80658`, repetido desde esta tarea; coincide con la salida previa del usuario, incluidas cabeceras de los seis errores |
+| Navegador en dominio publicado | Ingreso/cierre, login/cuenta/menú, temas, espera de refresco y lectura de administración; alcance limitado descrito arriba |
 | `npm run profile:local` | 6 muestras; CPU Node 274–325 ms; no mide CPU facturada de Workers |
 | Migraciones y bootstrap D1 vacío separado | 0001 y 0002 desde cero; 1.227 ítems/ubicaciones, árbol real, primer administrador temporal y auditoría; repetición rechazada |
 | Sintaxis, compilación y diff | Módulos válidos, paquete Pages construido y `git diff --check` sin errores |
@@ -115,7 +201,7 @@ Las capturas reproducibles quedan en `test-results/3a/`, excluido de Git. Se ins
 
 [pages-local-3a.json](pages-local-3a.json): `_worker.js` construido con esbuild, rutas completas y D1 independiente. Sin sesión `/api/me` y `/api/status` devuelven JSON 401. Catálogo global, servidor, SQL, bootstrap, libros y `/_worker.js` no se entregan como archivos. Cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict, Path `/`, no visible en `document.cookie`. Se obtiene catálogo filtrado de Barra, se guarda y reintenta idéntica operación sin duplicarla, se rechaza otro origen y se revoca sesión al salir.
 
-La revisión pública inicial de `inventario-login.pages.dev` detectó una publicación estática que devolvía HTML en la API y exponía el archivo de catálogo. Se corrigió con el paquete Worker; el usuario lo desplegó y se comprobó públicamente el aislamiento. La terminal aportada confirma migraciones/ciclo y bootstrap del administrador `admin` (cuatro consultas). Los logs posteriores confirman `ec80d9c` y `fb67ecb`. Esto no certifica el recorrido autenticado completo ni sustituye inspección del panel privado. No se recibieron contraseñas personales.
+La revisión pública inicial de `inventario-login.pages.dev` detectó una publicación estática que devolvía HTML en la API y exponía el archivo de catálogo. Se corrigió con el paquete Worker; el usuario lo desplegó y se comprobó públicamente el aislamiento. La terminal aportada confirma migraciones/ciclo y bootstrap del administrador `admin` (cuatro consultas). Los logs posteriores confirman `ec80d9c` y `fb67ecb`; la última comprobación de `5d80658` está al inicio de este documento. No certifica el recorrido autenticado completo, CPU remota ni todos los ajustes del panel. Las credenciales no se incluyen en informes ni documentación.
 
 ## Simulación repetible de 15 clientes
 
@@ -133,7 +219,7 @@ No extrapolar este ensayo local a capacidad garantizada en producción ni al dí
 
 [README](../README.md) y [operación](operacion-3a.md) describen `test:prepare`, los servidores y el orden de suites. Detener los servidores de ensayo antes de recrear sus bases; no ejecutar conjuntos mutantes simultáneamente. Las suites anteriores a esta revisión usaban fixtures de desarrollo; ahora todas apuntan a `.wrangler/test-state` o `.wrangler/pages-test-state`, independientes de `.wrangler/state`. Nunca ejecutar fixtures o carga contra D1 publicada.
 
-**3A funcional implementada y verificada localmente; aceptación operativa abierta.** Las mejoras UX y la corrección de cabeceras están publicadas; el verificador público pasa y el usuario informa funcionamiento. Respaldo/restauración y retención ya tienen herramientas y pruebas locales. Faltan completar recorridos autenticados remotos, resolver CPU/plan y consumo, ensayar recuperación remota/copia externa y evaluar Android físico. El piloto con trabajadores/señal real queda aplazado por decisión del usuario, sin bloquear el desarrollo 3B. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
+**3A funcional implementada y verificada localmente; aceptación operativa abierta.** Interfaz y control compacto publicados hasta `5d80658`, verificador anónimo 16/16 y recorrido administrativo básico del dominio comprobado. Respaldo/restauración y retención ya tienen herramientas y pruebas locales. Faltan conteos/conflictos y permisos con varias personas en el dominio, inspección de atributos de cookie allí, CPU/plan y consumo, recuperación remota/copia externa y Android físico. El piloto con trabajadores/señal real queda aplazado por decisión del usuario, sin bloquear el desarrollo 3B. Producción vacía o mal configurada rechaza acceso sin cuentas de fábrica.
 
 Etapa 2 conserva cinco unidades ausentes de Pastelería, 18 entradas de Barra sin referencia y dos conversiones pendientes. No se inventaron equivalencias. El rechazo de sumar con unidad desconocida se probó en servidor; no hay ensayo visual específico de las cinco filas. 3B: tablero, historial administrativo avanzado, rectificación/anulación, activación operativa y revisión/cierre/reapertura. Etapa 4: exportación fiel. Exportación, SMS/correo y conteo offline completo no están implementados ni se declaran probados.
 

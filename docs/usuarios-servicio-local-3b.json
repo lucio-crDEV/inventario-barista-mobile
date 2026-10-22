@@ -1,0 +1,17 @@
+{
+  "environment": "Workers + D1 local",
+  "date": "2026-10-22",
+  "groups": 9,
+  "checks": [
+    "Dos jefas acotadas a Servicio; trabajador/superiores/otras áreas rechazados por API",
+    "Alta por jefa, cambio obligatorio, sin asignaciones y unión de Barra/Copería/Vitrina",
+    "Cuenta mixta: solo accesos de Servicio; Cocina intacta; contraseña/username/activación/eliminación bloqueados",
+    "Nombre propio editable, username/rol protegidos, UUID y snapshots históricos conservados",
+    "Username único administrado, sesiones revocadas, accesos retirados sin cambiar identidad",
+    "Identidad de pestaña distinta rechazada sin transferir perfil ni operaciones administrativas",
+    "Eliminar exige confirmación, no restaura cuentas, conserva autoría/conteos y permite nueva identidad con el username libre",
+    "Último administrador protegido y dos cambios simultáneos aceptan uno, sin auditoría de éxito parcial",
+    "32 Copería/42 Línea, Vitrina 3 y resto 4 separados; catálogo anterior de 1.227 entradas intacto"
+  ],
+  "passed": true
+}
