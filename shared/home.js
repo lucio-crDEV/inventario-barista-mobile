@@ -1,11 +1,17 @@
 import { api, authenticated, identityBar, escapeHtml } from "./client.js";
 import { loading, reveal } from "./loading.js";
+import { homeURL } from "./navigation.js";
 const nav = document.querySelector("nav"),
   placeholder = document.querySelector("#home-loading");
 const finishLoading = loading(placeholder);
 try {
   const data = await authenticated("/api/navigation");
   const user = data.user;
+  const destination = homeURL(data.scopes);
+  if (destination !== "/") {
+    location.replace(destination);
+    await new Promise(() => {});
+  }
   identityBar(user);
   for (const link of nav.querySelectorAll("a")) {
     const id = new URL(link.href).searchParams.get("area");

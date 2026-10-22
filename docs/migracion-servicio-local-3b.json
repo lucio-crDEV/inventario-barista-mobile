@@ -1,0 +1,12 @@
+{
+  "environment": "Wrangler + D1 local real, base temporal separada",
+  "date": "2026-10-22",
+  "passed": true,
+  "checks": [
+    "0003 y 0004 sobre usuarios, sesiones, ciclo, conteo y operación previos",
+    "Claves foráneas e integridad válidas",
+    "Sesiones/UUID/conteos/historial/resultados previos idénticos",
+    "Catálogo anterior conservado y alcance combinado trasladado a Copería",
+    "Reintento previo no duplica ni modifica el conteo tras migrar"
+  ]
+}

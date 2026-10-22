@@ -1,6 +1,8 @@
 # Cierre técnico de 3A y transición a 3B — 21-10-2026
 
-La funcionalidad 3A está implementada y tiene pruebas locales de API, navegador, concurrencia y paquete Pages. El usuario publicó `fb67ecb` y confirmó funcionamiento. El piloto con trabajadores queda **aplazado por decisión del usuario**, sin fecha; no es un impedimento para desarrollar 3B. La aceptación operativa de 3A permanece abierta. El plan de Cloudflare se considera Free **provisionalmente**: el usuario lo deduce de no haber contratado pagos, sin confirmación del panel.
+Actualización del 22-10: [incremento local de usuarios/Servicio de 3B](usuarios-y-servicio-3b.md) implementado y probado; los pendientes operativos de 3A permanecen. La restauración local usa Python 3 para ordenar una copia privada del dump: todas las tablas antes de datos y triggers al final. La reconstrucción de usuarios cambió su orden en el export de SQLite; el ensayo detectó el fallo y la corrección pasó la recuperación D1 completa. El respaldo original y su SHA-256 no se modifican; no se ejecuta SQL en Python. No se ensayó restauración remota.
+
+La funcionalidad 3A está implementada y tiene pruebas locales de API, navegador, concurrencia y paquete Pages. El usuario publicó los cambios hasta `5d80658`; se verificaron ese despliegue, las rutas públicas y un recorrido administrativo básico del dominio. El piloto con trabajadores queda **aplazado por decisión del usuario**, sin fecha; no es un impedimento para desarrollar 3B. La aceptación operativa de 3A permanece abierta. El plan de Cloudflare se considera Free **provisionalmente**: el usuario lo deduce de no haber contratado pagos, sin confirmación del panel.
 
 ## Evidencia y pendientes
 
@@ -8,11 +10,13 @@ La funcionalidad 3A está implementada y tiene pruebas locales de API, navegador
 | --- | --- |
 | Cuentas, sesiones, permisos, guardados y resolución ajena | Implementados y probados localmente; recorridos detallados en [verificación](verification.md) |
 | Skeletons, estados de envío y menos peticiones | Incluidos en `fb67ecb`, deployment exitoso aportado por el usuario |
+| Menú, formularios, mínimo de ocho caracteres y refresco compacto limitado | Publicados hasta `5d80658`; archivos del ajuste coinciden con el commit local y recorrido básico del dominio comprobado |
 | Aislamiento público de API/archivos | 16 rutas del sitio responden como se espera, sin sesión ni escrituras remotas |
-| Cabeceras de seguridad en errores de API | Corrección publicada: el usuario repitió el verificador y las 16 comprobaciones pasan, incluidos los seis 401, con `securityHeadersPassed: true` y `passed: true` |
+| Cabeceras de seguridad en errores de API | Corrección publicada; verificador repetido contra `5d80658`: 16/16, incluidos los seis 401, `securityHeadersPassed: true` y `passed: true` |
 | Respaldo, restauración y retención | Herramientas terminadas y ensayo real D1 **local** aprobado; falta ensayo de recuperación de la D1 remota en destino separado y copia externa privada |
 | CPU y plan de autenticación | Pendiente técnico antes de uso real; la medida local indica incompatibilidad probable con Free, no certifica CPU de Cloudflare |
-| Dominio autenticado, red y Android físicos | El usuario informa funcionamiento; no se certificó independientemente el recorrido completo ni dispositivos físicos |
+| Dominio autenticado | Ingreso/cierre administrativo, Cuenta, menú/temas, refresco con espera de 30 s y lectura de cuentas comprobados; faltan conteos/conflictos y permisos entre varias personas e inspección allí de atributos de cookie |
+| Red y Android físicos | Pendientes; el recorrido de navegador del dominio no certifica dispositivo ni señal reales |
 | Equipo durante inventario | Aplazado; quedan evaluación de claridad, señal y reparto físico |
 | 3B | Alcance e incrementos preparados en [etapa-3b.md](etapa-3b.md); todavía sin tablero avanzado ni mutaciones administrativas de conteo |
 
@@ -78,6 +82,6 @@ Conteos, historial, IDs/resultados de operación, cuentas, permisos, ciclos, cat
 
 ## Entrega y siguiente etapa
 
-Esta entrega no cambia esquema, catálogo, unidades, contraseña de ninguna cuenta ni recursos remotos. Enviar los commits de `inventory-v3` con `git push origin inventory-v3`; Pages usa el mismo build `npm run build:pages` y salida `dist`. No repetir migraciones ni primer administrador. Después del deployment, `npm run verify:public` hace únicamente 16 GET anónimos y falla si rutas, JSON/no-store o cabeceras no cumplen. No ejecuta ingreso, carga ni escrituras.
+El cierre técnico y los ajustes de interfaz ya publicados no cambian esquema, catálogo, unidades ni contraseñas existentes. El usuario publicó hasta `5d80658`; para futuros cambios revisados y en commits, enviar `inventory-v3` con `git push origin inventory-v3`. Pages conserva build `npm run build:pages` y salida `dist`. No repetir migraciones ni primer administrador. Después del deployment, `npm run verify:public` hace únicamente 16 GET anónimos y falla si rutas, JSON/no-store o cabeceras no cumplen. No ejecuta ingreso, carga ni escrituras; el recorrido manual autenticado tiene el alcance descrito arriba.
 
 Se puede comenzar 3B por supervisión de solo lectura sin esperar al equipo. Mantener visibles los pendientes de alojamiento, recuperación remota y aceptación operativa; no presentar 3A como habilitada para el día de inventario. Etapa 2 y exportación 4 conservan sus requisitos originales.

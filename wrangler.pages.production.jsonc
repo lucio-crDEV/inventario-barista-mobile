@@ -5,7 +5,7 @@
   "vars": {
     "APP_ENV": "production",
     "APP_ORIGIN": "https://inventario-login.pages.dev",
-    "ACTIVE_CYCLE_ID": "piloto-v3",
+    "ACTIVE_CYCLE_ID": "piloto-v3-servicio",
   },
   "d1_databases": [
     {

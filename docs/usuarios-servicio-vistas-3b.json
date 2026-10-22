@@ -1,0 +1,15 @@
+{
+  "environment": "Chromium móvil + Workers/D1 local",
+  "date": "2026-10-22",
+  "checks": [
+    "Jefa entra en cinco subáreas sin flecha global ni petición de navegación adicional; administración filtrada",
+    "Crear conserva nombre inicial; editar cambia username y ámbitos de Servicio, sin editor administrativo del nombre visible",
+    "Diálogo irreversible en ambos temas: Cancelar/foco/Escape; versión cambiada impide borrar, nueva confirmación elimina",
+    "Cada trabajador cambia su nombre visible, conserva usuario y actualiza menú; perfil 320/390/1024 en claro/oscuro",
+    "Área única entra a categorías, dos áreas muestran Inicio y Garzones conserva solo sus zonas y regreso útil",
+    "Copería muestra Aseo y Mercadito distingue Desechables, Productos Elaborados y Vitrina"
+  ],
+  "errors": [],
+  "passed": true,
+  "physicalDevice": false
+}

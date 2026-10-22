@@ -220,6 +220,9 @@ try {
   checks.push(
     "Alta desde administración, cambio obligatorio, confirmación de contraseña y acceso sin áreas",
   );
+  // The worker changed their password/revision after this administrative snapshot.
+  await panel.reload();
+  await expect(panel.locator("#user-search")).toBeVisible();
   await panel.locator("#user-search").fill(username);
   await panel.locator(".user-card:visible summary").click();
   let form = panel.locator(`form[data-user="${id}"]`);
@@ -227,7 +230,7 @@ try {
   await form.locator('[value="servicio:armado-linea-coperia"]').check();
   await form.getByRole("button", { name: "Guardar cuenta y accesos" }).click();
   await expect(panel.locator("#message")).toContainText("Cambios guardados");
-  await expect(work.locator("nav a")).toHaveCount(1, { timeout: 10000 });
+  await expect(work).toHaveURL(/area=servicio$/, { timeout: 10000 });
   await work.goto(origin + "/pages/inventario/?area=servicio");
   await expect(work.locator(".scope-card")).toHaveCount(2);
   checks.push("Dos ámbitos otorgados en sesión activa y navegación filtrada");

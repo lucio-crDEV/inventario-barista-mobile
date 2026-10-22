@@ -9,6 +9,7 @@ import posixpath
 import re
 import subprocess
 import sys
+import unicodedata
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
@@ -106,7 +107,34 @@ def main():
         print(f"ERROR: {len(mismatches)} diferencias", file=sys.stderr)
         return 1
     print(f"OK: {checked} filas coinciden en ID, nombre, unidad y categoría")
+    verify_vitrina(catalog)
     return 0
+
+
+def verify_vitrina(catalog):
+    result = subprocess.run(
+        [os.environ.get("NODE", "node"), "--input-type=module", "-e",
+         'import {vitrinaReferences} from "./data/inventario/items/service-layout.js";process.stdout.write(JSON.stringify(vitrinaReferences));'],
+        cwd=ROOT, check=True, capture_output=True, text=True,
+    )
+    references = dict(json.loads(result.stdout))
+    def normalize(value):
+        return re.sub(r"[^a-z0-9]+", " ", "".join(c for c in unicodedata.normalize("NFD", str(value)) if unicodedata.category(c) != "Mn").lower()).strip()
+    with ZipFile(ROOT / "inventarios_og/INVENTARIOS_2026-2027_jefa-turno.xlsx") as archive:
+        strings = shared_strings(archive)
+        sheet = ET.fromstring(archive.read("xl/worksheets/sheet9.xml"))
+        found = {}
+        for row in sheet.findall("m:sheetData/m:row", NS):
+            values = {re.match(r"[A-Z]+", c.attrib["r"]).group(): cell_text(c, strings) for c in row.findall("m:c", NS)}
+            if str(values.get("D", "")).strip().upper() == "VITRINA":
+                number = int(row.attrib["r"])
+                assert number in references, f"Vitrina sin referencia: {number}"
+                output = next(r for r in catalog["servicio"] if r[0] == references[number])
+                assert normalize(values["B"]) == normalize(output[2]), f"Producto distinto en Vitrina: {number}"
+                assert values["E"].strip().upper() == output[3].strip().upper(), f"Unidad distinta en Vitrina: {number}"
+                found[number] = output[0]
+        assert found == references and len(found) == 41
+    print("OK: 41 referencias de Vitrina coinciden en producto y unidad con el libro de reparto")
 
 
 if __name__ == "__main__":
