@@ -1,10 +1,10 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
-**Incremento local del 22-10-2026:** antes del siguiente push preparar respaldo, migraciones `0003`/`0004`, ciclo `piloto-v3-servicio` y su variable de Pages. [Comandos y orden completos](usuarios-y-servicio-3b.md). El primer administrador ya existe: no repetir bootstrap ni fixtures. `wrangler.pages.production.jsonc` contiene el ciclo futuro; no modifica automáticamente el panel. Lo comprobado en el sitio hasta `5d80658` que se registra abajo corresponde al estado anterior a este incremento.
+**Estado del 22-10-2026:** demo en `94d3a83`, despliegue `982d494e`, con migraciones `0003`/`0004`, ciclo `piloto-v3-servicio` y siete cuentas mínimas preparados con autorización. El 503 `NOT_INITIALIZED` se corrigió; las 16 comprobaciones públicas pasan. **Ingreso y altas no son estables: error Cloudflare 1102, `exceededCpu` confirmado en logs.** Resolver alojamiento/CPU; no se cambió facturación ni bcrypt. [Evidencia](verification.md), [procedimiento para otros entornos](usuarios-y-servicio-3b.md). No repetir bootstrap, migraciones aplicadas ni creación del ciclo. El registro de `5d80658` de abajo es histórico del 21-10.
 
 Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proyecto Pages `inventario-login`, repositorio `lucio-crDEV/inventario-barista-mobile`, rama `inventory-v3`. Mantener el proyecto y la rama `inventory-v2` separados.
 
-## Estado comprobado y lo que falta
+## Registro histórico del 21-10-2026
 
 El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 confirmó la aplicación exitosa del SQL del primer administrador `admin`: cuatro consultas sin error. **No repetir el bootstrap ni recrear `piloto-v3`; las migraciones nuevas y el ciclo separado del incremento del 22-10 sí se preparan según la guía inicial.** Último código publicado comprobado: `5d80658`, éxito confirmado mediante consulta de despliegues; URL de ese despliegue `https://0458b9d4.inventario-login.pages.dev`.
 

@@ -1,6 +1,6 @@
 # Usuarios y Servicio — contrato del incremento del 22-10-2026
 
-Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito antes de implementar y actualizado con la entrega local del 22-10-2026. Excel continúa en etapa 4. Último sitio revisado: `5d80658`, anterior a este incremento; no se han aplicado cambios remotos desde esta tarea.
+Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito antes de implementar y actualizado con la entrega del 22-10-2026. Excel continúa en etapa 4. El usuario publicó `94d3a83` y autorizó preparar D1/Pages. Migraciones 0003/0004 y ciclo `piloto-v3-servicio` ya están aplicados en la demo; despliegue `982d494e` correcto y siete cuentas mínimas. Queda bloqueante el límite de CPU observado en ingreso/altas (1102, `exceededCpu`); no se certifica funcionamiento autenticado estable. [Evidencia y estado](verification.md).
 
 ## Decisiones confirmadas
 
@@ -42,7 +42,7 @@ Crear ese ciclo una sola vez; repetir se rechaza sin borrar el anterior. En una 
 
 ## Preparar producción antes del push
 
-Procedimiento del operador, **no ejecutado en remoto por esta tarea**. Mantener separados rama y recursos de `inventory-v2`. `wrangler.pages.production.jsonc` queda preparado con el ciclo futuro `piloto-v3-servicio`; las variables efectivas del deploy Git se guardan en Pages.
+Procedimiento reproducible para otro entorno. **Ya ejecutado en la demo el 22-10-2026 con autorización explícita**: no repetir ciclo/altas ni inicializaciones. El cambio posterior a siete cuentas es una preparación explícita de demo, no el seed local. Mantener separados rama y recursos de `inventory-v2`. `wrangler.pages.production.jsonc` contiene el ciclo `piloto-v3-servicio`; las variables efectivas del deploy Git se guardan en Pages.
 
 1. Conservar un respaldo privado. Restaurar localmente requiere Python 3: la herramienta ordena una copia temporal del SQL (tablas antes de datos, triggers después), sin ejecutar SQL en Python ni alterar el respaldo/checksum. La copia mantiene permisos privados y se elimina al terminar. [Recuperación y límites](cierre-tecnico-3a.md).
 
