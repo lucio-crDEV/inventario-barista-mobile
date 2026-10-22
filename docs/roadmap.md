@@ -4,7 +4,7 @@
 
 La etapa 3A y siguientes se desarrollan en `inventory-v3`. `inventory-v2` permanece en su commit anterior al trabajo compartido. La separación no cambia la numeración de etapas: versión 3 de la aplicación y etapa 3A del roadmap son conceptos distintos. Ver [separación de ramas](separacion-inventory-v3.md).
 
-Estado al 22-10-2026: 3A conserva aceptación operativa abierta; **3B en curso**, con el incremento de usuarios/Servicio probado localmente. Tablero y administración avanzada de conteos siguen pendientes. Demo publicada en `94d3a83`, con migraciones 0003/0004, ciclo nuevo y siete cuentas preparadas; 16 comprobaciones públicas aprobadas. El ingreso sigue bloqueado de forma intermitente por `exceededCpu` confirmado en Cloudflare. Resolver CPU/alojamiento antes de dar por funcional la demo web. [Diagnóstico](verification.md), [contrato y publicación del incremento](usuarios-y-servicio-3b.md), [diagrama y tecnologías](tecnologias-y-roadmap.md).
+Estado local al 22-10-2026: 3A conserva aceptación operativa abierta; **3B en curso**, con el incremento de usuarios/Servicio probado localmente. Tablero y administración avanzada de conteos siguen pendientes. Último sitio revisado `5d80658`, anterior a ese incremento. [Contrato y publicación del incremento](usuarios-y-servicio-3b.md), [diagrama y tecnologías](tecnologias-y-roadmap.md).
 
 La revisión móvil de Usuarios y accesos separa Cuenta/Accesos/Seguridad y agrupa las zonas; ya tiene comprobaciones locales de formularios, teclado y ambos temas. No cambia el estado de las etapas ni añade migraciones al incremento. Antes de publicar todo el avance, aplicar las migraciones 0003/0004 y preparar el ciclo nuevo siguiendo la guía enlazada arriba.
 

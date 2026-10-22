@@ -1,6 +1,6 @@
 # Tecnologías y recorrido hasta la primera versión funcional
 
-Estado actualizado el **22-10-2026**, rama `inventory-v3`, código publicado `94d3a83`, despliegue `982d494e`. Este resumen complementa el [roadmap](roadmap.md); los resultados y límites de cada ensayo están en [verificación](verification.md).
+Estado actualizado el **22-10-2026**, rama `inventory-v3`, último código comprobado en el dominio `5d80658`. Este resumen complementa el [roadmap](roadmap.md); los resultados y límites de cada ensayo están en [verificación](verification.md).
 
 ## Qué usa la aplicación y para qué
 
@@ -12,7 +12,7 @@ Estado actualizado el **22-10-2026**, rama `inventory-v3`, código publicado `94
 | Cloudflare Pages | Publicación del sitio desde GitHub: compila con `build:pages` y sirve `dist`. |
 | Cloudflare Workers | Ejecuta la API y protege rutas: identidad, permisos, validaciones, guardados y sincronización. En Pages se empaqueta como `_worker.js`. |
 | Cloudflare D1 / SQLite | Persistencia compartida de usuarios, sesiones, ámbitos, ciclos, conteos, operaciones, historial y auditoría. Triggers validan y aplican cada conteo atómicamente. |
-| bcryptjs 3.0.3 | Derivación de contraseñas con sal y coste 12. Nuevas contraseñas: mínimo ocho caracteres; límite CPU remoto bloqueante: 1102 y `exceededCpu` observados. |
+| bcryptjs 3.0.3 | Derivación de contraseñas con sal y coste 12. Nuevas contraseñas: mínimo ocho caracteres; presupuesto CPU del plan real pendiente de validar. |
 | Cookies HttpOnly/Secure/SameSite | Sesión autenticada; el navegador no guarda su secreto en localStorage. El servidor resuelve rol y permisos. |
 | localStorage | Borradores aislados por usuario/ciclo, preferencia de tema y espera del refresco. Conserva datos locales antiguos sin importarlos. No sustituye D1. |
 | Consultas incrementales con cursor | Sincronización de cambios autorizados, cada cinco segundos con pantalla visible; se pausa al ocultarse. Sin WebSockets ni Durable Objects. |
@@ -44,7 +44,7 @@ flowchart LR
 flowchart TD
     E1["1 · Catálogo y navegación incorporados"] --> E2["2 · Revisión física y unidades pendiente"]
     E1 --> A["3A · Implementada y probada localmente"]
-    A --> WEB["Demo 94d3a83: D1/ciclo listos, 16 GET aprobados; login falla por CPU"]
+    A --> WEB["Publicada hasta 5d80658: revisión básica aprobada"]
     WEB --> OPS["Pendientes 3A: CPU/plan, producción completa, recuperación, Android y piloto"]
     A --> B["3B · Usuarios/Servicio local implementado; supervisión pendiente"]
     B --> ADMIN["3B · Rectificar/anular, activar, revisar, cerrar y reabrir"]
@@ -61,7 +61,7 @@ La revisión física de etapa 2 y los pendientes de aceptación de 3A pueden ava
 | 1 — Catálogo y navegación | Jerarquía real y navegación móvil; contrato de **1.151 filas** con cero diferencias en ID, nombre, unidad y categoría. **1.227 entradas de conteo** por distribución en ubicaciones. | Las decisiones físicas/unidades se mantienen en etapa 2. El contrato no prueba exportación. |
 | 2 — Revisión operativa | Grupos prácticos separados de referencias de salida; pendientes identificados. | Cinco unidades de Pastelería, 18 entradas de Barra sin referencia, dos conversiones y organización física de Mercadito. Sin equivalencias inventadas. |
 | 3A — Usuarios y conteo compartido | Cuentas/ámbitos, aislamiento, guardados propios, Descartar/Sumar/Sobrescribir, historial, reintentos, borradores y UX. Suites locales de API/navegador/HTTPS/recuperación. Simulación local: **15 clientes, 496 solicitudes, cero errores inesperados, 14 conflictos esperados**. | Aceptación operativa: CPU/plan/consumo, conteos y permisos entre varias personas en el dominio, atributos de cookie allí, recuperación remota/copia externa, Android y piloto. Transición revisada de datos locales antiguos pendiente. |
-| Publicación actual de 3A | **16/16 GET anónimos**; revisión real de ingreso/cierre administrativo, Cuenta, menú, temas, refresco limitado y lectura de cuentas. Demo actualizada a `94d3a83`; D1/ciclo y siete cuentas preparados. El ingreso falla con 1102/`exceededCpu` y requiere resolver CPU. | Esta revisión no certifica carga de producción ni sustituye las comprobaciones operativas anteriores. |
+| Publicación actual de 3A | **16/16 GET anónimos**; revisión real de ingreso/cierre administrativo, Cuenta, menú, temas, refresco limitado y lectura de cuentas. Código público comprobado contra `5d80658`. | Esta revisión no certifica carga de producción ni sustituye las comprobaciones operativas anteriores. |
 | 3B — Supervisión y administración | Incremento de usuarios y Servicio implementado y probado localmente, con migraciones y ciclo nuevo. [Contrato](usuarios-y-servicio-3b.md). Orden y criterios en [etapa-3b.md](etapa-3b.md). El servidor ya rechaza escrituras en ciclo no abierto, probado localmente en 3A. | Tablero, historial administrativo avanzado, rectificación/anulación auditadas, activación operativa y flujo de revisión/cierre/reapertura. **El tablero y esas mutaciones de conteo siguen sin implementar.** |
 | 4 — Excel | Estructura original y referencias conservadas como contrato de salida. | Generación y validación del libro: solo cantidades, consolidación de ubicaciones con conversiones aprobadas, estructura/fórmulas/referencias intactas. **No implementada.** |
 

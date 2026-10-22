@@ -29,7 +29,7 @@ Abrir `http://127.0.0.1:8787/`. Inicializar fixtures solo una vez en una base lo
 
 [Tecnologías, arquitectura y diagrama del roadmap](docs/tecnologias-y-roadmap.md). Estado local al 22-10-2026: **3A implementada, con aceptación operativa abierta; 3B en curso, con el incremento de usuarios y Servicio; Excel reservado a etapa 4**. Administrador, Jefa de servicio y Trabajador tienen alcances distintos. La jefa entra a Servicio y administra sus trabajadores; en cuentas mixtas solo sus accesos de Servicio. La administración edita el usuario de ingreso; cada persona su nombre visible en Mi perfil. Eliminar exige confirmación irreversible y conserva historial. [Contrato y actualización de entornos](docs/usuarios-y-servicio-3b.md).
 
-Último código comprobado en el sitio: `94d3a83`, publicado por el usuario. Migraciones 0003/0004, ciclo nuevo y siete cuentas mínimas preparados con autorización; despliegue `982d494e` y 16 comprobaciones públicas correctos. **El ingreso sigue sin ser estable por límite CPU (1102, `exceededCpu`)**; ver [evidencia y pendiente de alojamiento](docs/verification.md). No repetir el primer administrador ni cargar fixtures. El refresco manual conserva un intento cada 30 segundos por usuario en el navegador, sin reenviar borradores.
+Último código comprobado en el sitio: `5d80658` (anterior a este incremento). El refresco manual admite un intento cada 30 segundos por usuario en el navegador, sin reenviar borradores. **Antes del siguiente push hay migraciones y un ciclo nuevo que preparar**, según la guía del incremento; no repetir el primer administrador ni cargar fixtures en producción.
 
 ## Pruebas
 
