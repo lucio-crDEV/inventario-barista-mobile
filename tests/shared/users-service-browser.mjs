@@ -21,7 +21,7 @@ async function session(username) {
 const users=async()=> (await admin.request("/api/admin/users")).data.users;
 let name="ui-serv-"+Date.now(), createdId;
 try {
-  const lead=await session("jefa-servicio");
+  const lead=await session("jefa-servicio-2");
   await expect(lead.page).toHaveURL(/area=servicio$/);
   await expect(lead.page.locator("#header-back-to-categories")).toBeHidden();
   await expect(lead.page.locator(".scope-card")).toHaveCount(5);
@@ -40,16 +40,19 @@ try {
   await create.getByRole("button",{name:"Crear usuario",exact:true}).click();
   await expect(lead.page.locator("#message")).toContainText("Cambios guardados");
   createdId=(await users()).find(u=>u.username===name).id;
-  await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible summary").click();
+  await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
   let form=lead.page.locator(`form[data-user="${createdId}"]`);
   await expect(form.locator('[name=name]')).toHaveCount(0);
   await expect(form.locator('[name=username]')).toHaveValue(name);
+  await form.locator("..").getByRole("tab", {name:"Accesos", exact:true}).click();
+  await form.locator('.scope-group[data-scope="servicio"] > summary').click();
   await form.locator('[value="servicio:barra"]').check();await form.locator('[value="servicio:coperia"]').check();
   await form.getByRole("button",{name:"Guardar cuenta y accesos"}).click();
   await expect(lead.page.locator("#message")).toContainText("Cambios guardados");
   checks.push("Crear conserva nombre inicial; editar cambia username y ámbitos de Servicio, sin editor administrativo del nombre visible");
 
-  await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible summary").click();
+  await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
+  await lead.page.locator(`.user-card[data-id="${createdId}"]`).getByRole("tab", {name:"Seguridad", exact:true}).click();
   const remove=lead.page.locator(`[data-delete="${createdId}"]`);
   await remove.click();await expect(lead.page.getByRole("dialog")).toContainText("irreversible");
   await expect(lead.page.locator("#cancel-delete")).toBeFocused();
@@ -69,7 +72,8 @@ try {
   await lead.page.locator("#confirm-delete").click();
   await expect(lead.page.locator("#message")).toContainText("cambió");
   assert.ok((await users()).some(u=>u.id===createdId));
-  await lead.page.reload();await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible summary").click();
+  await lead.page.reload();await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
+  await lead.page.locator(`.user-card[data-id="${createdId}"]`).getByRole("tab", {name:"Seguridad", exact:true}).click();
   await lead.page.locator(`[data-delete="${createdId}"]`).click();await lead.page.locator("#confirm-delete").click();
   await expect(lead.page.locator("#message")).toContainText("Usuario eliminado");
   assert.ok(!(await users()).some(u=>u.id===createdId));

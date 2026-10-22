@@ -2,11 +2,17 @@
 
 ## Ajustes vigentes del 22-10-2026
 
+Usuarios y accesos omite el subtítulo descriptivo. «Cuentas existentes» y el total filtrado comparten fila sobre el buscador. Crear usuario mantiene sus dos avisos finales en líneas separadas. Las tarjetas usan la misma cabecera compacta de nombre/usuario, rol/estado y chevrón; al abrirlas, tres pestañas separan **Cuenta**, **Accesos** y **Seguridad**. Solo se muestra un panel a la vez, conservando los campos escritos y las asignaciones al cambiar. Tab, flechas, Inicio/Fin y foco visible permiten navegar con teclado; la validación abre la pestaña del campo inválido.
+
+Accesos presenta las áreas en una lista uniforme: Servicio y sus ramas con zonas se despliegan bajo demanda, sin repetir toda la ruta en cada fila. Se indica el número de asignaciones y el alcance heredado de una asignación completa; «Todo Servicio» enumera las subáreas incluidas. Restablecer contraseña y Eliminar usuario son bloques separados en Seguridad, con explicación breve y confirmación explícita; eliminar conserva su borde rojo y Cancelar como foco inicial. En cuentas mixtas, la jefa ve directamente solo Accesos y el aviso de límite. Los controles mantienen al menos 44 px, los temas crema/carbón, el cian y las alternativas de movimiento/transparencia reducidos.
+
 Inicio conserva solo selectores con alternativas: un área entra a sus categorías, solo Servicio a sus subáreas y solo Garzones a sus zonas. Varias áreas mantienen Inicio. La jefa entra a Servicio sin flecha al menú global; las vistas interiores conservan un regreso útil. Copería aparece separada de Línea/Armado y Mercadito muestra la categoría Vitrina.
 
 Roles visibles: Administrador, Jefa de servicio, Trabajador, sin coletilla de acceso global en el selector. En altas se conservan nombre visible y usuario; la edición administrativa muestra Usuario y el nombre visible solo como referencia. Mi perfil permite cambiar el nombre propio con el mismo encabezado en fila. Cuentas mixtas muestran únicamente los campos de accesos de Servicio a una jefa.
 
 Eliminar usuario usa un diálogo nativo translúcido, foco inicial en Cancelar, Escape seguro y aviso explícito irreversible. La acción destructiva es de borde/texto rojo, con contraste específico oscuro; cancelar mantiene la cuenta. Una versión cambiada exige revisar de nuevo. El texto explica que conteos e historial se conservan. Los avisos anteriores se limpian al comenzar una nueva solicitud; no se muestra éxito antes de la respuesta.
+
+El cambio obligatorio de contraseña temporal conserva su pantalla sin flecha de regreso al inventario. Para salir sin cambiarla se usa menú superior derecho → Cerrar sesión. El usuario confirmó mantener este comportamiento; perfil y cambio voluntario conservan su regreso normal.
 
 ## Dirección visual
 

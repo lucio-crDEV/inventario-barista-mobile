@@ -2,6 +2,10 @@
 
 ## Estado local actualizado — 22-10-2026
 
+Revisión móvil de Usuarios y accesos: cuenta desplegada con pestañas Cuenta/Accesos/Seguridad; permisos agrupados por área y ramas plegables; contraseña y eliminación separadas. Total filtrado junto a Cuentas existentes, sin subtítulo descriptivo y con los avisos de creación en líneas distintas. Cambiar de pestaña conserva campos/asignaciones; la jefa en cuentas mixtas mantiene únicamente el editor de accesos de Servicio. Ajuste de presentación y validación HTML del usuario, sin cambios de API, permisos, esquema o catálogo. [Guía visual](style-guide.md), [pruebas de esta revisión](verification.md).
+
+Se confirmó conservar el cambio obligatorio de contraseña temporal sin regreso al inventario; el menú permite Cerrar sesión. No se modificó ese flujo tras la revisión visual.
+
 Proyecto «inventario brioche», rama `inventory-v3`. Incremento de usuarios y Servicio implementado: roles Administrador/Jefa de servicio/Trabajador; edición administrativa del username, nombre visible propio en Mi perfil y eliminación irreversible con historial conservado. La jefa solo ve inventario de Servicio y administra sus trabajadores; para una cuenta mixta solo cambia sus accesos de Servicio, sin alterar cuenta, contraseña ni accesos exteriores. El alcance se revalida dentro de las mutaciones transaccionales y los guardados.
 
 Inicio entra directamente al área/sector único; Garzones conserva sus zonas y varias áreas conservan Inicio. Jefa entra a Servicio sin flecha global. Copería cuenta los 32 productos de Aseo; Línea/Armado los otros 42 y conserva el ID técnico anterior. Mercadito añade 41 conteos independientes de Vitrina, cotejados contra las marcas del libro de reparto. Se conservan las referencias; exportar/consolidar Excel sigue en etapa 4.

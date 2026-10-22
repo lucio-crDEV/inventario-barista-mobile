@@ -1,5 +1,18 @@
 # Verificación — inventory-v3
 
+## Orden de Usuarios y accesos en móvil — 22-10-2026
+
+Pestañas Cuenta/Accesos/Seguridad por usuario, jerarquía de ámbitos plegable y bloques separados para contraseña/eliminación. Se retiró el subtítulo; contador filtrado al lado de Cuentas existentes y avisos de alta en dos líneas. Sin cambios de API, esquema, catálogo, contraseñas ni recursos remotos.
+
+- `npm test`: **19/19**.
+- `npm run test:admin-layout`: **6 grupos**, cero errores JavaScript. Sin desborde a 320/390/1024 px en claro/oscuro, pestañas de 44 px, jerarquía de Servicio/Garzones, teclado/foco, total junto al título y ayuda en líneas separadas. Cambiar de pestaña conserva campos y asignaciones; el envío incluye los permisos de un panel oculto. Se intercepta un fallo para comprobar conservación sin escribir en D1. La variante visual de cuenta mixta usa un DTO simulado aislado; las restricciones reales de servidor pertenecen a las pruebas del incremento descritas más abajo. [Informe específico](usuarios-diseno-local-3b.json).
+- `test:views`: **8 grupos**; alta real local, contraseña temporal/cambio obligatorio, otorgar dos ámbitos en sesión activa y restablecer con cancelación/revocación conservados.
+- `test:users-service:browser`: **6 grupos**; jefa, alta/accesos, eliminación confirmada/versionada y foco, perfil propio, navegación directa y Copería/Vitrina. Se utiliza la segunda jefa ficticia disponible; no se restablece la contraseña ya modificada de la primera.
+
+Las comprobaciones de HTML detectaron que el patrón anterior de username no era válido con la sintaxis actual del navegador. Se corrigió sin cambiar la regla del servidor; un campo inválido oculto ahora abre Cuenta y recibe foco. Capturas de los tres paneles en `test-results/admin-layout/`; Seguridad clara y Accesos oscuro a 320 px se inspeccionaron visualmente. El navegador integrado rechazó observar la pestaña existente por su política de acceso; no se automatizó esa pestaña. Las pruebas anteriores usan el navegador aislado del repositorio y D1 local de ensayo, no producción. El servidor de revisión queda disponible en `http://127.0.0.1:8790/pages/admin/` para recarga manual. Android físico y lector de pantalla siguen pendientes; no se repitió carga de 15 clientes por este ajuste de presentación.
+
+Tras la revisión, el usuario confirmó conservar el cambio obligatorio de contraseña temporal sin flecha al inventario y con salida mediante menú → Cerrar sesión. No se editaron Cuenta, autenticación ni servidor por esa observación. El cierre documental no repite las suites funcionales ya aprobadas: revisa sintaxis, enlaces, informes y diff antes de preparar el commit. Sin push ni cambios remotos.
+
 ## Incremento de usuarios y Servicio de 3B — 22-10-2026
 
 Cambios locales: rol Jefa de servicio, administración acotada de trabajadores/cuentas mixtas, username administrado, nombre visible propio, eliminación irreversible y navegación directa. Catálogo nuevo con 32 productos en Copería, 42 en Línea/Armado y 41 conteos de Vitrina. [Contrato y preparación del despliegue](usuarios-y-servicio-3b.md). No se ejecutaron cambios remotos, push ni despliegue; el sitio revisado `5d80658` es anterior a este incremento. Se conservaron los cambios documentales previos; `.DS_Store` no se incluye.

@@ -65,6 +65,8 @@ Con el ciclo anterior, las cantidades conservan su reparto anterior; la interfaz
 
 ## Navegación e interfaz
 
+Administración móvil: listado sin subtítulo, total junto a Cuentas existentes y avisos de alta en líneas distintas. Cada cuenta separa Cuenta/Accesos/Seguridad mediante pestañas accesibles que conservan el formulario. Accesos agrupa la jerarquía sin repetir rutas; Servicio, Garzones y Mercadito se despliegan cuando se necesitan. Seguridad separa restablecimiento y eliminación. La jefa en cuentas mixtas ve únicamente el editor de accesos permitido. Esta revisión no añade migraciones; sigue siendo necesaria la preparación del incremento completo descrita arriba antes de publicar.
+
 Inicio omite contenedores con una sola opción hasta el primer selector útil: solo Cocina/Pastelería/Panadería entra en sus categorías; varios ámbitos superiores mantienen Inicio; solo Servicio entra en sus subáreas; solo Garzones entra en sus zonas, incluso si solo tiene una. Jefa entra directamente a Servicio, sin flecha que vuelva al selector global. Las pantallas de conteo conservan regreso útil a categorías/zonas.
 
 Mantener HTML/CSS/JS nativos, guía crema/carbón/cian, menú derecho, skeletons, movimiento reducido, errores recuperables y foco contenido en diálogos. El nombre propio se edita desde Mi cuenta; la contraseña conserva su pantalla. Nunca descargar catálogos de áreas ajenas para calcular el destino.
