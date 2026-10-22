@@ -1,16 +1,36 @@
 # Verificación — inventory-v3
 
-## Recuperación tras la reversión y punto de continuación — 22-10-2026
+## Revisión al retomar con Hermes — 22-10-2026
+
+Estado actual y alcance completo en [revision-hermes-2026-10-22.md](revision-hermes-2026-10-22.md); evidencia estructurada nueva en [revision-hermes-2026-10-22.json](revision-hermes-2026-10-22.json), sin sobrescribir informes anteriores.
+
+- Git: rama `inventory-v3`, HEAD y seguimiento local en `cfece26`. Consulta viva GitHub por SSH rechazada (`publickey`); no se cambiaron credenciales ni referencias. Pages confirma commit completo en despliegue canónico `7df21f3c-e662-443d-a953-b9e502863882`, etapa deploy `success`.
+- Local repetido ahora: `npm test` **19/19**, `test:bootstrap` **7/7**, contrato de **1.151 filas y 41 referencias Vitrina** coincidente, build Pages correcto en copia scratch. Sonda SQL en dos bases exclusivamente en memoria aprobada: catálogos/alcance antes-después de 0004, reintento aceptado tras cierre sin escritura, operación nueva cerrada y reintento sin permiso rechazados, integridad/claves válidas. No se recreó `dist` canónico ni se tocó el servidor/base activos en 8790; no se repitieron suites mutantes o carga.
+- Producción, solo lectura: **16/16 GET anónimos**, JSON/no-store/cabeceras/privacidad correctos y **cinco assets** coincidentes byte a byte/SHA-256 con este checkout. El usuario confirmó funcionamiento online; esta sesión no creó una sesión autenticada ni modificó contraseñas/cuentas/conteos.
+- Métricas Pages posteriores al deploy (16:52:52–17:57:47 UTC): proveedor informa **1.399 success, 2 exceededResources y 4 clientDisconnected**, agregados adaptativos. Los dos errores están en el minuto **17:18 UTC / 14:18 -03**; CPU p50 10 ms, p99 162,149 ms, unidades comprobadas en esquema antes de convertir. No incluyen URL ni `outcome=exceededCpu`: confirman nuevos fallos por recursos, no causa individual ni caída permanente de login. Dataset genérico Workers vacío; dataset específico Pages con 33 grupos, límite 1.000 no alcanzado.
+- D1 `NOT_INITIALIZED` histórico corregido, distinto del `exceededCpu` histórico posterior. `/api/me` responde ahora 401 tras el control de inicialización; no se ejecutó SQL remoto ni auditoría integral de D1. Free se mantiene; Supabase continúa como alternativa sin integrar, no cambio obligatorio.
+
+La evidencia anterior permanece fechada como histórica. No convertir «sin push en aquella revisión» en «cfece26 sin publicar», ni pruebas locales anteriores en ensayos nuevos de producción. 3A mantiene aceptación operativa pendiente; 3B conserva usuarios/Servicio y faltan supervisión, rectificación/anulación, activación y cierre/reapertura. Excel sigue en 4 y no se implementó.
+
+Cierre de documentación: 18 Markdown, 154 enlaces locales, 28 scripts npm referidos y 19 informes JSON validados, sin errores; `git diff --check` correcto. 99 archivos versionados protegidos mantienen SHA-256 antes/después. No hay diff de código, migraciones ni configuración contra `cfece26`; cambios previos y servidor/base existentes conservados.
+
+## Traslado y estado informado — 22-10-2026
+
+El usuario informó que el despliegue de `cfece26` funciona; no se presenta esa confirmación como un ensayo autenticado completo independiente. Al iniciar el traslado, local y `origin/inventory-v3` coincidían. El renombrado local conservó mediante SHA-256 **3.180 archivos y enlaces, 431.883.989 bytes**, incluidas bases, secretos locales ignorados y Git; el servidor se detuvo antes de mover. No se modificaron recursos remotos. La ruta canónica es `/Users/lucio/workspace/inventario_brioche`. Medir la recurrencia CPU actual antes de decidir un cambio de autenticación. [Punto de continuación](traspaso-hermes.md).
+
+Comprobaciones posteriores al traslado: `npm test` **19/19**, construcción Pages correcta y Python **7/7**. Servidor reiniciado desde la nueva raíz usando la misma `.wrangler/test-state`, sin inicializarla: Cuenta y cliente 200; `/api/me` 401 JSON sin sesión. Hermes **v0.22.4**, proyecto `inventario_brioche` creado/activo por su CLI, configuración versión 51 validada sin requisitos faltantes (solo opciones de proveedores no configurados). El cargador real incluye AGENTS.md y el enlace al traspaso sin bloquear contexto; el lanzador pasa sintaxis y `--help` sin llamadas a un modelo. Perfil/SOUL ya acordes a las preferencias; se corrigió una memoria obsoleta de modelo con copia privada previa. Modelo/proveedor, credenciales y WhatsApp se conservan. No se probaron envíos WhatsApp ni una conversación nueva de pago/modelo; no hubo commit/push.
+
+## Recuperación histórica previa a publicar cfece26 — 22-10-2026
 
 El usuario subió la reversión `55dfc2b` y después pidió recuperar íntegramente el incremento. Se restituyeron localmente los árboles de `9dfef56`, `94d3a83` y `2c284cd`, conservando el historial. En esta recuperación: `npm test` **19/19**, `build:pages` correcto y pruebas Python del bootstrap/orden SQL **7/7**. No se repitieron suites completas de navegador, integración ni carga; sus resultados anteriores se conservan fechados más abajo. Sin push, despliegue ni modificaciones remotas en esta revisión.
 
 Comprobación pública breve después de la reversión: `/pages/cuenta/` 200, `/api/me` 401 JSON, y los archivos `/pages/cuenta/cuenta.js` y `/shared/client.js` coincidían mediante SHA-256 con el código revertido. Sin autenticación ni escrituras. No demuestra estabilidad de ingreso ni que la aplicación completa funcione en Free. Un primer intento de comparación usó una ruta local inexistente; se corrigió y solo se registran aquí los cuatro resultados válidos.
 
-La comparación entre `5d80658` y `2c284cd` confirma **cero cambios en `worker/password.js`**. El nuevo control de inicialización exigía la vista `inventory_permissions`, ausente al primer despliegue; esa incompatibilidad se corrigió con 0003/0004/ciclo. El error posterior 1102/`exceededCpu` es distinto y no se ha resuelto. No hay una medición comparativa de CPU remota que permita atribuir la diferencia entre versiones a las consultas nuevas. Reutilizar sesión evita bcrypt; un ingreso nuevo sí lo ejecuta.
+La comparación histórica entre `5d80658` y `2c284cd`, repetida ahora hasta `cfece26`, confirma **cero cambios en `worker/password.js`**. El control de inicialización exigía la vista `inventory_permissions`, ausente al primer despliegue; incompatibilidad corregida con 0003/0004/ciclo. Después hubo 1102/`exceededCpu`, diagnóstico distinto. La recuperación no aporta corrección específica de CPU, pero el usuario sí confirmó funcionamiento tras publicarla. No hay perfil comparativo remoto por fase que atribuya los errores a consultas nuevas. Reutilizar sesión evita bcrypt; ingreso nuevo sí lo ejecuta. Métricas actuales por recursos y sus límites: sección inicial.
 
-Decisión: mantener Free y preparar Supabase Auth conservando el formulario; el usuario configurará el proyecto en la próxima sesión. No hay integración, claves ni pruebas del proveedor. [Instrucciones y tareas pendientes](autenticacion-free.md). No publicar este punto de recuperación como corrección del ingreso.
+La propuesta anterior de preparar Supabase Auth quedó subordinada a evaluar el comportamiento actual; no es tarea obligatoria ni proveedor integrado. Free se mantiene. `cfece26` ya está publicado y funcionando según el usuario; no documentarlo como pendiente de publicar ni como arreglo específico de CPU. [Diagnóstico y alternativa opcional](autenticacion-free.md).
 
-## Reparación de la demo publicada — 22-10-2026
+## Reparación histórica de la demo anterior a cfece26 — 22-10-2026
 
 El usuario publicó `94d3a83` en `inventory-v3`; Pages registra el despliegue `0ffd646a` y los archivos públicos de administración/CSS coinciden con el código local. GET `/api/me` devuelve HTTP 503 JSON `NOT_INITIALIZED`, con no-store y cabeceras de seguridad. No es una compilación pendiente ni una versión antigua en caché.
 
@@ -18,11 +38,11 @@ Consultas de solo lectura a la D1 remota `inventario-login-v3`: únicamente cons
 
 El usuario autorizó la corrección y aclaró que el sitio es una demo con cuentas mínimas. Se completaron respaldo privado (ya iniciado antes de esa aclaración; SHA-256 y permisos verificados), migraciones 0003/0004 y ciclo nuevo. Pages conserva las demás variables y DB; `ACTIVE_CYCLE_ID=piloto-v3-servicio`. Reintento del commit aprobado `94d3a83`: despliegue `982d494e`, terminado correctamente, sin push ni cambios de código. No repetir esas migraciones/ciclo ni el primer administrador. [Procedimiento para otros entornos](usuarios-y-servicio-3b.md).
 
-Comprobación pública posterior: **16/16**, sin sesión ni solicitudes mutantes; API vuelve a responder 401 JSON cuando no hay sesión. [Informe nuevo, separado del histórico 3A](publico-servicio-3b.json). Un ingreso del administrador y las primeras altas por API funcionaron; después alta e ingreso fallaron con HTML 503/error Cloudflare **1102**. Una observación temporal de logs confirmó exactamente `outcome=exceededCpu` y `Worker exceeded CPU time limit.`; se cerró la observación. **La autenticación web no es estable y no está aprobada.** No se redujo bcrypt coste 12 ni se cambió facturación. Esto confirma el pendiente de presupuesto CPU, no una cuota de filas de D1. [Límites oficiales](https://developers.cloudflare.com/workers/platform/limits/), [precio de Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/).
+Comprobación pública de aquella reparación: **16/16**, sin sesión ni solicitudes mutantes; API vuelve a 401 JSON. [Informe histórico 3B](publico-servicio-3b.json). Un ingreso y primeras altas funcionaron; después alta/ingreso fallaron con HTML 503/error Cloudflare **1102**. El tail histórico confirmó `outcome=exceededCpu` y `Worker exceeded CPU time limit.` y se cerró. **En esa revisión no se aprobó estabilidad de autenticación.** No se redujo bcrypt coste 12 ni cambió facturación; no era una cuota de filas D1. La recuperación/confirmación posterior del usuario y la nueva lectura de métricas se documentan arriba, sin extrapolar este diagnóstico individual a todas las solicitudes actuales.
 
 Cuentas de demo: **7 activas**, un Administrador conservado, una Jefa de servicio y cinco trabajadores (Bodega, Cocina, Panadería, Pastelería, Servicio). Tres altas por API se aceptaron; las tres restantes se inicializaron explícitamente en D1 con hashes del mismo módulo bcrypt coste 12 calculados localmente, sin rebajar parámetros ni habilitar fallback. Las tres cuentas antiguas de ensayo se retiraron con auditoría y conservación de su identidad histórica. Las seis nuevas mantienen cambio obligatorio de contraseña temporal. Credenciales individuales en un archivo privado e ignorado bajo `.backups/`; ninguna contraseña se incluye en docs o Git.
 
-Consultas remotas comprobaron siete cuentas, sus proyecciones de permisos (Administrador: 14 nodos; Jefa/Servicio: 10; cada área directa: 1), dos ciclos y los diez conteos antiguos conservados. Cero autores huérfanos en conteos/historial; no se guardaron conteos en el ciclo nuevo. `PRAGMA integrity_check` fue rechazado por D1 remota (`SQLITE_AUTH`); se sustituyó por consultas explícitas de referencias, sin declarar una verificación integral equivalente. [Informe de despliegue y límites](despliegue-demo-3b.json). No se hizo carga ni el recorrido autenticado completo sobre el ciclo nuevo. El siguiente paso depende de resolver el alojamiento/CPU; el usuario decide entre activar Paid o revisar una alternativa compatible con Free.
+Consultas históricas comprobaron siete cuentas, permisos (Administrador: 14 nodos; Jefa/Servicio: 10; área directa: 1), dos ciclos y diez conteos antiguos conservados. Cero autores huérfanos; no había conteos en el ciclo nuevo. `PRAGMA integrity_check` remoto rechazado (`SQLITE_AUTH`); se sustituyó por consultas explícitas de referencias, sin declarar equivalencia integral. [Informe histórico](despliegue-demo-3b.json). No se hizo carga/recorrido autenticado completo; esos censos no se repitieron ahora. La decisión vigente es mantener Free e investigar recursos antes de seleccionar cambios, no activar Paid ni migrar por obligación.
 
 ## Orden de Usuarios y accesos en móvil — 22-10-2026
 
@@ -70,7 +90,7 @@ Rama `inventory-v3`; `inventory-v2` conserva `3d2331919ea8bdf39daf1f095ea09877d6
 
 Runtime: Node 24.21.0, Wrangler 4.151.3/workerd 1.20261019.1, D1 local, bcryptjs 3.0.3, esbuild 0.28.2; Chromium 141 mediante Playwright 1.56.1. Los conjuntos automatizados usan bases desechables separadas del desarrollo: Worker 8790 y Pages HTTPS 8791.
 
-## Última comprobación del sitio publicado — 21-10-2026, `5d80658`
+## Comprobación histórica del sitio publicado — 21-10-2026, `5d80658`
 
 La consulta de despliegues de Pages confirmó éxito de `5d80658` en `inventario-login`, con URL de despliegue `https://0458b9d4.inventario-login.pages.dev`. En el dominio principal, los cuatro archivos `/shared/client.js`, `/shared/refresh-limit.js`, `/shared/shared.css` y `/shared/inventory.js` coincidieron exactamente con los de ese commit local al solicitarlos sin reutilizar caché. Los cambios de menú, formularios, mínimo de ocho caracteres e icono compacto ya están publicados.
 
@@ -142,7 +162,7 @@ Peticiones iniciales comprobadas: Inicio **1** (`/api/navigation`, antes sesión
 
 Regresiones repetidas con este cambio: 15 pruebas generales, 11 grupos de integración, 5 adicionales, 14 recorridos de navegador, 7 de vistas, 3 de sincronización y 6 de Pages HTTPS local. Cero errores JavaScript en los recorridos. No se modificaron migraciones, datos del catálogo, referencias Excel ni derivación de contraseñas. No se repitió la carga de 15 clientes: su informe inferior corresponde al ensayo anterior.
 
-## Resultados actuales ejecutados
+## Resultados históricos de 3A ejecutados — 21-10-2026
 
 | Comprobación | Resultado |
 | --- | --- |

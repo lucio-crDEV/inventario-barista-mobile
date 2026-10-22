@@ -1,0 +1,281 @@
+{
+  "observedAt": "2026-10-22T17:57:47.041582+00:00",
+  "branch": "inventory-v3",
+  "head": "cfece26d9c910b460ac895d4948ef8eacf7661aa",
+  "localTrackingRefMatches": true,
+  "githubLiveRead": "git ls-remote failed: SSH publickey; credentials unchanged",
+  "deployment": {
+    "project": "inventario-login",
+    "productionBranch": "inventory-v3",
+    "deploymentId": "7df21f3c-e662-443d-a953-b9e502863882",
+    "createdOn": "2026-10-22T16:52:07.005941Z",
+    "stage": {
+      "name": "deploy",
+      "started_on": "2026-10-22T16:52:42.553367Z",
+      "ended_on": "2026-10-22T16:52:52.609602Z",
+      "status": "success"
+    },
+    "commit": "cfece26d9c910b460ac895d4948ef8eacf7661aa",
+    "scriptName": "pages-worker--21988261-production"
+  },
+  "public": {
+    "origin": "https://inventario-login.pages.dev",
+    "authenticated": false,
+    "mutatingRequests": 0,
+    "checks": [
+      {
+        "path": "/",
+        "status": 200,
+        "expected": 200,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/pages/cuenta/",
+        "status": 200,
+        "expected": 200,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/shared/loading.js",
+        "status": 200,
+        "expected": 200,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/api/me",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/api/bootstrap",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/api/navigation",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/api/sync?cursor=0",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/api/summary",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/api/history",
+        "status": 401,
+        "expected": 401,
+        "passed": true,
+        "securityHeaders": true,
+        "json": true,
+        "noStore": true
+      },
+      {
+        "path": "/data/inventario/items/catalogo-excel.js",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/migrations/0001_core.sql",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/scripts/bootstrap.mjs",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/_worker.js",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/inventarios_og/11_10-INVENTARIO-totalizado.xlsx",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/.backups/",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      },
+      {
+        "path": "/sources/",
+        "status": 404,
+        "expected": 404,
+        "passed": true,
+        "securityHeaders": true
+      }
+    ],
+    "routingPassed": true,
+    "securityHeadersPassed": true,
+    "passed": true,
+    "observedAt": "2026-10-22T17:58:43.509673+00:00",
+    "assetComparisons": [
+      {
+        "path": "/pages/admin/accounts-view.js",
+        "matchesLocal": true,
+        "sha256": "a93b9ca7658408fd444ef382ac95fe3a27cbf39e0778ea15f75ea6cb859dbe83"
+      },
+      {
+        "path": "/pages/cuenta/cuenta.js",
+        "matchesLocal": true,
+        "sha256": "1a13029d2922ca90f4e18ac6a418f58b2b78eef8ccab968df20156b16adbd207"
+      },
+      {
+        "path": "/shared/client.js",
+        "matchesLocal": true,
+        "sha256": "62248b4e843ece4c9765e1dbbaab2284345b5905ecf26b7c7b7c295d7881312d"
+      },
+      {
+        "path": "/shared/navigation.js",
+        "matchesLocal": true,
+        "sha256": "605ec81d5bd555c6cde25f75227fe1c099772804ae05cd743a5292684c4839fe"
+      },
+      {
+        "path": "/shared/shared.css",
+        "matchesLocal": true,
+        "sha256": "2d3ba4ec5a7c6a5cf4e49bff46bb0beb5b49c4ca3432c29c85037f704140e238"
+      }
+    ],
+    "allAssetsMatch": true,
+    "scratchBuildPassed": true,
+    "historicalReportsOverwritten": false
+  },
+  "analytics": {
+    "dataset": "pagesFunctionsInvocationsAdaptiveGroups",
+    "window": {
+      "start": "2026-10-22T16:52:52.609602Z",
+      "end": "2026-10-22T17:57:47Z"
+    },
+    "filter": {
+      "scriptName": "pages-worker--21988261-production"
+    },
+    "reportedTotalsByStatus": {
+      "success": {
+        "requests": 1399,
+        "errors": 0
+      },
+      "exceededResources": {
+        "requests": 2,
+        "errors": 2
+      },
+      "clientDisconnected": {
+        "requests": 4,
+        "errors": 0
+      }
+    },
+    "errorGroups": [
+      {
+        "avg": {
+          "sampleInterval": 1
+        },
+        "dimensions": {
+          "datetimeMinute": "2026-10-22T17:18:00Z",
+          "scriptName": "pages-worker--21988261-production",
+          "status": "exceededResources"
+        },
+        "quantiles": {
+          "cpuTimeP50": 10000,
+          "cpuTimeP99": 162149
+        },
+        "sum": {
+          "errors": 2,
+          "requests": 2
+        }
+      }
+    ],
+    "groupCount": 33,
+    "limit": 1000,
+    "sampling": "Adaptive aggregates; totals are provider reports, not exact complete request logs.",
+    "cpuUnit": "microseconds, confirmed by GraphQL schema descriptions",
+    "errorCpuMs": [
+      {
+        "minute": "2026-10-22T17:18:00Z",
+        "p50": 10.0,
+        "p99": 162.149
+      }
+    ],
+    "interpretation": "Two exceededResources errors after the successful cfece26 deployment. Exact URL and exceededCpu outcome are absent from these aggregates; no fresh login was executed.",
+    "genericWorkersDataset": "workersInvocationsAdaptive returned []; Pages-specific dataset returned records.",
+    "deploymentAttributionLimit": "Filtered by script and time after deployment; aggregates contain no per-request deployment ID and do not prove this commit caused the errors."
+  },
+  "localTests": {
+    "npm test": {
+      "passed": 19,
+      "failed": 0
+    },
+    "npm run test:bootstrap": {
+      "passed": 7,
+      "failed": 0
+    },
+    "python3 tests/workbook_contract.py": {
+      "rowsUnchanged": 1151,
+      "vitrinaReferences": 41
+    },
+    "npm run build:pages": "passed in isolated scratch copy; canonical dist untouched",
+    "inMemoryContractProbe": {
+      "passed": true,
+      "checks": [
+        "Catalog versions 1227/1268 conserved",
+        "Pre-0004 combined grant adds Copería explicitly",
+        "Post-0004 grants do not inherit sibling Copería",
+        "Accepted retry after closure returns without new writes",
+        "New operation after closure rejected CYCLE_CLOSED",
+        "Retry after access removal rejected FORBIDDEN",
+        "Both in-memory databases pass foreign keys/integrity"
+      ],
+      "environment": "Node SQLite in memory only; no existing database modified"
+    }
+  },
+  "notExecuted": [
+    "remote login/logout/password changes",
+    "remote SQL/migrations/backup/restore/maintenance",
+    "mutable integration/browser/load suites against active local fixture database",
+    "deployment/commit/push",
+    "physical Android and operational acceptance"
+  ],
+  "remoteStateChanges": false,
+  "credentialsPersistedInReport": false
+}

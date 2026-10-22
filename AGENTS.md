@@ -1,5 +1,9 @@
 # AGENTS.md — inventory-v3
 
+## Ubicación y continuidad entre agentes — 22-10-2026
+
+La raíz local es `/Users/lucio/workspace/inventario_brioche`; el remoto de GitHub y los nombres técnicos `inventory-v3`, Workers/D1 y claves de datos se conservan. Para retomar con Hermes u otro agente, lee primero [el traspaso actualizado](docs/traspaso-hermes.md), además de contexto, roadmap y verificación. No crees un HERMES.md que sustituya estas reglas. `sources/`, cuando esté presente, es referencia sincronizada de solo lectura. La elección de Supabase no obliga a migrar: primero contrastar el funcionamiento actual y los errores CPU con mediciones reales.
+
 ## Propósito
 
 Este repositorio desarrolla `inventory-v3`: una aplicación web modular para gestionar inventario y, en una rama de trabajo separada, pedidos internos. No confundirlo con la aplicación anterior **Inventario Barra** ni trasladar automáticamente a esta rama sus límites de producto o su roadmap.

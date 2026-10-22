@@ -1,6 +1,6 @@
 # Usuarios y Servicio — contrato del incremento del 22-10-2026
 
-Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito antes de implementar y actualizado con la entrega del 22-10-2026. Excel continúa en etapa 4. El usuario publicó `94d3a83` y autorizó preparar D1/Pages. Migraciones 0003/0004 y ciclo `piloto-v3-servicio` ya están aplicados en la demo; despliegue `982d494e` correcto y siete cuentas mínimas. Queda bloqueante el límite de CPU observado en ingreso/altas (1102, `exceededCpu`); no se certifica funcionamiento autenticado estable. [Evidencia y estado](verification.md).
+Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito antes de implementar y actualizado con la revisión del 22-10-2026. Excel continúa en etapa 4. El incremento está recuperado/publicado en `cfece26`, confirmado en Pages (`7df21f3c`) y funcionando según el usuario. La reparación anterior de `94d3a83` preparó 0003/0004, ciclo `piloto-v3-servicio` y siete cuentas; no repetirlos. Las métricas posteriores muestran dos errores `exceededResources`, sin ruta ni resultado CPU individual. Mantener Free; Supabase no está integrado ni es obligatorio. Aceptación operativa todavía abierta. [Evidencia actual](revision-hermes-2026-10-22.md), [registro completo](verification.md).
 
 ## Decisiones confirmadas
 
@@ -11,7 +11,7 @@ Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito ant
 - Al crear se introducen usuario de ingreso, nombre visible, rol y contraseña temporal. Después el Administrador cambia usuario de ingreso, rol, activación y accesos; cada persona cambia su propio nombre visible. La jefa cambia el usuario/contraseña de trabajadores exclusivamente de Servicio. Nadie cambia su propio usuario mediante el perfil.
 - Eliminar exige diálogo explícito irreversible con Cancelar como foco inicial y confirmación en servidor. Retira cuenta, sesiones y accesos; conserva UUID, nombre histórico, conteos, operaciones y auditoría mediante una marca irreversible de eliminación. La cuenta no puede reactivarse; reutilizar un nombre de ingreso crea otra identidad.
 - Copería se separa de Línea/Armado y recibe los 32 productos de Aseo del sector combinado. Los otros 42 quedan en Línea/Armado. Se conserva el identificador técnico anterior para Línea/Armado; no se cambian ID ni referencias de los productos existentes.
-- Vitrina es un lugar físico. Las 41 marcas del libro de reparto se contrastarán por producto y unidad con Mercadito; se presentan como categoría Vitrina con ubicación y conteo propios, separados del resto de existencias. Conservan la referencia de salida para consolidar en etapa 4; no se suman a un registro de otra ubicación durante el guardado.
+- Vitrina es un lugar físico. Las 41 marcas del libro de reparto están contrastadas por producto y unidad con Mercadito; la prueba de contrato se repitió al retomar. Se presentan como categoría Vitrina con ubicación/conteo propios, separados del resto. Conservan referencia de salida para consolidar en etapa 4; no se suman a otra ubicación durante el guardado. El contraste documental no cierra la aceptación física de etapa 2.
 
 ## Persistencia y seguridad
 
@@ -40,9 +40,9 @@ npm run dev -- --var ACTIVE_CYCLE_ID:prueba-servicio-v3
 
 Crear ese ciclo una sola vez; repetir se rechaza sin borrar el anterior. En una base local vacía, `db:local` + `seed:local` prepara `prueba-compartida` con catálogo nuevo y dos jefas ficticias `jefa-servicio` / `jefa-servicio-2`, además de los fixtures anteriores. No se importan cantidades antiguas.
 
-## Preparar producción antes del push
+## Preparación histórica de la demo y referencia para otros entornos
 
-Procedimiento reproducible para otro entorno. **Ya ejecutado en la demo el 22-10-2026 con autorización explícita**: no repetir ciclo/altas ni inicializaciones. El cambio posterior a siete cuentas es una preparación explícita de demo, no el seed local. Mantener separados rama y recursos de `inventory-v2`. `wrangler.pages.production.jsonc` contiene el ciclo `piloto-v3-servicio`; las variables efectivas del deploy Git se guardan en Pages.
+Procedimiento reproducible para otro entorno. **Ya ejecutado en la demo el 22-10-2026 con autorización explícita**: no repetir ciclo/altas ni inicializaciones. No ejecutar comandos remotos de esta guía sin autorización específica; los identificadores siguientes pertenecen a la demo, no deben copiarse como destino de otra instalación. Las siete cuentas corresponden a la preparación histórica, no a un censo nuevo ni al seed local. Mantener separados rama y recursos de `inventory-v2`. `wrangler.pages.production.jsonc` contiene `piloto-v3-servicio`; las variables efectivas del deploy Git se guardan en Pages.
 
 1. Conservar un respaldo privado. Restaurar localmente requiere Python 3: la herramienta ordena una copia temporal del SQL (tablas antes de datos, triggers después), sin ejecutar SQL en Python ni alterar el respaldo/checksum. La copia mantiene permisos privados y se elimina al terminar. [Recuperación y límites](cierre-tecnico-3a.md).
 
@@ -65,7 +65,7 @@ Con el ciclo anterior, las cantidades conservan su reparto anterior; la interfaz
 
 ## Navegación e interfaz
 
-Administración móvil: listado sin subtítulo, total junto a Cuentas existentes y avisos de alta en líneas distintas. Cada cuenta separa Cuenta/Accesos/Seguridad mediante pestañas accesibles que conservan el formulario. Accesos agrupa la jerarquía sin repetir rutas; Servicio, Garzones y Mercadito se despliegan cuando se necesitan. Seguridad separa restablecimiento y eliminación. La jefa en cuentas mixtas ve únicamente el editor de accesos permitido. Esta revisión no añade migraciones; sigue siendo necesaria la preparación del incremento completo descrita arriba antes de publicar.
+Administración móvil: listado sin subtítulo, total junto a Cuentas existentes y avisos de alta en líneas distintas. Cada cuenta separa Cuenta/Accesos/Seguridad mediante pestañas accesibles que conservan el formulario. Accesos agrupa la jerarquía sin repetir rutas; Servicio, Garzones y Mercadito se despliegan cuando se necesitan. Seguridad separa restablecimiento y eliminación. La jefa en cuentas mixtas ve únicamente el editor permitido. Está incluido en `cfece26`; no añade migraciones ni exige repetir la preparación de la demo.
 
 Inicio omite contenedores con una sola opción hasta el primer selector útil: solo Cocina/Pastelería/Panadería entra en sus categorías; varios ámbitos superiores mantienen Inicio; solo Servicio entra en sus subáreas; solo Garzones entra en sus zonas, incluso si solo tiene una. Jefa entra directamente a Servicio, sin flecha que vuelva al selector global. Las pantallas de conteo conservan regreso útil a categorías/zonas.
 
@@ -75,4 +75,4 @@ Mantener HTML/CSS/JS nativos, guía crema/carbón/cian, menú derecho, skeletons
 
 Probar migración sobre una base con cuentas, sesiones y conteos; integridad/reintentos/autoría después. API: jerarquía, cuentas mixtas, intentos por URL/solicitud, perfil propio, username único, revocación, último administrador, eliminación irreversible, confirmación/revisión y carreras. Catálogo: 1.151 referencias intactas, separación 32/42 y las 41 ubicaciones de Vitrina con unidades/ref verificadas. Navegador: jefa, trabajador de área única, varias áreas, Garzones, edición propia y administración/confirmaciones en claro/oscuro móvil. Repetir regresiones y simulación local de 15 clientes; no usar fixtures contra producción.
 
-Resultados ejecutados: 19 pruebas Node, 7 Python, 11 grupos de integración, 6 extended, 9 API nuevas, 6 grupos nuevos de navegador, regresiones browser/vistas/UX/sync/refresh y 6 comprobaciones HTTPS Pages aprobadas. Migración D1 poblada y recuperación/retención local aprobadas. Carga: 15 clientes, 496 solicitudes, 6.695 ms, cero errores inesperados y 14 conflictos esperados. [Resultados y límites completos](verification.md). Este incremento no completa 3B ni cierra la aceptación operativa de 3A.
+Resultados históricos de implementación: 19 Node, 7 Python, 11 integración, 6 extended, 9 API nuevas, 6 grupos nuevos de navegador, regresiones browser/vistas/UX/sync/refresh y 6 HTTPS Pages, aprobados localmente. Migración D1 poblada y recuperación/retención local aprobadas. Carga local histórica: 15 clientes, 496 solicitudes, 6.695 ms, cero errores inesperados y 14 conflictos esperados. Al retomar se repitieron únicamente 19 Node, 7 Python, contrato de libros y build aislado, además de lectura pública/métricas; no se repitieron suites mutantes ni carga. [Resultados y límites](verification.md). No completa 3B ni cierra aceptación 3A.

@@ -1,8 +1,8 @@
 # Contexto del proyecto — inventory-v3
 
-## Punto de continuación — 22-10-2026
+## Última decisión y traslado local — 22-10-2026
 
-El usuario revirtió/subió temporalmente `55dfc2b` y después pidió recuperar todos los cambios. Se restituyó localmente el incremento completo de usuarios/Servicio y diseño; no se publica aún. Se decidió mantener Free y desarrollar Supabase Auth conservando el formulario actual. La creación/configuración del proyecto quedó para la próxima sesión: **no hay integración ni corrección de CPU implementadas**. Antes de push/despliegue se requiere resolver y probar el ingreso real, sin rebajar protección. [Preparación exacta, diagnóstico y trabajo pendiente](autenticacion-free.md). D1 conserva la actualización remota previa; no repetir bootstrap ni revertir sus datos por el cambio de Git.
+Raíz trasladada de `/Users/lucio/workspace/inventario-barista-mobile` a `/Users/lucio/workspace/inventario_brioche`, sin cambiar remoto, rama, identificadores, bases ni credenciales. HEAD y seguimiento local `origin/inventory-v3` coinciden en `cfece26`; la lectura viva de GitHub falló por clave SSH. Pages sí confirma `cfece26`, despliegue canónico `7df21f3c` correcto; el usuario confirmó funcionamiento. D1 ya se reparó y hubo un `exceededCpu` histórico distinto. La revisión actual encuentra dos errores posteriores `exceededResources` a las 17:18 UTC, sin ruta ni diagnóstico individual; no prueba fallo permanente ni causa exacta. Free se mantiene y Supabase no está integrado ni es obligatorio. [Evidencia y límites actuales](revision-hermes-2026-10-22.md), [traspaso](traspaso-hermes.md).
 
 ## Estado local actualizado — 22-10-2026
 
@@ -14,7 +14,7 @@ Proyecto «inventario brioche», rama `inventory-v3`. Incremento de usuarios y S
 
 Inicio entra directamente al área/sector único; Garzones conserva sus zonas y varias áreas conservan Inicio. Jefa entra a Servicio sin flecha global. Copería cuenta los 32 productos de Aseo; Línea/Armado los otros 42 y conserva el ID técnico anterior. Mercadito añade 41 conteos independientes de Vitrina, cotejados contra las marcas del libro de reparto. Se conservan las referencias; exportar/consolidar Excel sigue en etapa 4.
 
-Migraciones nuevas `0003_users_service.sql` y `0004_service_catalog.sql`. Catálogo nuevo `inventory-v3-2026-10-22`, **1.268 entradas**; se conserva el anterior de **1.227**, sin mover cantidades ni borradores. El reparto nuevo requiere un ciclo nuevo explícito. El usuario publicó `94d3a83` y autorizó corregir la demo. Migraciones 0003/0004 aplicadas, ciclo `piloto-v3-servicio` activo y redeploy `982d494e` terminado. Comprobación pública 16/16. Siete cuentas mínimas preparadas; el ingreso/alta sigue sin ser estable por error 1102 y `exceededCpu` confirmado en logs. Sin cambio de bcrypt ni facturación; [diagnóstico](verification.md) y [procedimiento](usuarios-y-servicio-3b.md). 3B está en curso; tablero, rectificación/anulación de conteos, activación global de productos y cierre/reapertura siguen pendientes. Los pendientes operativos de 3A se mantienen.
+Migraciones `0003_users_service.sql` y `0004_service_catalog.sql`; catálogo `inventory-v3-2026-10-22`, **1.268 entradas**, conservando las **1.227** del anterior sin mover cantidades/borradores. En la reparación histórica de `94d3a83` se aplicaron 0003/0004, ciclo `piloto-v3-servicio` y siete cuentas mínimas; después de la reversión temporal se recuperó/publicó `cfece26`, ahora comprobado en Pages. Los GET públicos pasan **16/16**; cinco assets coinciden. Los errores por recursos actuales requieren seguimiento sin confundirlos con D1 ni negar el funcionamiento informado. Sin cambios de bcrypt/facturación/proveedor; [diagnóstico](verification.md), [contrato](usuarios-y-servicio-3b.md). 3B continúa abierta: supervisión, historial avanzado, rectificación/anulación, activación operativa y cierre/reapertura pendientes; aceptación 3A abierta.
 
 Las secciones fechadas el 21-10-2026 describen el estado previo; las decisiones de este incremento sustituyen sus referencias al sector combinado, dos roles y edición administrativa del nombre visible.
 
@@ -36,7 +36,7 @@ En la etapa 4, aún no implementada, el Excel final se generará únicamente cua
 - Panadería → hoja `panaderia`.
 - Pastelería → hoja `pasteleria`.
 - Bodega / Principal → hoja `principal`.
-- Servicio → hoja `servicio`, sumando por producto los conteos de Barra, Armado / Línea / Copería, Mercadito y Garzones.
+- Servicio → hoja `servicio`; en etapa 4 se consolidarán por producto los conteos físicos separados de Barra, Línea/Armado, Copería, Mercadito/Vitrina y Garzones, con conversiones aprobadas. Esta suma/exportación aún no está implementada.
 - Garzones se cuenta en Zona Privada, Salón y Terraza.
 
 Desde el reparto del 22-10-2026, Línea/Armado y Copería son sectores separados; Copería cuenta Aseo. Vitrina es una ubicación física separada en Mercadito. Otras dudas físicas se revisarán con el equipo. Cada ítem distingue `countCategory` (grupo que se muestra para contar) de `exportCategory` (categoría de su fila en el Excel).
@@ -49,7 +49,9 @@ Panadería se cuenta en siete grupos prácticos: Harinas y levaduras; Abarrotes,
 
 Bodega / Principal se cuenta en catorce grupos prácticos que separan abarrotes, condimentos, panificación, carnes y pescados, lácteos, congelados, bebidas, cafetería, té, repostería, aseo, envases, artículos de servicio y suministros de operación. Sus 288 filas se asignan una sola vez. Los dos atunes se muestran junto al jamón en «Carnes, aves y pescados», aunque el Excel mantenga los atunes bajo «Abarrotes» y el jamón bajo «Carnes y Aves». Los grupos de pantalla no cambian la fila, el ID, la unidad ni la categoría de exportación. Bodega cuenta solo los productos de su hoja; no se copian aquí los de Cocina por compartir tipo de producto.
 
-## Estado vigente — etapa 3A, 21-10-2026
+## Registro histórico — etapa 3A, 21-10-2026
+
+Las secciones fechadas el 21-10 conservan la evidencia de aquella revisión. `5d80658` ya no es el último commit publicado y sus indicaciones sobre 3B sin implementar o plan/alojamiento no sustituyen el estado actual descrito arriba.
 
 El panel de cuenta muestra el punto verde y «Sincronizado» primero, con un icono cian de refrescar de 18 px, sin fondo, al extremo derecho. La comprobación manual admite un intento cada 30 segundos por usuario en el navegador, incluso después de un error; comparte la espera entre páginas/pestañas mediante un timestamp sin credenciales ni datos de inventario. Inventario reutiliza consultas en curso o aceptadas en los últimos cinco segundos y consulta únicamente cambios incrementales sin enviar ni eliminar borradores; otras vistas verifican sesión/conexión sin recargar formularios. Los estados pendiente, actualizando y error tienen texto y color propios. Este límite del control no es una cuota global del servidor; no añade escrituras ni contadores en D1 ni cambia el sondeo existente. El ajuste de 3A está publicado en `5d80658` y comprobado en el dominio real. La pausa para revisar ese despliegue ya cumplió su objetivo; En esa revisión del 21-10, 3B aún no tenía implementación; el incremento local del 22-10 se describe arriba.
 
@@ -67,7 +69,7 @@ Se implementaron herramientas explícitas de respaldo privado D1, restauración 
 
 El usuario considera probable Workers Free por no haber contratado pagos; no se confirmó en el panel. bcrypt coste 12 consume 274–325 ms de CPU del proceso Node en seis muestras locales. Esa medida no es CPU facturada de Cloudflare, pero frente al límite Free publicado de 10 ms por solicitud **no permite dar por compatible el alojamiento actual**. Confirmar plan y resolver presupuesto de CPU antes de uso real; no se redujo la protección ni activó facturación. [Cierre, evidencia, recuperación y pendientes](cierre-tecnico-3a.md).
 
-El piloto con trabajadores queda aplazado por decisión del usuario, sin bloquear el desarrollo. [3B](etapa-3b.md) comienza por tablero e historial administrativo de solo lectura; rectificación/anulación, activación y revisión/cierre/reapertura siguen sin implementar. No se declara 3A operativa ni 3B completada.
+El piloto con trabajadores queda aplazado por decisión del usuario, sin bloquear el desarrollo. Tras el incremento usuarios/Servicio del 22-10, el siguiente trabajo funcional de [3B](etapa-3b.md) es tablero e historial administrativo de solo lectura; rectificación/anulación, activación y revisión/cierre/reapertura siguen sin implementar. No se declara 3A operativa ni 3B completada.
 
 ## Habilitación de Pages y revisión visual — 21-10-2026
 
@@ -101,7 +103,7 @@ El resumen ya no queda sin encabezado cuando hay pendientes. Al abrirlo se muest
 
 Barra conserva las seis categorías de conteo de la versión anterior: Insumos, Syrups, Congelados, Té / Infusiones, Desechables y Limpieza (en el catálogo el nombre histórico es `Te / Infusiones`). Las filas adicionales del Excel se ubican dentro de estas categorías según el producto; las categorías de la hoja Servicio se guardan solo como referencia de salida. La falta de vínculo con el Excel y las conversiones pendientes son asuntos internos y no se muestran como categorías ni avisos en la pantalla de conteo.
 
-Las bebidas envasadas de marca (Coca-Cola, Coca-Cola Zero, Fanta, Sprite y Sprite Zero) y las aguas con y sin gas se cuentan en Armado / Línea / Copería, bajo «Bebidas». Las pulpas, porciones de jugo, hielo y Primaveral siguen en Barra. Las siete bebidas trasladadas conservan sus ID internos previos para mantener conteos locales existentes.
+Las bebidas envasadas de marca (Coca-Cola, Coca-Cola Zero, Fanta, Sprite y Sprite Zero) y las aguas con y sin gas se cuentan ahora en Línea/Armado (`armado-linea-coperia`), bajo «Bebidas», no en Copería. Las pulpas, porciones de jugo, hielo y Primaveral siguen en Barra. Las siete bebidas trasladadas conservan sus ID internos previos.
 
 Históricamente, hasta el 20-10-2026, el conteo se guardaba en `localStorage` con la clave `inventario-session-v2` y esquema 3. Esa persistencia histórica es local al navegador y no se importa automáticamente al nuevo ciclo compartido. El generador del Excel final tampoco está implementado todavía. Las propuestas históricas de `docs/propuesta-ux-colaboracion.md` quedan subordinadas a las decisiones confirmadas de 3A. Las dudas de reunión se conservan en `archivos-externos/reuniones/dudas_inventario_por_area.xlsx`. La ruta de Pedido pertenece a un módulo separado y no forma parte de esta navegación de inventario.
 

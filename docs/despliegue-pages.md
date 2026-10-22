@@ -1,12 +1,12 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
-**Estado del 22-10-2026:** demo en `94d3a83`, despliegue `982d494e`, con migraciones `0003`/`0004`, ciclo `piloto-v3-servicio` y siete cuentas mínimas preparados con autorización. El 503 `NOT_INITIALIZED` se corrigió; las 16 comprobaciones públicas pasan. **Ingreso y altas no son estables: error Cloudflare 1102, `exceededCpu` confirmado en logs.** Resolver alojamiento/CPU; no se cambió facturación ni bcrypt. [Evidencia](verification.md), [procedimiento para otros entornos](usuarios-y-servicio-3b.md). No repetir bootstrap, migraciones aplicadas ni creación del ciclo. El registro de `5d80658` de abajo es histórico del 21-10.
+**Estado comprobado del 22-10-2026:** Pages confirma `cfece26`, despliegue canónico `7df21f3c-e662-443d-a953-b9e502863882`, etapa deploy `success`. Funcionamiento online confirmado por el usuario; 16 GET anónimos y cinco assets comprobados ahora. D1 ya se reparó con `0003`/`0004` y `piloto-v3-servicio`; siete cuentas constan en el informe histórico, sin recontarlas. Métricas posteriores registran dos errores `exceededResources`, sin ruta ni resultado CPU individual; no prueban caída permanente. **Mantener Free; Supabase no está integrado ni es obligatorio.** [Evidencia nueva](revision-hermes-2026-10-22.md), [registro](verification.md). No repetir bootstrap, migraciones aplicadas ni ciclo. Los comandos remotos siguientes son referencia y requieren autorización específica; no se ejecutan durante esta revisión.
 
 Destino: [inventario-login.pages.dev](https://inventario-login.pages.dev/). Proyecto Pages `inventario-login`, repositorio `lucio-crDEV/inventario-barista-mobile`, rama `inventory-v3`. Mantener el proyecto y la rama `inventory-v2` separados.
 
 ## Registro histórico del 21-10-2026
 
-El usuario ya inició sesión en Wrangler, creó D1 `inventario-login-v3` y su salida de terminal confirma ambas migraciones y el ciclo `piloto-v3`. El 21-10-2026 confirmó la aplicación exitosa del SQL del primer administrador `admin`: cuatro consultas sin error. **No repetir el bootstrap ni recrear `piloto-v3`; las migraciones nuevas y el ciclo separado del incremento del 22-10 sí se preparan según la guía inicial.** Último código publicado comprobado: `5d80658`, éxito confirmado mediante consulta de despliegues; URL de ese despliegue `https://0458b9d4.inventario-login.pages.dev`.
+En el registro del 21-10 el usuario creó D1 `inventario-login-v3`, aplicó las dos migraciones iniciales/ciclo `piloto-v3` y confirmó el bootstrap de `admin` (cuatro consultas). El último código comprobado entonces era `5d80658`: https://0458b9d4.inventario-login.pages.dev . La preparación posterior 0003/0004/`piloto-v3-servicio` también está realizada; no repetir ninguna inicialización en esta demo. El estado actual es `cfece26`, no aquel despliegue histórico.
 
 En el dominio principal, cuatro archivos del ajuste coinciden exactamente con el commit local. Verificador anónimo **16/16** y recorrido básico de ingreso/cierre del administrador, Cuenta, menú, temas, refresco con espera de 30 segundos y lectura de cuentas aprobados. No se modificaron conteos, cuentas, contraseñas ni permisos; ingresar/salir utiliza los metadatos normales de sesión. Los conteos/conflictos y cambios de permisos con varias personas, atributos de cookie del dominio, CPU y recuperación remota siguen pendientes. [Detalle de comprobaciones](verification.md).
 
@@ -47,7 +47,7 @@ En variables de ejecución de **Production**, guardar:
 | --- | --- |
 | `APP_ENV` | `production` |
 | `APP_ORIGIN` | `https://inventario-login.pages.dev` |
-| `ACTIVE_CYCLE_ID` | `piloto-v3-servicio` para el incremento del 22-10; crear primero ese ciclo |
+| `ACTIVE_CYCLE_ID` | `piloto-v3-servicio`, ya creado en esta demo; en otra instalación crear y seleccionar su propio ciclo |
 
 Usar fecha de compatibilidad `2026-10-01`. No poner una barra final en `APP_ORIGIN` ni sustituirlo por `*`; cambiar el dominio requiere actualizar el origen exacto y volver a desplegar. No habilitar fixtures en este proyecto.
 
@@ -107,20 +107,20 @@ No ejecutar migraciones ni bootstrap de administrador como parte del comando de 
 
 ## 4. Comprobar el sitio después del deployment
 
-Última comprobación: `5d80658` publicado y revisado como se describe al inicio; no hay un despliegue pendiente de ese ajuste en esta revisión. Que `.DS_Store` quede sin seguimiento no impide publicar archivos versionados. No repetir migraciones ni bootstrap para cambios de interfaz/documentación.
+Última comprobación actual: `cfece26` / `7df21f3c`, 16 GET públicos y cinco assets coincidentes. El recorrido autenticado de `5d80658` es histórico; no se ejecutó uno nuevo. No repetir migraciones ni bootstrap por cambios de interfaz/documentación. `.DS_Store` está ignorado. Los pasos mutantes 3–8 son un guion de aceptación pendiente, no permiso para ejecutarlo: incluso ingresar crea cuotas/sesiones y requiere autorización concreta en esta tarea.
 
-1. Abrir `/api/me` sin sesión: debe responder JSON 401. Un 503 JSON indica configuración/inicialización pendiente; HTML indica que todavía no corre el Worker correcto. No debe aparecer `Unexpected token '<'` en la vista Cuenta.
+1. Abrir `/api/me` sin sesión: debe responder JSON 401. Un 503 JSON con `NOT_CONFIGURED`/`NOT_INITIALIZED` indica configuración/inicialización pendiente; no diagnosticar todo HTML como Worker ausente: HTML 503/1102 también puede venir del límite del runtime con el Worker correcto. Revisar status, cuerpo y métricas/logs. La vista muestra indisponibilidad recuperable, no `Unexpected token '<'`.
 2. Abrir `/data/inventario/items/catalogo-excel.js`, `/migrations/0001_core.sql`, `/worker/index.js` y `/_worker.js`: deben devolver 404. No publicar libros ni scripts de inicialización.
 3. Ingresar con el administrador personal. Solo para una cuenta temporal nueva, cambiar su contraseña y volver a ingresar; no repetir ese paso si ya se completó. Comprobar cookie `__Host-inventory_session` Secure, HttpOnly, SameSite Strict y Path `/` en herramientas del navegador. El ingreso/cierre ya se revisó en el dominio; la inspección allí de esos atributos sigue pendiente.
 4. Crear dos cuentas personales con Barra y una con Cocina, con contraseñas temporales privadas. Sin asignaciones se permite ingreso/cambio de contraseña, pero no acceso al inventario. Usar sesiones de navegador independientes.
 5. Guardar 4 en Barra como A; proponer 3 como B. Descartar conserva 4; Sumar muestra 4 + 3 = 7; Sobrescribir muestra resultado 3. Restablecer el escenario entre ensayos. Una modificación remota mientras se confirma debe exigir nueva elección.
-6. Dar Barra + Armado/Línea/Copería a otra cuenta: no debe ver Mercadito/Garzones. Probar Garzones completo frente a Terraza sola. La cuenta Cocina no debe acceder a Barra por URL ni API.
+6. Dar Barra + Línea/Armado a otra cuenta: no debe ver Copería/Mercadito/Garzones salvo acceso separado explícito. La migración histórica conservó el alcance combinado anterior mediante asignación adicional a Copería, no mediante herencia entre hermanos. Probar Garzones completo frente a Terraza sola; Cocina no debe acceder a Barra por URL ni API.
 7. Con una edición pendiente, retirar Barra desde el administrador: la siguiente solicitud rechaza el acceso, desaparecen datos y queda aviso del borrador aislado. Cambiar de usuario no transfiere esos campos.
 8. Restablecer/desactivar una cuenta y comprobar que sus sesiones dejan de funcionar. Revisar ambas apariencias en un teléfono real y verificar tiempos de ingreso/guardado en la red del local.
 
 No ejecutar suites automatizadas ni carga con fixtures contra esta base publicada. Los resultados locales y límites están en [verification.md](verification.md). 3A tiene implementación, pruebas locales y revisión básica del dominio; respaldo/restauración y retención cuentan con herramientas ensayadas localmente. Su aceptación operativa sigue pendiente de conteos/conflictos y permisos con varias personas en el dominio, atributos de cookie allí, CPU/plan, recuperación remota/copia externa y dispositivo físico. El piloto con equipo se aplazó por decisión del usuario. 3B puede comenzar por supervisión e historial administrativo de solo lectura, según [etapa-3b.md](etapa-3b.md); Excel corresponde a etapa 4.
 
-El usuario supone Free por no haber contratado pagos, sin confirmación del panel. La medición local de bcrypt coste 12 no permite aprobar su compatibilidad con ese plan. Confirmar plan y resolver CPU antes de habilitar uso real; no cambiar coste ni facturación automáticamente. [Evidencia y procedimiento de recuperación](cierre-tecnico-3a.md).
+Free es la restricción vigente del usuario; no se auditó facturación del panel ni se autoriza Paid. El perfil Node no certifica CPU Cloudflare y los agregados actuales no identifican rutas individuales. Atribuir los errores por recursos y validar presupuesto sostenido antes de cerrar aceptación operativa, sin cambiar credenciales, coste ni proveedor automáticamente. [Evidencia y recuperación](cierre-tecnico-3a.md).
 
 
 ## Demora observada y publicaciones posteriores — 21-10-2026
@@ -131,7 +131,7 @@ La captura de Cloudflare mostró un aviso explícito de degradación de eventos 
 
 Posteriormente se publicaron `80927ab`, `7dc005c` y finalmente `5d80658`; este último se comprobó en el dominio. No crear commits vacíos ni repetir pushes como método para resolver una demora externa. Comprobar primero commit recibido, estado de cola/build y avisos del proveedor.
 
-## Actualizaciones posteriores
+## Actualizaciones históricas hasta 5d80658
 
 Menú, formularios y refresco compacto están incluidos en `5d80658`, además de skeletons y corrección de cabeceras. Se conservan rama, build, salida, D1, variables y ciclo. Los cambios futuros se envían con `git push origin inventory-v3` después de quedar en commits. **No repetir migraciones ni bootstrap de usuarios** cuando no cambia el esquema. Después de cada deployment, comprobar el commit y ejecutar `npm run verify:public`: únicamente 16 GET anónimos, sin carga ni escrituras. La última ejecución de esta tarea tras `5d80658` pasa también las cabeceras de los errores; el informe anterior fallido queda en la historia de Git.
 

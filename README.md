@@ -1,6 +1,8 @@
 # inventory-v3
 
-**Punto de continuación, 22-10-2026:** recuperados localmente todos los cambios tras la reversión temporal. El ingreso en Free sigue pendiente de integrar/probar Supabase Auth; el usuario configurará su proyecto en la próxima sesión. No hacer push de esta recuperación esperando que corrija el fallo CPU. [Preparación y pendientes](docs/autenticacion-free.md).
+Ubicación local actual: `/Users/lucio/workspace/inventario_brioche`. [Traspaso a Hermes](docs/traspaso-hermes.md) y [revisión real del repositorio y producción](docs/revision-hermes-2026-10-22.md).
+
+**Estado comprobado, 22-10-2026:** `cfece26` confirmado en Pages, despliegue `7df21f3c` correcto y funcionamiento informado por el usuario. Las 16 comprobaciones anónimas pasan. Las métricas posteriores registran dos errores `exceededResources`, sin ruta ni diagnóstico CPU individual: no prueban una caída permanente. D1 ya está inicializada. **Mantener Free; Supabase es una alternativa sin integrar, no una migración obligatoria.** [Diagnóstico y límites](docs/autenticacion-free.md).
 
 Aplicación web móvil para contar el inventario por área y generar, en una etapa posterior, el libro `inventarios_og/11_10-INVENTARIO-totalizado.xlsx` con las cantidades nuevas y el resto de su estructura intacta.
 
@@ -31,7 +33,7 @@ Abrir `http://127.0.0.1:8787/`. Inicializar fixtures solo una vez en una base lo
 
 [Tecnologías, arquitectura y diagrama del roadmap](docs/tecnologias-y-roadmap.md). Estado local al 22-10-2026: **3A implementada, con aceptación operativa abierta; 3B en curso, con el incremento de usuarios y Servicio; Excel reservado a etapa 4**. Administrador, Jefa de servicio y Trabajador tienen alcances distintos. La jefa entra a Servicio y administra sus trabajadores; en cuentas mixtas solo sus accesos de Servicio. La administración edita el usuario de ingreso; cada persona su nombre visible en Mi perfil. Eliminar exige confirmación irreversible y conserva historial. [Contrato y actualización de entornos](docs/usuarios-y-servicio-3b.md).
 
-Último código comprobado en el sitio: `94d3a83`, publicado por el usuario. Migraciones 0003/0004, ciclo nuevo y siete cuentas mínimas preparados con autorización; despliegue `982d494e` y 16 comprobaciones públicas correctos. **El ingreso sigue sin ser estable por límite CPU (1102, `exceededCpu`)**; ver [evidencia y pendiente de alojamiento](docs/verification.md). No repetir el primer administrador ni cargar fixtures. El refresco manual conserva un intento cada 30 segundos por usuario en el navegador, sin reenviar borradores.
+Último código comprobado en el sitio: `cfece26`, despliegue `7df21f3c`; cinco assets públicos coinciden con el checkout. Migraciones 0003/0004 y ciclo `piloto-v3-servicio` se prepararon anteriormente; siete cuentas mínimas constan en el informe histórico, sin recontarlas ahora. No repetir primer administrador, ciclo ni fixtures. Distinguir el `exceededCpu` histórico de los dos errores por recursos actuales; [evidencia y pendientes](docs/verification.md). El refresco manual conserva un intento cada 30 segundos por usuario en el navegador, sin reenviar borradores.
 
 ## Pruebas
 
@@ -70,7 +72,7 @@ No ejecutar simultáneamente los conjuntos que modifican fixtures. Las pruebas l
 
 ## Cierre técnico y recuperación
 
-3A tiene funcionalidad y pruebas locales; el piloto con el equipo está aplazado por decisión del usuario. Antes del uso real falta resolver CPU/plan: Free se supone provisionalmente y la derivación de contraseñas todavía no está validada contra su presupuesto de CPU. [Estado, evidencia y guía de recuperación](docs/cierre-tecnico-3a.md). [Incrementos siguientes de 3B](docs/etapa-3b.md).
+3A tiene funcionalidad y pruebas locales; el piloto con el equipo está aplazado por decisión del usuario. Free es la restricción vigente, no una autorización para activar Paid. Falta atribuir los errores por recursos y validar consumo/CPU sostenidos del entorno real; el plan del panel no fue auditado. [Estado, evidencia y guía de recuperación](docs/cierre-tecnico-3a.md). [Incrementos siguientes de 3B](docs/etapa-3b.md).
 
 ```sh
 npm run test:operations
@@ -83,7 +85,7 @@ npm run maintenance -- --local
 
 El ensayo de operaciones crea y elimina únicamente bases temporales. El respaldo exige destino nuevo y privado; la restauración solo admite un destino local nuevo y revoca sesiones recuperadas. `maintenance` solo consulta salvo `--apply`; conserva historial, conteos e IDs/resultados de operaciones. No hay mantenimiento programado ni escrituras remotas en build. Los comandos remotos explícitos y límites de recuperación están en la guía.
 
-Después de un deployment, `npm run verify:public` realiza 16 GET anónimos al sitio, sin ingresar ni modificar datos; falla si rutas/JSON/no-store/cabeceras no cumplen. Se repitió contra `5d80658`: **16/16**, incluidas las cabeceras de errores de API. También se revisaron ingreso/cierre, menú/temas, refresco y lectura administrativa en el navegador del dominio real. Los conteos y permisos entre varias personas en producción siguen pendientes; alcance en [verificación](docs/verification.md). No ejecutar pruebas con fixtures o carga contra el sitio.
+Después de un deployment, `npm run verify:public` realiza 16 GET anónimos al sitio, sin ingresar ni modificar datos; falla si rutas/JSON/no-store/cabeceras no cumplen. Esta sesión repitió **16/16** contra `cfece26`, desde scratch para conservar el informe anterior. El ingreso/cierre y recorrido administrativo de `5d80658` son evidencia histórica, no una prueba autenticada nueva. Los conteos y permisos entre varias personas en producción siguen pendientes; alcance en [verificación](docs/verification.md). No ejecutar fixtures ni carga contra el sitio.
 
 ## Rama y envío
 
@@ -95,4 +97,4 @@ La rama v3 ya tiene seguimiento remoto. Para enviar los nuevos commits sin actua
 git push -u origin inventory-v3
 ```
 
-El usuario publicó hasta `5d80658` en un proyecto Pages separado; el verificador público de ese despliegue pasa. El incremento local del 22-10 sí requiere preparar migraciones 0003/0004, ciclo y variable antes del push, según [la guía](docs/usuarios-y-servicio-3b.md); no requiere otro bootstrap. Los pushes y despliegues los realiza el usuario. Ver [separación de versiones](docs/separacion-inventory-v3.md).
+El usuario publicó `cfece26` en el proyecto Pages separado; 0003/0004 y ciclo nuevo ya estaban preparados. [La guía](docs/usuarios-y-servicio-3b.md) conserva el procedimiento para otros entornos, no tareas para repetir en esta demo. Pushes, despliegues y cambios remotos requieren autorización específica; estos comandos son referencia, no permiso de ejecución. Ver [separación de versiones](docs/separacion-inventory-v3.md).

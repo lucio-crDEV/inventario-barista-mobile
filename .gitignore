@@ -13,3 +13,6 @@ __pycache__/
 # Private D1 backups contain password hashes and session metadata.
 .backups/
 *.cpuprofile
+
+# Metadatos de Finder: nunca forman parte de la entrega.
+.DS_Store
