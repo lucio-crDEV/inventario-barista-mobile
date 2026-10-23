@@ -1,8 +1,15 @@
 # Traspaso de Inventario Brioche a Hermes — 22-10-2026
 
+## Decisión vigente — 23-10-2026, continuidad con Codex
+
+Por decisión explícita del usuario, persistencia de telemetría desactivada y Root **solo diseñado**. Se conservan diagnóstico saneado, correlación, cuotas/backoff y auditoría transaccional existente. GET `/api/admin/metrics` queda cerrado a todos los roles actuales (`403 ROOT_NOT_ENABLED` con sesión habilitada; sin sesión `401`). No hay histórico de uso, cuentas activas estimadas ni nuevas métricas funcionales disponibles. No se crea rol/cuenta Root ni se amplían permisos de la jefa.
+
+`0005_activity.sql` pasa de `migrations/` a `docs/propuestas/` como propuesta histórica fuera de las migraciones automáticas. Readiness y preflight validan contrato de usuarios/Servicio, catálogo y ciclo sin tabla activity; la base actual 0001–0004 y el catálogo legado están soportados; mantenimiento solo consulta/poda autenticación vencida, sin tocar telemetría existente. No hay cambios de esquema o datos necesarios para este código. Las instrucciones anteriores que exigían 0005, métricas para Administrador o retención de 14 días quedan sustituidas por esta decisión. [Estado, diseño Root, almacenamiento y publicación](seguridad-observabilidad-3a.md).
+
+
 ## Refuerzo posterior de 3A — leer antes de publicar
 
-El encargo posterior preservó este traspaso y cambios existentes en `98282ea`, por separado. Cambios funcionales locales: [informe nuevo y procedimiento](seguridad-observabilidad-3a.md), [resultados](seguridad-observabilidad-local-2026-10-22.json). NUEVA 0005 aditiva necesita preparación remota explícita antes de push; no aplicada aquí. 3A operativa sigue abierta, usuarios/Servicio conservados; resto 3B/Excel fuera de alcance. Pruebas de este encargo locales aisladas, sin reinicializar servidor/base 8790 ni probar app remota. Autorizados commits locales, no push/deploy/cambios remotos.
+El encargo posterior preservó este traspaso y cambios existentes en `98282ea`, por separado. Cambios funcionales locales: [informe nuevo y procedimiento](seguridad-observabilidad-3a.md), [resultados](seguridad-observabilidad-local-2026-10-22.json). La propuesta 0005 no se aplicó remotamente y queda retirada de migraciones automáticas desde el 23-10; no aplicarla. 3A operativa sigue abierta, usuarios/Servicio conservados; resto 3B/Excel fuera de alcance. Pruebas de este encargo locales aisladas, sin reinicializar servidor/base 8790 ni probar app remota. Autorizados commits locales, no push/deploy/cambios remotos.
 
 ## Raíz, Git y entornos
 

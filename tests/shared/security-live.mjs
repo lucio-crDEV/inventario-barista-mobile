@@ -4,10 +4,16 @@ const db = database();
 db.exec("DELETE FROM attempts");
 const worker = new Client(), lead = new Client(), admin = new Client();
 await worker.login("ana"); await lead.login("jefa-servicio"); await admin.login("admin-prueba");
-for (const c of [worker, lead]) assert.equal((await c.request("/api/admin/metrics")).status, 403);
-let response = await admin.request("/api/admin/metrics");
-assert.equal(response.status, 200); assert.equal(response.data.sampled, true);
-assert.ok(response.data.hourly.every(x => !("actor" in x) && !("target" in x)));
+for (const c of [worker, lead, admin]) {
+  const response = await c.request("/api/admin/metrics");
+  assert.equal(response.status, 403); assert.equal(response.data.code, "ROOT_NOT_ENABLED");
+}
+assert.equal(db.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
+// Root is a design only: an ordinary admin cannot select that role or change it through profile.
+const escalation = await admin.request("/api/admin/users", { username: "root", name: "Escalation fixture", role: "root", password: "Solo-pruebas-2026" });
+assert.equal(escalation.status, 400);
+const ownRole = await admin.request("/api/profile", { name: "Admin", role: "root", expectedRevision: admin.user.revision });
+assert.equal(ownRole.status, 400);
 db.prepare("INSERT INTO attempts VALUES(?,CAST(unixepoch()/900 AS INTEGER),10) ON CONFLICT(key) DO UPDATE SET n=10,window=excluded.window").run("admin-password:" + admin.user.id);
 const beforeUsers = db.prepare("SELECT count(*) n FROM users").get().n;
 const costly = await admin.request("/api/admin/users", { username: "must-not-create", name: "Quota fixture", role: "worker", password: "Solo-pruebas-2026" });
@@ -25,12 +31,8 @@ const client = new Client(); await client.login("bruno");
 const data = await client.boot();
 const item = data.items[100];
 const previous = await client.request(`/api/record?item=${encodeURIComponent(item.id)}&location=${encodeURIComponent(item.locationId)}`);
-db.exec("ALTER TABLE activity_hourly RENAME TO activity_unavailable");
-try {
-  const saved = await client.save(item, 2, { action: previous.data.record ? "overwrite" : "direct", expectedVersion: previous.data.record?.version || 0 });
-  assert.equal(saved.status, 200);
-  assert.ok(saved.headers.get("x-request-id"));
-} finally { db.exec("ALTER TABLE activity_unavailable RENAME TO activity_hourly"); }
+const saved = await client.save(item, 2, { action: previous.data.record ? "overwrite" : "direct", expectedVersion: previous.data.record?.version || 0 });
+assert.equal(saved.status, 200); assert.ok(saved.headers.get("x-request-id"));
 assert.equal(db.prepare("SELECT count(*) n FROM operations o JOIN history h ON h.operation_id=o.id WHERE o.result!=h.after_record").get().n, 0);
-console.log(JSON.stringify({ checks: ["Worker and service lead denied global metrics", "Admin bounded metrics allowed", "Burst receives 429; logout remains usable", "Accepted count survives missing telemetry table", "Operation/history results remain consistent"] }));
+console.log(JSON.stringify({ checks: ["All current roles denied technical metrics", "Root role escalation rejected", "Burst receives 429; logout remains usable", "Accepted count without telemetry schema", "Operation/history results remain consistent"] }));
 db.close();

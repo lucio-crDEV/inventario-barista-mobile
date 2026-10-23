@@ -1,8 +1,15 @@
 # Contexto del proyecto — inventory-v3
 
+## Decisión vigente — 23-10-2026, continuidad con Codex
+
+Por decisión explícita del usuario, persistencia de telemetría desactivada y Root **solo diseñado**. Se conservan diagnóstico saneado, correlación, cuotas/backoff y auditoría transaccional existente. GET `/api/admin/metrics` queda cerrado a todos los roles actuales (`403 ROOT_NOT_ENABLED` con sesión habilitada; sin sesión `401`). No hay histórico de uso, cuentas activas estimadas ni nuevas métricas funcionales disponibles. No se crea rol/cuenta Root ni se amplían permisos de la jefa.
+
+`0005_activity.sql` pasa de `migrations/` a `docs/propuestas/` como propuesta histórica fuera de las migraciones automáticas. Readiness y preflight validan contrato de usuarios/Servicio, catálogo y ciclo, sin exigir tabla activity; la base actual 0001–0004 y el catálogo legado están soportados; mantenimiento solo consulta/poda autenticación vencida, sin tocar telemetría existente. No hay cambios de esquema o datos necesarios para este código. Las instrucciones anteriores que exigían 0005, métricas para Administrador o retención de 14 días quedan sustituidas por esta decisión. [Estado, diseño Root, almacenamiento y publicación](seguridad-observabilidad-3a.md).
+
+
 ## Refuerzo local de 3A — posterior al traspaso, 22-10-2026
 
-Readiness/preflight de esquema/catálogo/ciclo, JSON limitado por bytes, paquete público restringido, cuotas autenticadas aproximadas, backoff, métricas mínimas solo admin y telemetría horaria best-effort implementados localmente. Usuarios/Servicio se conservan; resto 3B y Excel no se desarrollan. Migración aditiva 0005 probada en bases nuevas/pobladas pero NO aplicada en demo: preparar antes del push. [Informe, riesgos y procedimiento](seguridad-observabilidad-3a.md), [evidencia nueva](seguridad-observabilidad-local-2026-10-22.json). Sin solicitudes a la app remota ni cambios remotos. 3A operativa sigue pendiente.
+Readiness/preflight de esquema/catálogo/ciclo, JSON limitado por bytes, paquete público restringido, cuotas autenticadas aproximadas, backoff, métricas mínimas solo admin y telemetría horaria best-effort implementados localmente. Usuarios/Servicio se conservan; resto 3B y Excel no se desarrollan. Registro histórico: 0005 fue probada localmente y no se aplicó en demo; su publicación quedó descartada el 23-10. [Informe, riesgos y procedimiento](seguridad-observabilidad-3a.md), [evidencia nueva](seguridad-observabilidad-local-2026-10-22.json). Sin solicitudes a la app remota ni cambios remotos. 3A operativa sigue pendiente.
 
 ## Última decisión y traslado local — 22-10-2026
 

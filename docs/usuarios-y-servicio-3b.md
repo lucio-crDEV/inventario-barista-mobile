@@ -1,5 +1,7 @@
 # Usuarios y Servicio — contrato del incremento del 22-10-2026
 
+Actualización 23-10-2026: el contrato funcional de Administrador/Jefa/Trabajador y cuentas mixtas se conserva. Root es únicamente un diseño pendiente, sin ampliación de roles ni provisionamiento. Los roles actuales no acceden al endpoint técnico; telemetría persistente desactivada. [Diseño y estado real](seguridad-observabilidad-3a.md).
+
 Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito antes de implementar y actualizado con la revisión del 22-10-2026. Excel continúa en etapa 4. El incremento está recuperado/publicado en `cfece26`, confirmado en Pages (`7df21f3c`) y funcionando según el usuario. La reparación anterior de `94d3a83` preparó 0003/0004, ciclo `piloto-v3-servicio` y siete cuentas; no repetirlos. Las métricas posteriores muestran dos errores `exceededResources`, sin ruta ni resultado CPU individual. Mantener Free; Supabase no está integrado ni es obligatorio. Aceptación operativa todavía abierta. [Evidencia actual](revision-hermes-2026-10-22.md), [registro completo](verification.md).
 
 ## Decisiones confirmadas

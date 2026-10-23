@@ -1,6 +1,6 @@
 # Autenticación en Workers Free — punto de continuación 22-10-2026
 
-Refuerzo posterior local: cuotas a derivación administrativa y peticiones autenticadas, Retry-After/backoff, logs mínimos y métricas solo admin. No cambia bcrypt 12 ni resuelve/certifica CPU Free. [Pruebas, riesgos y medición remota pendiente](seguridad-observabilidad-3a.md). No integración Supabase ni cambios de facturación.
+Refuerzo posterior local: cuotas a derivación administrativa y peticiones autenticadas, Retry-After/backoff, logs mínimos; las métricas para admin de esa revisión se retiran el 23-10, con persistencia desactivada y Root solo diseñado. No cambia bcrypt 12 ni resuelve/certifica CPU Free. [Pruebas, riesgos y medición remota pendiente](seguridad-observabilidad-3a.md). No integración Supabase ni cambios de facturación.
 
 ## Estado vigente — 22-10-2026
 

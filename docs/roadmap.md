@@ -1,8 +1,12 @@
 # Roadmap — inventory-v3
 
+## Prioridad vigente — 23-10-2026
+
+Persistencia de uso desactivada; sin nueva migración ni infraestructura. Root/Desarrollador, su provisionamiento y métricas exclusivas quedan solo diseñados por elección expresa del usuario. Roles actuales y cuentas mixtas sin ampliaciones. Próxima decisión: destino/cifrado/custodia/retención y objetivos de recuperación antes de implementar histórico o automatizar copias diarias. La pantalla Root sigue pospuesta; supervisión/resto 3B y Excel 4 fuera de este encargo. [Contrato vigente](seguridad-observabilidad-3a.md).
+
 ## Refuerzo 3A posterior al traspaso — 22-10-2026
 
-Completados localmente controles de publicación/esquema, abuso, privacidad, métricas mínimas administrativas y ensayos aislados de concurrencia/recuperación. Se mantienen usuarios/Servicio ya implementados sin desarrollar nuevos flujos 3B. [Seguridad/observabilidad](seguridad-observabilidad-3a.md). Antes de publicar: revisar/aplicar 0005 y preflight con autorización; no basta push. Aceptación 3A abierta: recursos Free, varias personas/cookies del dominio, recuperación remota/copia externa y Android/piloto. Automatización de respaldo operativo y exportación Excel siguen en 4, separadas; integridad y restauración local necesarias para 3A ya se ejercitaron.
+Controles de publicación/esquema, abuso, privacidad y ensayos aislados de concurrencia/recuperación implementados. Las métricas administrativas del 22-10 quedan retiradas por la decisión del 23-10: telemetría persistente desactivada y Root solo diseñado. Se mantienen usuarios/Servicio sin desarrollar nuevos flujos 3B. [Seguridad/observabilidad y preparación sin 0005](seguridad-observabilidad-3a.md). Preflight remoto y publicación siguen requiriendo autorización; no aplicar 0005. Aceptación 3A abierta: recursos Free, varias personas/cookies del dominio, recuperación remota/copia externa y Android/piloto. Automatización de respaldo operativo y exportación Excel siguen en 4, separadas; integridad y restauración local necesarias para 3A ya se ejercitaron.
 
 Última revisión 22-10-2026: `cfece26` confirmado en producción (`7df21f3c`), funcionamiento informado por el usuario y 16 GET públicos aprobados. Métricas posteriores: dos errores `exceededResources`, sin ruta ni resultado individual `exceededCpu`; investigar antes de decidir cambios de autenticación. Supabase es una alternativa sin integrar; **Free se mantiene**. 3A operativa y el resto de 3B siguen abiertos; Excel permanece en 4. [Evidencia nueva](revision-hermes-2026-10-22.md), [traspaso](traspaso-hermes.md).
 

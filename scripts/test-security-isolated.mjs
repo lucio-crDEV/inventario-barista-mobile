@@ -1,9 +1,9 @@
 import { mkdtempSync, cpSync, symlinkSync, mkdirSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
 import { execFileSync, spawn } from "node:child_process";
 const source = resolve(".");
-const scratch = join(homedir(), ".hermes/cache/scratch");
+const scratch = join(tmpdir(), "inventory-codex-tests");
 mkdirSync(scratch, { recursive: true });
 const root = mkdtempSync(join(scratch, "inventory-security-"));
 process.env.TMPDIR = scratch;

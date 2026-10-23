@@ -1,8 +1,14 @@
 # AGENTS.md — inventory-v3
 
+## Decisiones del 23-10-2026
+
+Telemetría persistente desactivada. `0005` es una propuesta histórica fuera de `migrations/`, no se aplica. Root/Desarrollador queda **solo diseñado** por decisión expresa; los roles implementados siguen siendo Administrador > Jefa de servicio > Trabajador. Ninguno accede al endpoint técnico de métricas, que queda cerrado hasta aprobar Root y su fuente de datos. No implementar Root, almacenamiento ni automatización como continuación implícita. [Estado, diseño y publicación](docs/seguridad-observabilidad-3a.md).
+
 ## Ubicación y continuidad entre agentes — 22-10-2026
 
 La raíz local es `/Users/lucio/workspace/inventario_brioche`; el remoto de GitHub y los nombres técnicos `inventory-v3`, Workers/D1 y claves de datos se conservan. Para retomar con Hermes u otro agente, lee primero [el traspaso actualizado](docs/traspaso-hermes.md), además de contexto, roadmap y verificación. No crees un HERMES.md que sustituya estas reglas. `sources/`, cuando esté presente, es referencia sincronizada de solo lectura. La elección de Supabase no obliga a migrar: primero contrastar el funcionamiento actual y los errores CPU con mediciones reales.
+
+La continuidad del refuerzo 3A está en [seguridad y observabilidad](docs/seguridad-observabilidad-3a.md). Las decisiones del usuario del 23-10-2026 sustituyen las propuestas anteriores sobre telemetría, retención y métricas administrativas. En esta sesión se usa Codex; el nombre histórico del traspaso no obliga a invocar otro agente.
 
 ## Propósito
 

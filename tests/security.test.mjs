@@ -2,10 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import worker from "../worker/index.js";
-import { allowRequest, routeName, observe } from "../worker/telemetry.js";
+import { allowRequest, routeName } from "../worker/telemetry.js";
 import { sqliteDB } from "./shared/sqlite-adapter.mjs";
 const origin = "https://example.test";
-function setup(through = 5) {
+function setup(through = 4) {
   const db = sqliteDB(through);
   db.sqlite.exec(`INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES('admin','admin','Admin','!hash','admin',0),('worker','worker','Worker','!hash','worker',0);
     INSERT INTO cycles VALUES('test','Test','inventory-v2-2026-10-21','open');`);
@@ -28,7 +28,7 @@ await test("Old/incomplete schemas and incomplete or wrong catalog fail closed; 
   assert.equal((await request(env)).status, 503);
   env.DB.migrate(3, 3);
   assert.equal((await request(env)).status, 401); // Legacy cycle remains compatible.
-  env.DB.migrate(4, 5);
+  env.DB.migrate(4, 4);
   assert.equal(env.DB.sqlite.prepare("SELECT name FROM users WHERE id='worker'").get().name, "Worker");
   assert.deepEqual(env.DB.sqlite.prepare("PRAGMA foreign_key_check").all(), []);
   env.DB.sqlite.exec("UPDATE cycles SET catalog_version='missing'");
@@ -51,19 +51,24 @@ await test("Streaming JSON is byte bounded, errors and logs exclude submitted se
     assert.equal(r.status, 413); assert.equal((await r.json()).code, "TOO_LARGE");
     assert.match(r.headers.get("X-Request-ID"), /^[a-f0-9-]{36}$/);
     assert.ok(logs.length); assert.ok(!logs.join("").includes("NEVER-LOG-THIS"));
-    assert.ok(!JSON.stringify(env.DB.sqlite.prepare("SELECT * FROM activity_hourly").all()).includes("NEVER-LOG-THIS"));
+    assert.equal(env.DB.sqlite.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
   } finally { console.log = original; env.DB.sqlite.close(); }
 });
-await test("Admin-only metrics, worker denial and session revocation; optional telemetry failure does not break session", async () => {
+await test("Metrics closed to all current roles, including an admin named root; revocation remains effective", async () => {
   const env = setup();
-  assert.equal((await request(env, "/api/admin/metrics", { headers: session(env, "worker") })).status, 403);
+  env.DB.sqlite.exec("INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES('lead','lead','Lead','!hash','service_lead',0); UPDATE users SET username='root' WHERE id='admin'");
+  assert.equal((await request(env, "/api/admin/metrics")).status, 401);
+  for (const id of ["worker", "lead", "admin"]) {
+    const headers = { ...session(env, id), "X-Inventory-Role": "root" };
+    const r = await request(env, "/api/admin/metrics", { headers });
+    assert.equal(r.status, 403); assert.equal((await r.json()).code, "ROOT_NOT_ENABLED");
+    assert.equal(r.headers.get("cache-control"), "no-store");
+  }
   const headers = session(env, "admin");
-  const r = await request(env, "/api/admin/metrics", { headers });
-  assert.equal(r.status, 200); assert.equal((await r.json()).sampled, true);
-  env.DB.sqlite.exec("DROP TABLE activity_hourly");
   assert.equal((await request(env, "/api/me", { headers })).status, 200);
   env.DB.sqlite.exec("DELETE FROM sessions");
-  assert.equal((await request(env, "/api/me", { headers })).status, 401); env.DB.sqlite.close();
+  assert.equal((await request(env, "/api/admin/metrics", { headers })).status, 401);
+  env.DB.sqlite.close();
 });
 await test("15 independent accounts fit limits; burst capped and recovers without IP-wide ban", () => {
   for (let i = 0; i < 15; i++) for (let n = 0; n < 100; n++) assert.ok(allowRequest(`normal-${i}`, "sync", 1000));
@@ -73,12 +78,14 @@ await test("15 independent accounts fit limits; burst capped and recovers withou
   assert.equal(routeName("/api/admin/users/aaaaaaaa-bbbb/password"), "admin-users");
   assert.equal(routeName("/api/admin/metrics"), "metrics"); assert.equal(routeName("/api/secret-in-path"), "unknown");
 });
-await test("Polling sampled without per-poll rows, accepted login counts preserved", async () => {
-  const env = setup(); const time = Date.now();
-  const event = { actor: "worker", route: "sync", status: 200 };
-  for (let i = 0; i < 100; i++) await observe(env.DB, event, time);
-  assert.equal(env.DB.sqlite.prepare("SELECT sum(observations) n FROM activity_hourly").get().n, 1);
-  for (let i = 0; i < 2; i++) await observe(env.DB, { actor: "worker", route: "login", status: 200 }, time);
-  assert.equal(env.DB.sqlite.prepare("SELECT observations FROM activity_hourly WHERE route='login'").get().observations, 2);
+await test("100 polls perform no usage writes; a preexisting activity table stays untouched", async () => {
+  const env = setup(); const headers = session(env, "worker");
+  const before = env.DB.sqlite.prepare("SELECT total_changes() n").get().n;
+  for (let i = 0; i < 100; i++) assert.equal((await request(env, "/api/sync", { headers })).status, 200);
+  assert.equal(env.DB.sqlite.prepare("SELECT total_changes() n").get().n, before);
+  // Simulate an optional table already present; this is fixture SQL, not 0005.
+  env.DB.sqlite.exec("CREATE TABLE activity_hourly(sentinel TEXT); INSERT INTO activity_hourly VALUES('preserve')");
+  assert.equal((await request(env, "/api/me", { headers })).status, 200);
+  assert.equal(env.DB.sqlite.prepare("SELECT sentinel FROM activity_hourly").get().sentinel, "preserve");
   env.DB.sqlite.close();
 });

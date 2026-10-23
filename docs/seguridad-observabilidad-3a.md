@@ -1,3 +1,90 @@
+# Seguridad, observabilidad y recuperación — estado vigente 23-10-2026
+
+## Decisiones y comportamiento real
+
+Continuidad con GPT/Codex en `/Users/lucio/workspace/inventario_brioche`, rama `inventory-v3`, desde `72c1aeb`, limpio al iniciar. Sin fetch ni consultas remotas: las referencias origin y la publicación cfece26 del 22-10 son evidencia histórica, no verificaciones actuales. No commits, push, despliegues, SQL/cuentas remotas, cambios de facturación, credenciales o configuración de otros agentes.
+
+El usuario eligió explícitamente **desactivar persistencia de telemetría** y **dejar Root solo diseñado**. Se retiraron el escritor `activity_hourly` y las consultas de métricas. El endpoint existente exige sesión y devuelve `403 ROOT_NOT_ENABLED` a Administrador, Jefa y Trabajador habilitados; conserva el rechazo por cambio obligatorio de contraseña. No devuelve sesiones, agregados ni eventos administrativos. No hay pantalla de métricas. Un usuario llamado root no obtiene privilegios.
+
+Se conservan: bcrypt coste 12, Free, sesiones/revocación, permisos y cuentas mixtas, atomicidad/deduplicación, cuotas servidor por UUID/isolate, Retry-After/backoff y logs saneados con X-Request-ID. Los logs propios cubren errores/acciones sensibles, sin cuerpos, cantidades/notas, cookies/tokens, credenciales, username, IP, UA ni parámetros libres. La duración es tiempo de pared, no CPU. Los logs del proveedor tienen su propia política; no se activó captura/exportación. No existe nuevo histórico de uso disponible dentro de la app.
+
+`0005_activity.sql` se conserva en [propuesta histórica](propuestas/0005_activity.sql), fuera de migraciones automáticas. No se aplica. Readiness no dependía de activity; preflight valida el mismo contrato de usuarios/Servicio, catálogo/ciclo y administrador. La base actual 0001–0004 está soportada; el catálogo legado también sigue admitido. No es una comprobación del ledger de migraciones ni un checksum integral del catálogo. El mantenimiento conserva su política de autenticación (dos días tras vencimiento, lotes de 1.000): no consulta ni borra telemetría ni aplica 14 días. Si una base ya tuviese una tabla activity, queda intacta y sin nuevas escrituras del Worker. No se modifica ningún esquema existente para desactivarla. La retención anterior era una propuesta, nunca un límite técnico de 14 días.
+
+La interfaz, catálogo, referencias Excel, IDs/unidades, autoría y datos no cambian. Usuarios/Servicio se mantienen; supervisión/resto 3B y Excel 4 siguen pendientes. **3A operativa permanece abierta** (recursos Free, dominio/cookies/varias personas, recuperación externa, Android/piloto).
+
+## Root/Desarrollador: diseño pendiente, sin implementación
+
+Jerarquía deseada: Root > Administrador > Jefa de servicio > Trabajador. Root heredaría administración/inventario global y tendría acceso exclusivo a métricas técnicas. No otorga shell, secretos, repositorio o Cloudflare ni evita validaciones, confirmaciones, cuotas o auditoría. La jefa conserva solo Servicio y sus trabajadores; en mixtas únicamente asignaciones de Servicio. No se propone permitirle gestionar roles.
+
+El rol futuro debe persistirse como identidad/capacidad validada por UUID en servidor y SQL; nunca se deduce de username=root, cabecera, frontend o asignación de ámbito. La base vigente solo admite worker/service_lead/admin: se necesitaría una migración independiente de telemetría, ensayada sobre base poblada y nueva antes de aprobarla. Debe preservar UUID, hashes, autoría, permisos, sesiones y FK/vistas/triggers; cualquier cambio de rol revoca sesiones y aumenta revisión. La protección del último Administrador existente se conserva; definir y probar además la del último Root antes de habilitarlo.
+
+Provisionamiento propuesto: procedimiento fuera de la API, operado por custodio autorizado sobre destino explícito, con credencial privada introducida sin argumentos visibles, hash bcrypt 12 calculado fuera del Worker, UUID nuevo, username deseado root si está libre, cambio obligatorio y auditoría sin secretos. Una cuenta previa llamada root exige resolver la colisión: nunca promoverla automáticamente. Primer Root exige autorización específica; altas/promociones adicionales también quedan fuera de la API ordinaria. Ningún SQL, herramienta de alta ni cuenta Root se creó en este encargo.
+
+Administrador ordinario nunca puede crear/promover Root ni cambiarle username, contraseña, rol, activación, ámbitos o eliminación. Las rutas directas y las guardias transaccionales deben comprobar actor/objetivo/revisión/sesión vigente, incluyendo carreras con cambios de rol. Root usaría su propio perfil/contraseña con las mismas garantías; su recuperación sería privada y auditada. Antes de implementarlo definir si habrá uno o varios Root y su custodio de recuperación. La futura pantalla es opcional y pospuesta; el control del endpoint es obligatorio antes de entregar datos. No hay un rol Root funcionando ni pruebas de tal implementación en esta entrega.
+
+## Qué significarían las métricas
+
+| Dato | Significado y límite |
+| --- | --- |
+| Cuenta distinta | UUID observado en una ventana; no acredita una persona distinta. |
+| Sesión emitida/no vencida | Una cuenta puede tener varios dispositivos; una sesión abandonada no prueba actividad. |
+| Solicitud | Una llamada HTTP; sondeos y reintentos generan varias sin otro usuario. |
+| Concurrencia | Peticiones solapadas o trabajo simultáneo según definición explícita; no se deduce de sesiones vigentes ni actividad en cinco minutos. |
+| Observación muestreada | Señal incompleta dependiente de ventanas/isolate/fallos; no contador exacto ni auditoría de inventario. |
+| Auditoría de inventario | Historia transaccional ligada a operación/ciclo/autor; sigue conservándose, separada del uso técnico. |
+
+No hay valores disponibles para las métricas de uso retiradas: ausencia de colección significa **no disponible**, nunca cero usuarios/errores. Las métricas del proveedor sobre solicitudes/CPU tienen su propio muestreo. No se promete identificar IA ni evitar copia de HTML/CSS/JS visibles.
+
+## Histórico, almacenamiento y copias: evaluación sin selección de infraestructura
+
+| Alternativa | Disponibilidad, coste y crecimiento | Custodia y recuperación |
+| --- | --- | --- |
+| Telemetría en D1 de la app | Consultable con PC apagado, pero comparte espacio/cuotas y carga con inventario; índices y actualizaciones también consumen recursos. No elegida. | Requiere autorización de esquema, agregados mínimos, alcance Root y política de borrado; Time Travel no es copia independiente. |
+| Archivo/servicio cloud separado | Disponible con PC apagado; capacidad y posible coste recurrente según proveedor, salida y volumen. No se creó ni seleccionó servicio. | Cifrar antes de subir, permisos mínimos, clave fuera del proveedor, restauración ensayada; definir jurisdicción/retención/custodio. |
+| Extracción SALIENTE a disco privado del PC (~1 TB) | Sin exponer disco, puertos o túneles. Usa espacio y conexión propios; el PC debe encenderse/conectarse para copiar. No aumenta capacidad D1. | Cifrado autenticado del archivo + disco protegido, clave fuera de Git y segunda custodia; verificar integridad y restaurar en destino nuevo. Una sola copia en ese PC se pierde con avería/robo. |
+| Copias cifradas en PC + segunda ubicación independiente | Mayor resiliencia; almacenamiento/operación adicional a acordar. App online independiente del PC. | Primera recomendación para respaldos, condicionada al destino y custodio; fallo de la copia no debe detener conteos. |
+
+Recomendación: mantener inventario/auditoría operativos en D1, dejar telemetría persistente apagada mientras se define utilidad y conservar métricas agregadas del proveedor como diagnóstico bajo acceso autorizado. Para respaldos, preparar después una extracción saliente diaria cifrada a disco privado y una segunda ubicación acordada. No convertir el PC en servidor ni trasladar autenticación por este motivo. Si se necesita histórico consultable con PC apagado, evaluar archivo cloud separado antes de recargar la base operativa. No se han activado tareas, copias, credenciales, túneles, puertos o servicios.
+
+Cloudflare publica para D1 Free 500 MB por base, 5 GB por cuenta y siete días de Time Travel; cuotas diarias de 5 millones de filas leídas y 100.000 escritas. No se verificó consumo efectivo de esta cuenta. [Límites D1](https://developers.cloudflare.com/d1/platform/limits/), [precios/cuotas](https://developers.cloudflare.com/d1/platform/pricing/). Pages permite consultar métricas de Functions hasta tres meses, en intervalos máximos de una semana; sus logs de Functions son un stream que no se conserva automáticamente. No confundirlo con Workers Logs. [Métricas Pages](https://developers.cloudflare.com/pages/functions/metrics/), [logs Pages](https://developers.cloudflare.com/pages/functions/debugging-and-logging/). Referencias oficiales consultadas el 23-10-2026; no se inspeccionó ni cambió el panel del usuario.
+
+Dimensionamiento de ejemplo, no medición: quince clientes visibles sondeando cada cinco segundos durante ocho horas producen 86.400 solicitudes, antes de ingresos, guardados y otras lecturas. Un registro por sondeo sería innecesario. Si se autorizase telemetría agregada, 15 cuentas × 6 familias × 8 horas × 1 ámbito × 1 estado darían hasta 720 claves/día en ese ejemplo; varios ámbitos/estados multiplican el espacio. No es predicción de uso ni se aplica al código actual. Medir bytes/filas reales antes de fijar meses/años; no extrapolar el crecimiento SQLite histórico como coste exclusivo de telemetría.
+
+Separar tres productos: histórico de uso (diagnóstico, opcional), backup de datos (usuarios/permisos/catálogos/ciclos/conteos/historia/resultados, sensible) y Excel de cantidades (etapa 4, no es respaldo completo). Las herramientas existentes de backup generan SQL privado con checksum, **sin cifrar**; una automatización futura deberá cifrarlo antes de transferir y controlar el temporal. Checksum no aporta confidencialidad ni protege contra sustitución maliciosa sin autenticación/custodia.
+
+Propuesta operativa por acordar: copia diaria fuera de jornada; conservar treinta diarias y doce mensuales según espacio/necesidad, con copia previa a cambios sensibles y restauración local mensual. No es política aplicada; la auditoría de inventario no se poda por este ejemplo. RPO objetivo 24 h solo si cada copia concluye y se verifica; PC apagado/red caída amplían la pérdida potencial. Registrar última copia válida, reintentar al volver y avisar solo de fallo/atraso relevante cuando se autorice automatización. RTO se fijará tras medir recuperación; objetivo inicial a evaluar: cuatro horas. Mantener claves fuera de Git/SQL, acceso mínimo y una recuperación de clave independiente del PC. Ninguna retención/horario/destino/cifrado/scheduler se seleccionó o activó.
+
+Una exportación D1 puede bloquear consultas mientras se ejecuta; planificar ventana y comprobar tamaño/duración antes de automatizar. [Exportación D1](https://developers.cloudflare.com/d1/best-practices/import-export-data/). Recuperar exige destino nuevo para ensayar, checksum/integridad/FK, sesiones recuperadas revocadas, revisión de cuentas/permisos y comparación de conteos/historial/deduplicación. Restaurar producción requiere autorización/ventana y puede perder cambios posteriores; no ejecutar el SQL a ciegas.
+
+## Verificación nueva y límites
+
+Ejecución nueva de Codex del 23-10: `npm test` **25/25**, Python **7/7**, runner aislado **17/17 etapas** (93.435 ms). Incluye build/preparación nueva, preflight positivo/negativo, integración, extended, usuarios/Servicio, carga, sync/backoff/refresh, navegador Servicio, rutas de seguridad, migración poblada 0003/0004, recuperación/mantenimiento, paquete y Pages HTTPS. Después se amplió y repitió solo operaciones: **9 grupos aprobados**, incluyendo consulta/limpieza sin tabla activity y conservación de una tabla opcional existente. No fallos en estas ejecuciones; no se elevan cuotas ni se deshabilitan protecciones para las pruebas.
+
+Simulación nueva: **15 clientes**, 528 solicitudes totales (496 cronometradas), **151 escrituras / 150 reintentos deduplicados / 14 conflictos esperados / cero errores inesperados**; 6.395 ms, p50 36 ms, p95 77 ms, máximo 4.265 ms. Telemetría persistente desactivada; crecimiento SQLite 70 páginas de 4.096 bytes incluye inventario/índices y no acredita consumo Cloudflare. No es carga sostenida ni garantía de capacidad Free.
+
+Casos añadidos: métricas 401 sin sesión y 403 para los tres roles; cabecera de rol falsificada y Administrador llamado root sin privilegios; revocación; cien sondeos sin escrituras de uso; creación/edición de perfil con rol root rechazadas; conteo aceptado con esquema sin telemetría. Regresiones de permisos globales/Servicio/mixtos, cambio de contraseñas, último administrador, conflicto, identidad, autoría y recuperación pasan en las suites existentes. No existe rol Root que ensayar: solo se verificó que no puede seleccionarse/escalarse en el código actual.
+
+[Resultado nuevo estructurado](codex-continuidad-local-2026-10-23.json). Todo se ensayó con bases nuevas en scratch bajo el temporal del sistema, excluyendo secretos/respaldos/sources/libros/.git; no se usó ni reinicializó la base existente de 8790. La recuperación real conserva datos/UUID/history/resultados y revoca sesiones recuperadas; corrupción/destino existente rechazados. Los informes históricos del 22-10 permanecen intactos. No se repitieron audit de dependencias, pruebas remotas ni Android; no se atribuyen a esta revisión. El diff fue revisado por el mismo ejecutor, sin delegación ni auditoría independiente.
+
+## Publicación y reversión
+
+El usuario autorizó crear el commit local el 23-10-2026, después de revisar la entrega. Push/publicación siguen pendientes de autorización; Windows no requiere trabajo en esta sesión. Métricas y Root permanecen pendientes para más adelante. La base conocida ya tiene 0001–0004 y piloto-v3-servicio según evidencia histórica; el código actualizado no exige 0005 ni crea Root. Antes de publicar, revisar diff/historia/destino, pruebas y aceptación pendiente. No repetir bootstrap, fixtures, ciclo o migraciones aplicadas. No se hicieron fetch ni lecturas remotas en este encargo.
+
+1. Con autorización de lectura remota, ejecutar preflight contra el destino exacto: `npm run preflight -- --remote --config wrangler.pages.production.jsonc --cycle piloto-v3-servicio`. Verifica esquema/catalog/ciclo; no cookies, CPU o configuración efectiva de Pages. Si falta 0001–0004 detenerse y revisar; no aplicar SQL automáticamente. 0005 no debe ejecutarse.
+2. Comprobar recuperación/copia privada válida con autorización separada y variables Production: DB, APP_ENV=production, APP_ORIGIN HTTPS y ACTIVE_CYCLE_ID existentes. No necesita nueva configuración. Build `npm run build:pages`, salida dist; no muta D1 ni despliega por sí mismo.
+3. Aprobar commit nuevo propuesto `fix(3a): disable usage persistence and defer Root metrics`, sin reescribir 98282ea/72c1aeb. Antes de sincronizar, autorizar lectura/fetch de inventory-v3 y verificar que no haya divergencia o trabajo local ajeno. Si la hay, detenerse y revisar.
+4. Solo tras aprobación explícita de publicación, en Mac: `git push origin inventory-v3` (dispara Pages). Verificar commit/deployment y `verify:public` en un informe nuevo. Ensayos autenticados/escrituras de producción requieren alcance/cuentas concretos; no hacer carga remota. Todos los roles actuales deben recibir 403 al endpoint técnico.
+5. Windows puede permanecer en cfece26 mientras tanto. Tras publicar, con checkout limpio y en inventory-v3: `git pull --ff-only origin inventory-v3`; si falla o hay cambios/divergencia, detenerse. No bundles, nuevas ramas, worktrees, resets, squash, rebase o force. No se verificó la eliminación de la rama temporal remota y no se recreó ni borró ninguna rama.
+
+Reversión por capas: volver a cfece26 retira este refuerzo de código y conserva datos; volver a 72c1aeb reintroduce escritor/endpoint administrativo y dependencia 0005 en herramientas, por lo que **no es rollback compatible con la decisión actual de privacidad**. Cualquier retorno requiere revisar esa diferencia. Esta entrega no modifica esquema: no hay down SQL ni tablas que borrar. Git/Pages no revierte bindings/variables/ciclo ni cantidades/credenciales/historia. Configuración debe restaurarse por separado si alguien la cambia. Restauración de datos es otra operación autorizada con referencia temporal y revocación de sesiones; no equivale a revertir código.
+
+## Registro histórico conservado
+
+El informe inferior describe exclusivamente 22-10-2026 / 72c1aeb. Sus instrucciones de aplicar 0005, métricas para admin y retención de 14 días están sustituidas. Sus pruebas no se atribuyen a Codex ni a la versión actual.
+
+<details>
+<summary>Informe histórico del refuerzo del 22-10-2026 (no ejecutar su secuencia de publicación)</summary>
+
 # Refuerzo 3A: seguridad, observabilidad y recuperación — 22-10-2026
 
 ## Resultado y alcance
@@ -139,3 +226,5 @@ Referencias consultadas:
 Datos privados, secretos, lógica del servidor y acceso al repositorio dependen de permisos y custodia. No se consultó/cambió visibilidad GitHub (acceso SSH fallido histórico no demuestra repo privado). Mañana revisar Settings/Collaborators/visibilidad con el propietario; si fuese público, el código puede copiarse y retirar acceso no retira copias existentes. No se publican fuentes internas desde dist, pero eso no prueba privacidad del repositorio.
 
 HTML/CSS/JS entregados al navegador son inspeccionables; una interfaz visible puede reproducirse. Sin ofuscación, bloqueo de clic derecho ni garantías anticopia. UA y patrones pueden falsificarse; si se revisan señales futuras, hablar de automatización declarada o comportamiento sospechoso y falsos positivos, no identificar una IA/persona sin evidencia.
+
+</details>

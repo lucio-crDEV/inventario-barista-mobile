@@ -87,7 +87,7 @@ try {
   db.exec(
     "INSERT INTO sessions VALUES('recent-expiry','worker-ops',unixepoch()-3600); INSERT INTO attempts VALUES('current-key',CAST(unixepoch()/900 AS INTEGER),2); COMMIT;",
   );
-  db.exec("INSERT INTO activity_hourly VALUES(unixepoch()-1300000,'worker-ops','sync','none','200',1,unixepoch()-1300000)");
+  assert.equal(db.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
   const tables = [
     "users",
     "grants",
@@ -149,7 +149,7 @@ try {
       t,
     );
   assert.equal(copy.prepare("SELECT count(*) n FROM sessions").get().n, 0);
-  assert.deepEqual(copy.prepare("SELECT * FROM activity_hourly").all(), db.prepare("SELECT * FROM activity_hourly").all());
+  assert.equal(copy.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
   assert.equal(
     copy
       .prepare("SELECT count(*) n FROM admin_audit WHERE action='restore'")
@@ -219,11 +219,12 @@ try {
   assert.equal(existsSync(badTarget), false);
   writeFileSync(join(backup, "database.sql"), sql);
   checks.push("Un respaldo alterado se rechaza antes de crear el destino");
+  db.exec("CREATE TABLE activity_hourly(sentinel TEXT); INSERT INTO activity_hourly VALUES('keep-old-usage')");
   const beforeSessions = db.prepare("SELECT count(*) n FROM sessions").get().n;
   const preview = JSON.parse(run("maintenance", ["--local", "--state", state]));
   assert.equal(preview.mode, "read-only");
   assert.equal(preview.remaining.expired_sessions, 1005);
-  assert.equal(preview.remaining.expired_activity_buckets, 1);
+  assert.equal("expired_activity_buckets" in preview.remaining, false);
   assert.equal(
     db.prepare("SELECT count(*) n FROM sessions").get().n,
     beforeSessions,
@@ -233,10 +234,12 @@ try {
   );
   assert.equal(cleaned.remaining.expired_sessions, 5);
   assert.equal(cleaned.remaining.expired_attempt_keys, 5);
-  assert.equal(cleaned.remaining.expired_activity_buckets, 0);
+  assert.equal("expired_activity_buckets" in cleaned.remaining, false);
   run("maintenance", ["--local", "--state", state, "--apply"]);
   assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 2);
   assert.equal(db.prepare("SELECT count(*) n FROM attempts").get().n, 1);
+  assert.equal(db.prepare("SELECT sentinel FROM activity_hourly").get().sentinel, "keep-old-usage");
+  checks.push("Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda");
   for (const t of tables)
     assert.equal(
       JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()),
@@ -252,6 +255,15 @@ try {
   checks.push(
     "Retención: consulta sin cambios, limpieza limitada a 1000 filas por tabla, conserva sesiones recientes, cuota vigente, auditoría e IDs de operación",
   );
+  // Exercise both modes on the real 0001–0004 baseline, with no activity table.
+  db.exec("DROP TABLE activity_hourly");
+  const withoutUsage = JSON.parse(run("maintenance", ["--local", "--state", state]));
+  assert.equal(withoutUsage.remaining.expired_sessions, 0);
+  const cleanedWithoutUsage = JSON.parse(run("maintenance", ["--local", "--state", state, "--apply"]));
+  assert.equal(cleanedWithoutUsage.remaining.expired_attempt_keys, 0);
+  assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 2);
+  for (const t of tables) assert.equal(JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()), snapshot[t], t);
+  checks.push("Consulta y limpieza sobre 0001–0004 sin tabla de telemetría funcionan y conservan datos");
   for (const script of ["backup", "restore-local", "maintenance"]) {
     const denied = spawnSync(
       process.execPath,

@@ -6,7 +6,7 @@ import {
 } from "./password.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
-import { routeName, allowRequest, observe, logEvent, metrics } from "./telemetry.js";
+import { routeName, allowRequest, logEvent } from "./telemetry.js";
 import { readinessSQL, fastReadinessSQL } from "./readiness.js";
 const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
@@ -316,8 +316,8 @@ async function api(req, env, url, event) {
   if (p === "/api/status" && req.method === "GET")
     return json({ ready: true, stage: "3A", increment: "usuarios-servicio" });
   if (p === "/api/admin/metrics" && req.method === "GET") {
-    if (u.role !== "admin") fail(403, "ADMIN_REQUIRED");
-    return json(await metrics(db, hash));
+    // Root and persistent metrics are deferred. No current role may read them.
+    fail(403, "ROOT_NOT_ENABLED", "Las métricas técnicas están reservadas a Root, todavía no habilitado.");
   }
   if (p === "/api/navigation" && req.method === "GET") {
     const scopes = await db
@@ -536,11 +536,9 @@ export default {
       response.headers.set("X-Request-ID", event.requestId);
 
       if (url.pathname.startsWith("/api/")) {
-        // All errors and sensitive actions; ordinary reads are temporally sampled in D1.
+        // Bounded metadata only; no usage persistence or per-poll database writes.
         if (res.status >= 400 || ["login", "logout", "password", "profile", "admin-users"].includes(event.route))
           logEvent({ ...event, at: new Date().toISOString(), elapsedMs: Date.now() - started });
-        const pending = observe(env.DB, event);
-        if (ctx?.waitUntil) ctx.waitUntil(pending);
       }
       return response;
     };

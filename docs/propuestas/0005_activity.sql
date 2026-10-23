@@ -1,5 +1,5 @@
--- Additive and optional for old code; apply before publishing code that reads metrics.
--- No inventory, permissions, sessions or historical author data is modified.
+-- HISTORICAL PROPOSAL ONLY: not approved, not an automatic migration.
+-- Persistence and retention are deferred as of 2026-10-23. Do not apply.
 CREATE TABLE activity_hourly (
  hour INTEGER NOT NULL,
  actor TEXT NOT NULL,

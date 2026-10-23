@@ -1,5 +1,7 @@
 # Contrato 3A — 21-10-2026
 
+Actualización 23-10-2026: telemetría persistente desactivada, sin dependencia de 0005. La auditoría transaccional de inventario y cuentas se conserva. Root solo diseñado; `/api/admin/metrics` cerrado a todos los roles vigentes. Las garantías de guardado, autoría y reintentos descritas aquí no cambian. [Contrato actual](seguridad-observabilidad-3a.md).
+
 Extensión vigente del 22-10-2026: [usuarios y Servicio](usuarios-y-servicio-3b.md). Añade rol `service_lead`, `deleted_at`/adscripción administrativa, permisos efectivos en vista SQL y ediciones con revisión. La administración edita username y el perfil propio el nombre visible. La eliminación conserva identidades históricas; no borra conteos. Catálogo nuevo por ciclo y ubicaciones separadas de Copería/Vitrina; guardado, confirmación ajena y deduplicación mantienen este contrato.
 
 Contrato documentado antes de implementar y actualizado al comportamiento vigente. Implementado y probado en Worker/D1 local; recuperación `cfece26` confirmada en Pages (`7df21f3c`), funcionamiento informado por el usuario. La revisión nueva es anónima/de métricas, no un ensayo autenticado completo. [Evidencia actual](revision-hermes-2026-10-22.md), [registro y criterios operativos](verification.md).

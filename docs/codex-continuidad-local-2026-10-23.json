@@ -1,0 +1,174 @@
+{
+  "root": "/var/folders/_9/2g2q1c950rz8vh1m26c8gt_w0000gn/T/inventory-codex-tests/inventory-security-yKPV2p",
+  "startedAt": "2026-10-23T10:50:56.848Z",
+  "runs": [
+    {
+      "script": "scripts/build-pages.mjs",
+      "durationMs": 98,
+      "passed": true
+    },
+    {
+      "script": "scripts/prepare-tests.mjs",
+      "durationMs": 15185,
+      "passed": true
+    },
+    {
+      "script": "scripts/preflight.mjs",
+      "durationMs": 803,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/preflight-negative.mjs",
+      "durationMs": 1691,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/integration.mjs",
+      "durationMs": 10781,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/extended.mjs",
+      "durationMs": 4641,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service.mjs",
+      "durationMs": 4702,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/load.mjs",
+      "durationMs": 6445,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/sync.mjs",
+      "durationMs": 2052,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/backoff.mjs",
+      "durationMs": 924,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/refresh.mjs",
+      "durationMs": 7279,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service-browser.mjs",
+      "durationMs": 7616,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/security-live.mjs",
+      "durationMs": 1727,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/migration-service.mjs",
+      "durationMs": 4692,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/operations.mjs",
+      "durationMs": 11277,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/package-security.mjs",
+      "durationMs": 126,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/pages.mjs",
+      "durationMs": 1458,
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-23T10:52:30.283Z",
+  "environment": "Node/SQLite + workerd/D1 y Pages HTTPS locales aislados; sin solicitudes remotas",
+  "branch": "inventory-v3",
+  "baseCommit": "72c1aebcdc858a7ed6102b036ecc721dcc7396cc",
+  "unitTests": {
+    "node": 25,
+    "python": 7,
+    "failed": 0
+  },
+  "load": {
+    "environment": "Workers/workerd + D1 local; no garantiza capacidad de producción",
+    "clients": 15,
+    "rounds": 10,
+    "durationMs": 6395,
+    "measuredRequests": 496,
+    "totalRequestsIncludingVerification": 528,
+    "statuses": {
+      "200": 482,
+      "409": 14
+    },
+    "expectedConflicts": 14,
+    "unexpectedErrors": 0,
+    "acceptedWrites": 151,
+    "duplicateRetries": 150,
+    "localStorage": {
+      "telemetryPersistence": "disabled",
+      "pageGrowth": 70,
+      "pageSizeBytes": 4096,
+      "cloudflareCpuAndBilledRows": "Not measurable from this local simulation"
+    },
+    "latencyMs": {
+      "p50": 36,
+      "p95": 77,
+      "max": 4265
+    },
+    "consistency": "151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas",
+    "note": "Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan."
+  },
+  "recoveryMaintenanceChecks": {
+    "checks": [
+      "Exportación D1 real con manifiesto SHA-256, carpeta 0700, archivos 0600 y rechazo de sobrescritura",
+      "Restauración en otra D1 local: datos, permisos, catálogo, conteo, historial y deduplicación idénticos; integridad y claves foráneas válidas",
+      "Todas las sesiones restauradas quedan revocadas y el destino existente se protege",
+      "Los triggers restaurados aceptan una nueva edición y un reintento previo no duplica ni restaura un valor antiguo",
+      "Un respaldo alterado se rechaza antes de crear el destino",
+      "Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda",
+      "Retención: consulta sin cambios, limpieza limitada a 1000 filas por tabla, conserva sesiones recientes, cuota vigente, auditoría e IDs de operación",
+      "Consulta y limpieza sobre 0001–0004 sin tabla de telemetría funcionan y conservan datos",
+      "Se rechazan opciones remotas incompletas; restauración automatizada exclusivamente local"
+    ],
+    "remoteDatabaseTouched": false,
+    "sourceAndRestore": "Dos bases D1 locales desechables e independientes de desarrollo",
+    "inventoryPreserved": true
+  },
+  "additionalRuns": [
+    {
+      "script": "tests/shared/operations.mjs",
+      "passed": true,
+      "reason": "Después de añadir consulta y limpieza sin tabla activity, además de conservar una tabla opcional existente"
+    }
+  ],
+  "decisions": {
+    "persistentTelemetry": "disabled",
+    "root": "design only, expressly deferred",
+    "metricsEndpoint": "closed to all implemented roles",
+    "migration0005": "historical proposal outside migrations; not applied"
+  },
+  "isolation": {
+    "existing8790NotUsed": true,
+    "existingDatabasesNotMutated": true,
+    "scratchOnly": true,
+    "secretsAndBackupsExcluded": true,
+    "noRemoteRequests": true
+  },
+  "notVerified": [
+    "CPU/consumo/cuotas Free de Cloudflare",
+    "Cookies y operaciones autenticadas del dominio remoto",
+    "Recuperación remota/copia externa cifrada",
+    "Android físico/piloto operativo",
+    "Implementación de Root (solo diseñado)",
+    "Estado vivo de origin y rama temporal remota"
+  ],
+  "durationMs": 93435
+}
