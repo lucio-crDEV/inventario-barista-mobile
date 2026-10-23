@@ -1,0 +1,193 @@
+{
+  "root": "/var/folders/_9/2g2q1c950rz8vh1m26c8gt_w0000gn/T/inventory-codex-tests/inventory-security-C3Mler",
+  "startedAt": "2026-10-23T11:38:13.171Z",
+  "runs": [
+    {
+      "script": "scripts/build-pages.mjs",
+      "durationMs": 101,
+      "passed": true
+    },
+    {
+      "script": "scripts/prepare-tests.mjs",
+      "durationMs": 16039,
+      "passed": true
+    },
+    {
+      "script": "scripts/preflight.mjs",
+      "durationMs": 805,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/preflight-negative.mjs",
+      "durationMs": 1639,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/integration.mjs",
+      "durationMs": 10720,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/extended.mjs",
+      "durationMs": 4649,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service.mjs",
+      "durationMs": 4718,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/load.mjs",
+      "durationMs": 6612,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/sync.mjs",
+      "durationMs": 1600,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/backoff.mjs",
+      "durationMs": 808,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/refresh.mjs",
+      "durationMs": 6556,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service-browser.mjs",
+      "durationMs": 8234,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/security-live.mjs",
+      "durationMs": 1756,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/supervision-live.mjs",
+      "durationMs": 1089,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/supervision-browser.mjs",
+      "durationMs": 2870,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/migration-service.mjs",
+      "durationMs": 5421,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/operations.mjs",
+      "durationMs": 13031,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/package-security.mjs",
+      "durationMs": 148,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/pages.mjs",
+      "durationMs": 1775,
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-23T11:39:55.249Z",
+  "baseCommit": "b24403d",
+  "branch": "inventory-v3",
+  "scope": "Etapa 3B local; sin producción",
+  "unitTests": {
+    "node": 31,
+    "python": 7,
+    "failed": 0
+  },
+  "load": {
+    "environment": "Workers/workerd + D1 local; no garantiza capacidad de producción",
+    "clients": 15,
+    "rounds": 10,
+    "durationMs": 6561,
+    "measuredRequests": 496,
+    "totalRequestsIncludingVerification": 528,
+    "statuses": {
+      "200": 482,
+      "409": 14
+    },
+    "expectedConflicts": 14,
+    "unexpectedErrors": 0,
+    "acceptedWrites": 151,
+    "duplicateRetries": 150,
+    "localStorage": {
+      "telemetryPersistence": "disabled",
+      "pageGrowth": 72,
+      "pageSizeBytes": 4096,
+      "cloudflareCpuAndBilledRows": "Not measurable from this local simulation"
+    },
+    "latencyMs": {
+      "p50": 39,
+      "p95": 95,
+      "max": 4292
+    },
+    "consistency": "151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas",
+    "note": "Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan."
+  },
+  "browser": {
+    "checks": [
+      "Supervisión 320/390/1024, claro/oscuro, sin desborde",
+      "Rectificar guarda con motivo; anular permite Escape y conserva datos",
+      "Respuesta perdida: reintento manual conserva ID sin duplicar anulación",
+      "Historial y exclusiones se consultan con filtros; no se muestran como cero",
+      "Jefa: solo Servicio, sin activación ni control global"
+    ],
+    "errors": []
+  },
+  "recovery": {
+    "checks": [
+      "Exportación D1 real con manifiesto SHA-256, carpeta 0700, archivos 0600 y rechazo de sobrescritura",
+      "Restauración en otra D1 local: datos, permisos, catálogo, conteo, historial y deduplicación idénticos; integridad y claves foráneas válidas",
+      "Todas las sesiones restauradas quedan revocadas y el destino existente se protege",
+      "Los triggers restaurados aceptan una nueva edición y un reintento previo no duplica ni restaura un valor antiguo",
+      "Recupera exclusiones, estado de Servicio y comandos auditados 3B; reintento con sesión nueva no duplica ni cambia revisión",
+      "Un respaldo alterado se rechaza antes de crear el destino",
+      "Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda",
+      "Retención: consulta sin cambios, limpieza limitada a 1000 filas por tabla, conserva sesiones recientes, cuota vigente, auditoría e IDs de operación",
+      "Consulta y limpieza sobre esquema operativo 0006 sin tabla de telemetría funcionan y conservan datos",
+      "Se rechazan opciones remotas incompletas; restauración automatizada exclusivamente local"
+    ],
+    "remoteDatabaseTouched": false,
+    "sourceAndRestore": "Dos bases D1 locales desechables e independientes de desarrollo",
+    "inventoryPreserved": true
+  },
+  "migration": {
+    "environment": "Wrangler + D1 local real, base temporal separada",
+    "date": "2026-10-23T11:39:36.268Z",
+    "passed": true,
+    "checks": [
+      "0003, 0004 y 0006 sobre usuarios, sesiones, ciclo, conteo y operación previos",
+      "Claves foráneas e integridad válidas",
+      "Sesiones/UUID/conteos/historial/resultados previos idénticos",
+      "Catálogo anterior conservado y alcance combinado trasladado a Copería",
+      "Reintento previo no duplica ni modifica el conteo tras migrar"
+    ]
+  },
+  "remoteTouched": false,
+  "existingDatabasesTouched": false,
+  "pending": [
+    "Preparación autorizada de esquema remoto 0006 y respaldo privado",
+    "Publicación y recorrido de 3B/cookies en dominio real",
+    "CPU/capacidad Free, Android físico y aceptación operativa 3A",
+    "Root, métricas técnicas, automatización de backups y Excel 4"
+  ],
+  "intermediateFindingsResolved": [
+    "Ruta HTML redirigida sin extensión por Pages",
+    "Comparación de prototipos de objetos en fixture de migración",
+    "Pruebas esperan cierre nativo y despliegue del control plegable",
+    "Botones, diálogos y temas ajustados tras inspección de capturas",
+    "Estado heredado de Servicio incluido para trabajador de subárea"
+  ]
+}

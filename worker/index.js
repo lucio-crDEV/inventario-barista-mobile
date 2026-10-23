@@ -4,6 +4,7 @@ import {
   validPassword,
   dummyHash,
 } from "./password.js";
+import { supervisionRequest } from "./supervision.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
 import { routeName, allowRequest, logEvent } from "./telemetry.js";
@@ -139,7 +140,7 @@ async function boot(db, hash, cycle) {
     db
       .prepare(
         actorCTE +
-          `SELECT ci.data FROM catalog_items ci JOIN cycles cy ON ci.version=cy.catalog_version WHERE cy.id=?2 AND ci.location_id IN (SELECT id FROM allowed)`,
+          `SELECT ci.data, coalesce(st.active,json_extract(ci.data,'$.active'),1) operational_active FROM catalog_items ci JOIN cycles cy ON ci.version=cy.catalog_version LEFT JOIN cycle_item_states st ON st.cycle_id=cy.id AND st.item_id=ci.id AND st.location_id=ci.location_id WHERE cy.id=?2 AND ci.location_id IN (SELECT id FROM allowed)`,
       )
       .bind(hash, cycle),
     db
@@ -162,9 +163,10 @@ async function boot(db, hash, cycle) {
       .bind(hash, cycle),
   ]);
   return {
-    cycle: results[0].results[0] || null,
+    cycle: results[0].results[0] ? {...results[0].results[0],scopeStates:(await db.prepare(actorCTE+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND EXISTS(SELECT 1 FROM scope_closure cl WHERE cl.ancestor=cs.scope_id AND cl.descendant IN(SELECT id FROM allowed))`).bind(hash,cycle).all()).results} : null,
     items: results[1].results.map((r) => {
       const x = JSON.parse(r.data);
+      x.active = !!r.operational_active;
       return Object.fromEntries(
         [
           "id",
@@ -331,6 +333,8 @@ async function api(req, env, url, event) {
   }
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
+  if (p === "/api/admin/supervision" || p.startsWith("/api/admin/supervision/"))
+    return supervisionRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest});
   if (p.startsWith("/api/admin/") || p === "/api/profile")
     return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event });
   const cycle = url.searchParams.get("cycle") || env.ACTIVE_CYCLE_ID;
@@ -352,6 +356,7 @@ async function api(req, env, url, event) {
       .all();
     return json({
       user: userDTO(u),
+      cycleRevision: (await db.prepare(actorCTE+`SELECT revision FROM cycles WHERE id=?2 AND EXISTS(SELECT 1 FROM allowed)`).bind(hash,cycle).first())?.revision,
       changes: rows.results.map((x) => JSON.parse(x.after_record)),
       cursor: rows.results.at(-1)?.seq ?? cursor,
     });
@@ -363,9 +368,9 @@ async function api(req, env, url, event) {
       fail(403, "FORBIDDEN");
     const items = data.items.filter(
       (x) =>
-        (!scope ||
+        (x.active && (!scope ||
           x.locationId === scope ||
-          x.locationId.startsWith(scope + ":")) &&
+          x.locationId.startsWith(scope + ":"))) &&
         x.name
           .toLocaleLowerCase()
           .includes((url.searchParams.get("q") || "").toLocaleLowerCase()),
@@ -486,6 +491,7 @@ async function api(req, env, url, event) {
         "FOREIGN_RECORD",
         "INVALID_ZERO",
         "QUANTITY_LIMIT",
+        "ITEM_INACTIVE",
       ].find((c) => e.message.includes(c));
       if (code)
         fail(
@@ -546,7 +552,7 @@ export default {
       let res;
       if (url.pathname.startsWith("/api/")) res = await api(req, env, url, event);
       else if (
-        !/^\/(?:$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
+        !/^\/(?:$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,
         )
       )

@@ -5,10 +5,10 @@ import worker from "../worker/index.js";
 import { allowRequest, routeName } from "../worker/telemetry.js";
 import { sqliteDB } from "./shared/sqlite-adapter.mjs";
 const origin = "https://example.test";
-function setup(through = 4) {
+function setup(through = 6) {
   const db = sqliteDB(through);
   db.sqlite.exec(`INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES('admin','admin','Admin','!hash','admin',0),('worker','worker','Worker','!hash','worker',0);
-    INSERT INTO cycles VALUES('test','Test','inventory-v2-2026-10-21','open');`);
+    INSERT INTO cycles(id,name,catalog_version,state) VALUES('test','Test','inventory-v2-2026-10-21','open');`);
   return { DB: db, APP_ENV: "production", APP_ORIGIN: origin, ACTIVE_CYCLE_ID: "test" };
 }
 async function request(env, path = "/api/me", options = {}) {
@@ -27,8 +27,9 @@ await test("Old/incomplete schemas and incomplete or wrong catalog fail closed; 
   const env = setup(2);
   assert.equal((await request(env)).status, 503);
   env.DB.migrate(3, 3);
-  assert.equal((await request(env)).status, 401); // Legacy cycle remains compatible.
-  env.DB.migrate(4, 4);
+  assert.equal((await request(env)).status, 503); // 3B requires its operational schema.
+  env.DB.migrate(4, 6);
+  assert.equal((await request(env)).status, 401); // Legacy catalog still supported.
   assert.equal(env.DB.sqlite.prepare("SELECT name FROM users WHERE id='worker'").get().name, "Worker");
   assert.deepEqual(env.DB.sqlite.prepare("PRAGMA foreign_key_check").all(), []);
   env.DB.sqlite.exec("UPDATE cycles SET catalog_version='missing'");
@@ -38,9 +39,10 @@ await test("Old/incomplete schemas and incomplete or wrong catalog fail closed; 
   env.DB.sqlite.close();
 });
 await test("Missing safety trigger cannot masquerade as initialized", async () => {
-  const env = setup(); env.DB.sqlite.exec("DROP TRIGGER accept_operation");
-  const r = await request(env); assert.equal(r.status, 503);
-  assert.equal((await r.json()).code, "NOT_INITIALIZED"); env.DB.sqlite.close();
+  for(const trigger of ['accept_operation','guard_supervision','apply_supervision']){
+    const env=setup();env.DB.sqlite.exec('DROP TRIGGER '+trigger);
+    const r=await request(env);assert.equal(r.status,503);assert.equal((await r.json()).code,'NOT_INITIALIZED');env.DB.sqlite.close();
+  }
 });
 await test("Streaming JSON is byte bounded, errors and logs exclude submitted secrets", async () => {
   const env = setup();

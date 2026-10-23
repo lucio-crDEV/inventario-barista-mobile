@@ -44,7 +44,18 @@ try {
   assert.equal(db.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n,0);
   assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(),[]);
   assert.equal(db.prepare("PRAGMA integrity_check").get().integrity_check,"ok");
-  const report={environment:"Wrangler + D1 local real, base temporal separada",date:new Date().toISOString(),passed:true,checks:["0003 y 0004 sobre usuarios, sesiones, ciclo, conteo y operación previos","Claves foráneas e integridad válidas","Sesiones/UUID/conteos/historial/resultados previos idénticos","Catálogo anterior conservado y alcance combinado trasladado a Copería","Reintento previo no duplica ni modifica el conteo tras migrar"]};
+  const before3b=Object.fromEntries(["users","grants",...tables].map(t=>[t,db.prepare(`SELECT * FROM ${t}`).all()]));
+  db.close();db=null;
+  execute(readFileSync("migrations/0006_supervision.sql","utf8"));
+  db=new DatabaseSync(databaseFile);
+  for(const [table,rows] of Object.entries(before3b)){
+    const after=db.prepare(`SELECT * FROM ${table}`).all().map(row=>Object.fromEntries(Object.entries(row).filter(([key])=>!(["voided","reason","revision"].includes(key)&&!(key in (rows[0]||{}))))));
+    assert.deepEqual(after,rows.map(row=>({...row})),table);
+  }
+  assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(),[]);
+  assert.equal(db.prepare("PRAGMA integrity_check").get().integrity_check,"ok");
+  assert.equal(db.prepare("SELECT count(*) n FROM supervision_commands").get().n,0);
+  const report={environment:"Wrangler + D1 local real, base temporal separada",date:new Date().toISOString(),passed:true,checks:["0003, 0004 y 0006 sobre usuarios, sesiones, ciclo, conteo y operación previos","Claves foráneas e integridad válidas","Sesiones/UUID/conteos/historial/resultados previos idénticos","Catálogo anterior conservado y alcance combinado trasladado a Copería","Reintento previo no duplica ni modifica el conteo tras migrar"]};
   writeFileSync("docs/migracion-servicio-local-3b.json",JSON.stringify(report,null,2)+"\n");
   console.log(JSON.stringify(report,null,2));
 } finally { db?.close();rmSync(directory,{recursive:true,force:true}); }

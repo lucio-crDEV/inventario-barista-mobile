@@ -2,6 +2,7 @@
 // Operational metadata only: never pass requests, payloads or session secrets here.
 const routes = new Set(["login", "logout", "password", "profile", "me", "status", "navigation", "bootstrap", "sync", "search", "summary", "record", "history", "count", "metrics"]);
 export function routeName(path) {
+  if (path === "/api/admin/supervision" || path.startsWith("/api/admin/supervision/")) return "supervision";
   if (path === "/api/admin/metrics") return "metrics";
   if (/^\/api\/admin\/users(?:\/[a-f0-9-]+(?:\/(?:password|delete))?)?$/.test(path)) return "admin-users";
   const name = path.startsWith("/api/") ? path.slice(5) : "";
@@ -13,7 +14,7 @@ function boundedSet(map, key, value) {
   map.set(key, value);
 }
 export function allowRequest(actor, route, time = Date.now()) {
-  const expensive = ["bootstrap", "summary", "search", "admin-users", "metrics"].includes(route);
+  const expensive = ["bootstrap", "summary", "search", "admin-users", "metrics", "supervision"].includes(route);
   const key = `${actor}:${expensive ? "heavy" : "normal"}`;
   const window = Math.floor(time / 60000);
   const previous = limits.get(key);

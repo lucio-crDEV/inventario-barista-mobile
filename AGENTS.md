@@ -1,5 +1,9 @@
 # AGENTS.md — inventory-v3
 
+## Etapa 3B vigente — 23-10-2026
+
+[Contrato 3B](docs/etapa-3b.md): supervisión/historial, correcciones/anulación lógica, activación por ciclo y estados global/Servicio implementados localmente. Jefa rectifica/anula y gestiona reapertura/revisión/cierre solo Servicio, con motivo. Administrador controla todo y activa/excluye productos. Cierre estricto: todos los productos activos deben estar contados. Motivo obligatorio; el placeholder no es un motivo automático. Migración operativa 0006 requerida antes de publicar; nunca 0005. Mantener controles de versión, idempotencia, auditoría y borradores. Root y métricas técnicas siguen pendientes. No confundir estos avances locales con despliegue o aceptación remota.
+
 ## Decisiones del 23-10-2026
 
 Telemetría persistente desactivada. `0005` es una propuesta histórica fuera de `migrations/`, no se aplica. Root/Desarrollador queda **solo diseñado** por decisión expresa; los roles implementados siguen siendo Administrador > Jefa de servicio > Trabajador. Ninguno accede al endpoint técnico de métricas, que queda cerrado hasta aprobar Root y su fuente de datos. No implementar Root, almacenamiento ni automatización como continuación implícita. [Estado, diseño y publicación](docs/seguridad-observabilidad-3a.md).

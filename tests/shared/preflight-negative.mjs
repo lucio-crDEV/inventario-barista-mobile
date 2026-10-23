@@ -10,4 +10,4 @@ const result = JSON.parse(execFileSync(process.execPath, [...args, "prueba-compa
 assert.equal(result.ready, true); assert.equal(result.telemetryRequired, false);
 assert.equal(JSON.stringify(db.prepare("SELECT * FROM d1_migrations").all()), before);
 db.close();
-console.log("PASS preflight rejects wrong cycle and accepts 0001–0004 without telemetry or writes");
+console.log("PASS preflight rejects wrong cycle and accepts operational schema 0006 without telemetry or writes");

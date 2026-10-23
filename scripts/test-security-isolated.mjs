@@ -40,7 +40,7 @@ try {
   run("scripts/preflight.mjs", ["--local", "--state", ".wrangler/test-state", "--cycle", "prueba-compartida"]);
   run("tests/shared/preflight-negative.mjs");
   const logs = [];
-  for (const script of ["integration", "extended", "users-service", "load", "sync", "backoff", "refresh", "users-service-browser", "security-live"]) {
+  for (const script of ["integration", "extended", "users-service", "load", "sync", "backoff", "refresh", "users-service-browser", "security-live", "supervision-live", "supervision-browser"]) {
     // Separate suite rate windows; the 15-client simulation itself is uninterrupted.
     server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "dev", "--env", "local", "--ip", "127.0.0.1", "--port", "8890", "--inspector-port", "9332", "--persist-to", ".wrangler/test-state", "--var", "APP_ORIGIN:http://127.0.0.1:8890"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
     server.stdout.on("data", c => logs.push(c)); server.stderr.on("data", c => logs.push(c));

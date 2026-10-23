@@ -1,5 +1,12 @@
 # Accesos, autoría y administración — decisiones vigentes 22-10-2026
 
+## Etapa 3B — implementación local del 23-10-2026
+
+El usuario informó que b24403d funciona y autorizó desarrollar el resto de 3B. Tablero/historial operativo, rectificación/anulación auditada, activación por ciclo y revisión/cierre/reapertura implementados localmente. Jefa supervisa, rectifica y anula solo Servicio; también gestiona su estado propio (reabrir con motivo, revisión, cierre estricto). Administrador conserva alcance global y activación. No se amplían cuentas mixtas ni roles. Root, telemetría técnica, backups automáticos y Excel 4 siguen pendientes.
+
+Requiere **0006_supervision.sql antes del deploy**, independiente de 0005 (sigue sin aprobarse y fuera de migrations). No aplicar fixtures/bootstrap/ciclo nuevo sobre demo. No SQL remoto, push o despliegue en este encargo. La aceptación operativa de 3A y validación de 3B en el dominio siguen abiertas. [Contrato, seguridad y pruebas](etapa-3b.md).
+
+
 Actualización 23-10-2026: GET `/api/admin/metrics` ya no entrega información al Administrador, Jefa ni Trabajador: `403 ROOT_NOT_ENABLED`. Root solo está diseñado; no existe cuenta ni rol nuevo en el código. Un username `root` no concede privilegios. Persistencia de telemetría desactivada, sin histórico de uso ni retención aplicada. Se conservan cuotas, correlación y diagnóstico saneado y la auditoría de cuentas/conteos. [Diseño de Root y límites de cada dato](seguridad-observabilidad-3a.md). No se ha modificado ninguna cuenta o permiso remoto.
 
 Incremento recuperado/publicado en `cfece26`, confirmado en Pages (`7df21f3c`): Administrador > Jefa de servicio > Trabajador. La jefa tiene todo Servicio por rol, sin acceso a Cocina/Pastelería/Panadería/Bodega. Administra trabajadores de Servicio, incluidas altas sin asignación inicial; no promueve roles ni administra jefas/administradores. En cuentas mixtas solo cambia accesos de Servicio, conservando los exteriores; no cambia username, contraseña, activación ni eliminación. «Activar/desactivar zonas» significa gestionar asignaciones por persona. [Contrato](usuarios-y-servicio-3b.md), [evidencia actual y límites](revision-hermes-2026-10-22.md).

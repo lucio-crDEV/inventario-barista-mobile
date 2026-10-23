@@ -1,6 +1,10 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
-## Preparación vigente — 23-10-2026, sin telemetría persistente
+## Próxima publicación: etapa 3B y esquema 0006
+
+Esta entrega local **sí requiere 0006_supervision.sql antes del push**. Sustituye la indicación de “sin SQL nuevo” que era válida para b24403d. No aplicar 0005. Conservar DB, catálogo, ciclo y cuentas existentes. [Pasos de preparación, preflight, push y rollback](etapa-3b.md#publicación-manual-y-reversión). No se aplicó SQL remoto ni se publicó aquí. No ejecutar build/push como sustituto de preparar D1.
+
+## Preparación histórica de b24403d — sin telemetría persistente
 
 Este diff no necesita SQL, nuevas variables ni cuentas. Migraciones automáticas: solo 0001–0004; 0005 permanece como propuesta histórica fuera de `migrations/`. No aplicarla. Root solo está diseñado; el endpoint técnico queda cerrado para los roles actuales. Conservar ciclo, catálogo, DB, credenciales y variables existentes. Revisar diff/pruebas y aprobar commit/publicación por separado. Preflight remoto de lectura sigue pendiente de autorización. [Secuencia actual y reversión por capa](seguridad-observabilidad-3a.md#publicación-y-reversión). Git no revierte D1/configuración/datos. Las comprobaciones remotas del 22-10 siguientes son históricas; Codex no las repitió en esta sesión.
 

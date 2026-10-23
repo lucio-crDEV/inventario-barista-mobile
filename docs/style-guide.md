@@ -1,5 +1,11 @@
 # Guía de estilo UX/UI — inventory-v3
 
+## Supervisión 3B — 23-10-2026
+
+Nuevo acceso Supervisión en el menú de Administrador/Jefa, separado de Usuarios y accesos. Mantiene cabecera/menú derecho, crema/carbón/cian, superficies uniformes, foco y controles de 44 px. Filtros móviles, tarjetas de avance por área, productos/historial en páginas de 50, estados con texto y excluidos fuera del total activo. No inventar métricas ni progreso. Errores conservan estado explícito; consultas no muestran vacío confirmado mientras cargan.
+
+Rectificar/anular/excluir y transiciones usan diálogo con Cancelar como foco, Escape seguro, valor vigente/resultado, motivo requerido y confirmación. Placeholder `actualizacion/revision item`, nunca valor predeterminado. Reapertura de jefa indica solo Servicio; acción global avisa que afecta todas las áreas. Cerrar exige confirmar revisión de borradores con participantes. Respuesta incierta conserva el envío para reintento manual, sin duplicar ni anunciar éxito anticipado. No hay pantalla Root ni métricas técnicas. Las descripciones históricas siguientes de 3B pendiente corresponden al estado anterior.
+
 ## Ajustes vigentes del 22-10-2026
 
 Usuarios y accesos omite el subtítulo descriptivo. «Cuentas existentes» y el total filtrado comparten fila sobre el buscador. Crear usuario mantiene sus dos avisos finales en líneas separadas. Las tarjetas usan la misma cabecera compacta de nombre/usuario, rol/estado y chevrón; al abrirlas, tres pestañas separan **Cuenta**, **Accesos** y **Seguridad**. Solo se muestra un panel a la vez, conservando los campos escritos y las asignaciones al cambiar. Tab, flechas, Inicio/Fin y foco visible permiten navegar con teclado; la validación abre la pestaña del campo inválido.

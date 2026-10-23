@@ -1,5 +1,7 @@
 # inventory-v3
 
+Etapa 3B local: menú → Supervisión, historial paginado, correcciones/anulación auditadas, activación por ciclo y revisión/cierre/reapertura con alcance Servicio. Requiere migración operativa **0006 antes de publicar**; no aplicar 0005. [Contrato, pruebas y publicación](docs/etapa-3b.md). Root, métricas técnicas y Excel siguen pendientes.
+
 Ubicación local actual: `/Users/lucio/workspace/inventario_brioche`. [Traspaso a Hermes](docs/traspaso-hermes.md) y [revisión real del repositorio y producción](docs/revision-hermes-2026-10-22.md).
 
 **Estado comprobado, 22-10-2026:** `cfece26` confirmado en Pages, despliegue `7df21f3c` correcto y funcionamiento informado por el usuario. Las 16 comprobaciones anónimas pasan. Las métricas posteriores registran dos errores `exceededResources`, sin ruta ni diagnóstico CPU individual: no prueban una caída permanente. D1 ya está inicializada. **Mantener Free; Supabase es una alternativa sin integrar, no una migración obligatoria.** [Diagnóstico y límites](docs/autenticacion-free.md).

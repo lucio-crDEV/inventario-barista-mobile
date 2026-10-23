@@ -1,0 +1,37 @@
+.supervision-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-block:18px; }
+.supervision-filters label { min-width:0; }
+.supervision-filters input,.supervision-filters select { width:100%; min-height:44px; }
+.supervision-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; margin-block:16px; }
+.supervision-card { padding:16px; background:var(--ui-surface); border:1px solid var(--ui-border); border-radius:18px; }
+.supervision-card h2,.supervision-card h3 { margin-top:0; overflow-wrap:anywhere; }
+.supervision-card p { overflow-wrap:anywhere; white-space:pre-wrap; }
+.supervision-card + .supervision-card { margin-top:12px; }
+.supervision-actions { display:flex; flex-wrap:wrap; gap:8px; margin-block:12px; }
+.supervision-actions button,.supervision-actions a { min-height:44px; }
+.supervision-card progress { width:100%; accent-color:var(--ui-accent,#00738e); }
+.supervision-status { font-weight:600; }
+.supervision-status[data-state="pending"] { color:var(--ui-danger,#a22f45); }
+.supervision-status[data-state="partial"] { color:#8a5c00; }
+.supervision-status[data-state="counted"] { color:#087265; }
+html[data-theme="dark"] .supervision-status[data-state="partial"] { color:#f5cc6f; }
+html[data-theme="dark"] .supervision-status[data-state="counted"] { color:#68dfc8; }
+.supervision-modal { width:min(560px,calc(100% - 28px)); }
+.supervision-modal label { display:block; margin-block:12px; }
+.supervision-modal textarea,.supervision-modal input,.supervision-modal select { width:100%; min-height:44px; }
+.supervision-modal textarea { min-height:88px; }
+.supervision-history { padding-left:0; list-style:none; }
+.supervision-tabs { display:flex; flex-wrap:wrap; gap:8px; }
+@media(max-width:380px) { .supervision-filters { grid-template-columns:1fr; } }
+
+.supervision-modal input[type="checkbox"] { width:22px;min-height:22px;height:22px;vertical-align:middle; }
+.supervision-modal label:has(input[type="checkbox"]) { min-height:44px; }
+.supervision-filters[hidden] { display:none; }
+
+.supervision-filters > button { align-self:end;min-height:48px; }
+.supervision-actions { align-items:center; }
+.supervision-actions > span { width:100%;font-weight:600; }
+.supervision-actions details { width:100%; }
+.supervision-card summary { min-height:44px;cursor:pointer; }
+
+.supervision-modal input:not([type="checkbox"]),.supervision-modal textarea,.supervision-modal select { padding:12px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-surface);color:var(--ui-text);font:inherit; }
+.supervision-modal input::placeholder,.supervision-modal textarea::placeholder { color:var(--ui-muted,var(--ui-text));opacity:.75; }

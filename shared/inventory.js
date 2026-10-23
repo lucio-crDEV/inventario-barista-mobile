@@ -69,6 +69,11 @@ export class SharedInventory {
   }
   mount(item, count) {
     this.editVersion = count.version || 0;
+    const state=this.data.cycle?.scopeStates?.find(s=>item.locationId===s.scope_id||item.locationId.startsWith(s.scope_id+':'))?.state||this.data.cycle?.state;
+    if(state!=='open'){
+      const banner=document.createElement('p');banner.className='pending-draft';banner.textContent='Inventario en revisión o cerrado. Se conservan tus borradores; los cambios se gestionan desde Supervisión.';
+      document.querySelector('#quantity')?.closest('.field')?.before(banner);
+    }
     const d = this.draft(item),
       q = document.querySelector("#quantity"),
       n = document.querySelector("#note");
@@ -105,7 +110,7 @@ export class SharedInventory {
       try {
         const r = await api(this.recordURL("/api/history", item));
         if (!el.open) return;
-        body.innerHTML = `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${esc(h.after_record.quantity)} ${esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : "Contado"}</p>${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}`;
+        body.innerHTML = `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura", rectify: "Rectificación", annul: "Anulación" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${h.after_record.status === "pending" ? "Sin conteo vigente" : esc(h.after_record.quantity)+" "+esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : h.after_record.status === "pending" ? "Pendiente" : "Contado"}</p>${h.reason ? `<p class="history-note">Motivo: ${esc(h.reason)}</p>` : ""}${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}`;
         reveal(body);
       } catch (e) {
         if (el.open)
@@ -175,6 +180,8 @@ export class SharedInventory {
   }
   async save(item, quantity, status, note, outOfStock) {
     if (this.busy) return false;
+    const state=this.data.cycle?.scopeStates?.find(s=>item.locationId===s.scope_id||item.locationId.startsWith(s.scope_id+':'))?.state||this.data.cycle?.state;
+    if(state && state!=='open' && !this.draft(item)?.operation){this.state('Inventario en revisión o cerrado. Borrador conservado.');return false;}
     const old = this.draft(item);
     let d = old?.operation
       ? old
@@ -241,7 +248,7 @@ export class SharedInventory {
       if (e.status === 409 && ["STALE", "FOREIGN_RECORD"].includes(e.code)) {
         this.drafts.set(item.id, { ...d, operation: undefined });
         this.onRecord?.(e.current, item.id);
-        if (e.current?.authorId !== this.user.id && e.current) {
+        if (e.current?.authorId !== this.user.id && e.current && e.current.status !== "pending") {
           this.resolve(item, d, e.current);
         } else {
           this.drafts.set(item.id, {
@@ -371,7 +378,7 @@ export class SharedInventory {
           loginRedirect();
           return;
         }
-        if (r.user.revision !== this.user.revision) {
+        if (r.user.revision !== this.user.revision || (r.cycleRevision !== undefined && r.cycleRevision !== this.data.cycle?.revision)) {
           const pending = Object.keys(this.drafts.all()).length > 0;
           // Keep drafts under the old identity; never replay them after a permission change.
           this.state(

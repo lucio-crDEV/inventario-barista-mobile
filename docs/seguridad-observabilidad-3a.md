@@ -1,5 +1,9 @@
 # Seguridad, observabilidad y recuperación — estado vigente 23-10-2026
 
+## Extensión operativa 3B — 23-10-2026
+
+El [contrato 3B](etapa-3b.md) documenta tablero/historial de inventario, correcciones y estados. Es auditoría operativa autorizada por rol/ámbito, no métricas técnicas de uso. La persistencia de telemetría continúa desactivada, Root solo diseñado y 0005 no se aplica. Esta etapa añade **0006 operativa**, necesaria antes de publicar. Las instrucciones “este diff no requiere SQL” de la entrega b24403d que siguen son históricas respecto a 3B. No SQL remoto/deploy en esta sesión.
+
 ## Decisiones y comportamiento real
 
 Continuidad con GPT/Codex en `/Users/lucio/workspace/inventario_brioche`, rama `inventory-v3`, desde `72c1aeb`, limpio al iniciar. Sin fetch ni consultas remotas: las referencias origin y la publicación cfece26 del 22-10 son evidencia histórica, no verificaciones actuales. No commits, push, despliegues, SQL/cuentas remotas, cambios de facturación, credenciales o configuración de otros agentes.

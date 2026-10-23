@@ -1,5 +1,9 @@
 # Verificación — inventory-v3
 
+## Etapa 3B — pruebas nuevas del 23-10-2026
+
+Desarrollo local posterior a b24403d: 31 pruebas Node (incluyen seis grupos nuevos de permisos/atomicidad/estado Servicio/paginación) y 7 Python aprobadas. Suite aislada final **19/19**, incluidos API 3B D1 real, **5 grupos** nuevos de navegador y **10 grupos** de recuperación/mantenimiento. Carga final: 528 solicitudes totales, 151 escrituras, 150 reintentos deduplicados, 14 conflictos esperados y cero errores inesperados. [Evidencia nueva](supervision-local-3b-2026-10-23.json). No producción, bases existentes, fuentes/libros o respaldos privados. [Contrato y límites](etapa-3b.md).
+
 ## Continuidad con Codex — 23-10-2026
 
 Pruebas ejecutadas nuevamente: `npm test` 25/25 y Python 7/7. Suite aislada **17/17** y repetición adicional de operaciones **9 grupos**, todas aprobadas. Carga nueva de quince clientes: 528 solicitudes totales, 151 escrituras, 150 reintentos deduplicados, 14 conflictos esperados y cero errores inesperados; 6.395 ms, p50 36/p95 77/máx 4.265 ms. Preflight y mantenimiento funcionan sin tabla activity; datos de una tabla opcional no se podan. [Resultado nuevo](codex-continuidad-local-2026-10-23.json), [cobertura y límites](seguridad-observabilidad-3a.md). Nuevos casos: todos los roles actuales sin acceso a métricas; Administrador con username root tampoco accede; revocación; cien sondeos sin escrituras de uso; tabla opcional existente preservada. Root solo diseñado, sin pruebas de un rol Root implementado. Los resultados del 22-10 que siguen son históricos y no describen persistencia vigente. No se consultó producción.

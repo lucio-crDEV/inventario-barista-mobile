@@ -63,5 +63,5 @@ for (const [username, name, role, grants, password] of users) {
 console.log("DELETE FROM guards;");
 if (fixtures)
   console.log(
-    `INSERT INTO cycles VALUES('prueba-compartida','Inventario compartido de prueba','${catalogVersion}','open');`,
+    `INSERT INTO cycles(id,name,catalog_version,state) VALUES('prueba-compartida','Inventario compartido de prueba','${catalogVersion}','open');`,
   );

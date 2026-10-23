@@ -1,5 +1,12 @@
 # Contrato 3A — 21-10-2026
 
+## Etapa 3B — implementación local del 23-10-2026
+
+El usuario informó que b24403d funciona y autorizó desarrollar el resto de 3B. Tablero/historial operativo, rectificación/anulación auditada, activación por ciclo y revisión/cierre/reapertura implementados localmente. Jefa supervisa, rectifica y anula solo Servicio; también gestiona su estado propio (reabrir con motivo, revisión, cierre estricto). Administrador conserva alcance global y activación. No se amplían cuentas mixtas ni roles. Root, telemetría técnica, backups automáticos y Excel 4 siguen pendientes.
+
+Requiere **0006_supervision.sql antes del deploy**, independiente de 0005 (sigue sin aprobarse y fuera de migrations). No aplicar fixtures/bootstrap/ciclo nuevo sobre demo. No SQL remoto, push o despliegue en este encargo. La aceptación operativa de 3A y validación de 3B en el dominio siguen abiertas. [Contrato, seguridad y pruebas](etapa-3b.md).
+
+
 Actualización 23-10-2026: telemetría persistente desactivada, sin dependencia de 0005. La auditoría transaccional de inventario y cuentas se conserva. Root solo diseñado; `/api/admin/metrics` cerrado a todos los roles vigentes. Las garantías de guardado, autoría y reintentos descritas aquí no cambian. [Contrato actual](seguridad-observabilidad-3a.md).
 
 Extensión vigente del 22-10-2026: [usuarios y Servicio](usuarios-y-servicio-3b.md). Añade rol `service_lead`, `deleted_at`/adscripción administrativa, permisos efectivos en vista SQL y ediciones con revisión. La administración edita username y el perfil propio el nombre visible. La eliminación conserva identidades históricas; no borra conteos. Catálogo nuevo por ciclo y ubicaciones separadas de Copería/Vitrina; guardado, confirmación ajena y deduplicación mantienen este contrato.

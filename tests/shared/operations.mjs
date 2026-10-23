@@ -55,7 +55,7 @@ try {
     "INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES(?,?,?,?,?,0)",
   ).run("worker-ops", "worker-ops", "Trabajador ficticio", password, "worker");
   db.exec(
-    "INSERT INTO grants VALUES('worker-ops','servicio:barra'); INSERT INTO cycles VALUES('ops-cycle','Ensayo recuperación','inventory-v2-2026-10-21','open'); INSERT INTO sessions VALUES('session-ops','worker-ops',unixepoch()+3600); INSERT INTO admin_audit(actor,target,action,detail) VALUES('fixture','worker-ops','create','{}');",
+    "INSERT INTO grants VALUES('worker-ops','servicio:barra'); INSERT INTO cycles(id,name,catalog_version,state) VALUES('ops-cycle','Ensayo recuperación','inventory-v2-2026-10-21','open'); INSERT INTO sessions VALUES('session-ops','worker-ops',unixepoch()+3600); INSERT INTO admin_audit(actor,target,action,detail) VALUES('fixture','worker-ops','create','{}');",
   );
   const x = db
     .prepare(
@@ -88,6 +88,11 @@ try {
     "INSERT INTO sessions VALUES('recent-expiry','worker-ops',unixepoch()-3600); INSERT INTO attempts VALUES('current-key',CAST(unixepoch()/900 AS INTEGER),2); COMMIT;",
   );
   assert.equal(db.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
+  db.exec("INSERT INTO sessions VALUES('admin-session-ops','admin-ops',unixepoch()+3600)");
+  const extraItem=db.prepare("SELECT id,location_id FROM catalog_items WHERE version='inventory-v2-2026-10-21' AND location_id='servicio:barra' AND id!=? LIMIT 1").get(x.id);
+  const activation=db.prepare("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,active,reason) VALUES('ops-activation','ops-fingerprint','admin-ops',?,1,'ops-cycle',1,'activation',?,?,0,0,'Exclusión de ensayo')");
+  activation.run('admin-session-ops',extraItem.id,extraItem.location_id);
+  db.exec("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,scope_id,new_state,reason) VALUES('ops-review','review-fingerprint','admin-ops','admin-session-ops',1,'ops-cycle',2,'state','servicio','review','Revisión de ensayo'); INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,scope_id,new_state,reason) VALUES('ops-reopen','reopen-fingerprint','admin-ops','admin-session-ops',1,'ops-cycle',3,'state','servicio','open','Reapertura de ensayo')");
   const tables = [
     "users",
     "grants",
@@ -99,6 +104,9 @@ try {
     "operations",
     "history",
     "d1_migrations",
+    "cycle_item_states",
+    "cycle_scope_states",
+    "supervision_commands",
   ];
   const snapshot = Object.fromEntries(
     tables.map((t) => [
@@ -207,6 +215,12 @@ try {
   checks.push(
     "Los triggers restaurados aceptan una nueva edición y un reintento previo no duplica ni restaura un valor antiguo",
   );
+  copy.exec("INSERT INTO sessions VALUES('new-admin-session','admin-ops',unixepoch()+3600)");
+  const commandsBefore=copy.prepare("SELECT count(*) n FROM supervision_commands").get().n;
+  copy.prepare("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,active,reason) VALUES('ops-activation','ops-fingerprint','admin-ops','new-admin-session',1,'ops-cycle',1,'activation',?,?,0,0,'Exclusión de ensayo')").run(extraItem.id,extraItem.location_id);
+  assert.equal(copy.prepare("SELECT count(*) n FROM supervision_commands").get().n,commandsBefore);
+  assert.equal(copy.prepare("SELECT revision FROM cycles WHERE id='ops-cycle'").get().revision,4);
+  checks.push("Recupera exclusiones, estado de Servicio y comandos auditados 3B; reintento con sesión nueva no duplica ni cambia revisión");
   const sql = readFileSync(join(backup, "database.sql"));
   writeFileSync(
     join(backup, "database.sql"),
@@ -236,7 +250,7 @@ try {
   assert.equal(cleaned.remaining.expired_attempt_keys, 5);
   assert.equal("expired_activity_buckets" in cleaned.remaining, false);
   run("maintenance", ["--local", "--state", state, "--apply"]);
-  assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 3);
   assert.equal(db.prepare("SELECT count(*) n FROM attempts").get().n, 1);
   assert.equal(db.prepare("SELECT sentinel FROM activity_hourly").get().sentinel, "keep-old-usage");
   checks.push("Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda");
@@ -261,9 +275,9 @@ try {
   assert.equal(withoutUsage.remaining.expired_sessions, 0);
   const cleanedWithoutUsage = JSON.parse(run("maintenance", ["--local", "--state", state, "--apply"]));
   assert.equal(cleanedWithoutUsage.remaining.expired_attempt_keys, 0);
-  assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 2);
+  assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 3);
   for (const t of tables) assert.equal(JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()), snapshot[t], t);
-  checks.push("Consulta y limpieza sobre 0001–0004 sin tabla de telemetría funcionan y conservan datos");
+  checks.push("Consulta y limpieza sobre esquema operativo 0006 sin tabla de telemetría funcionan y conservan datos");
   for (const script of ["backup", "restore-local", "maintenance"]) {
     const denied = spawnSync(
       process.execPath,
