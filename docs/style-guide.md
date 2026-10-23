@@ -1,10 +1,24 @@
 # Guía de estilo UX/UI — inventory-v3
 
-## Supervisión 3B — 23-10-2026
+## Revisión vigente — implementada localmente, 23-10-2026
 
-Nuevo acceso Supervisión en el menú de Administrador/Jefa, separado de Usuarios y accesos. Mantiene cabecera/menú derecho, crema/carbón/cian, superficies uniformes, foco y controles de 44 px. Filtros móviles, tarjetas de avance por área, productos/historial en páginas de 50, estados con texto y excluidos fuera del total activo. No inventar métricas ni progreso. Errores conservan estado explícito; consultas no muestran vacío confirmado mientras cargan.
+[Contrato completo](decisiones-ux-y-operacion-2026-10-23.md). Títulos página/área 20 px/700, sección 16 px/600, cuerpo 14 px, secundario 12 px y campos 16 px; controles de al menos 44 px. Los títulos largos envuelven. Tonos crema/carbón/cian sin sombras ni degradados; Supervisión tiene más intensidad que resumen/cuenta/usuarios.
 
-Rectificar/anular/excluir y transiciones usan diálogo con Cancelar como foco, Escape seguro, valor vigente/resultado, motivo requerido y confirmación. Placeholder `actualizacion/revision item`, nunca valor predeterminado. Reapertura de jefa indica solo Servicio; acción global avisa que afecta todas las áreas. Cerrar exige confirmar revisión de borradores con participantes. Respuesta incierta conserva el envío para reintento manual, sin duplicar ni anunciar éxito anticipado. No hay pantalla Root ni métricas técnicas. Las descripciones históricas siguientes de 3B pendiente corresponden al estado anterior.
+Resumen: encabezado y contabilizados sobre el bloque; anillo izquierdo de contados+avance con segmentos teal/ámbar, tres botones verticales de mínimo 52 px a la derecha con **punto, etiqueta y cifra en la misma línea**. Sin barra horizontal, responsable ni acciones antiguas. Categorías prácticas plegables con paginación y contexto preservado. Skeleton mientras faltan datos; countup de 420 ms solo al entrar por primera vez, omitido con movimiento reducido y sin anunciar cada paso al lector de pantalla.
+
+Panel de supervisión: Áreas/Productos/Historial, contexto Inventario Global/Área, filas con 14 px de separación, anillos por área y consultas de 50 productos. Historial agrupado por producto/ubicación y días, sin segundos. Filtros Conteos/Correcciones/Anulaciones seleccionan productos; el detalle conserva toda su secuencia. Refresco visible no interrumpe formularios/diálogos. Regreso del resumen restaura filtros, páginas, expansión y scroll.
+
+Motivos: obligatorio únicamente al reabrir, con sugerencias editables; rectificar/anular opcional, sin motivo para actividad/cerrar/finalizar. Diálogos con botones en la misma fila, cierre exterior con gesto completo fuera y Escape; sin confirmar al cerrarlos ni perder borradores/operación incierta.
+
+Historial del trabajador: últimos diez movimientos mínimos, autor, cantidad y tiempo relativo (segundos/minutos/horas/Ayer; anteriores, hora con fecha accesible). Encargados/Administrador ven secuencia, antes/después y Anular conteo cuando corresponde.
+
+Menú: sin avatar ni Compartido; Mi perfil junto al nombre con divisor, contraseña dentro del perfil, Cerrar sesión en rojo tenue al final. Nombres exactos: «Panel de supervisión» y «Gestionar usuarios y accesos». Refresco SVG cian18px sin recuadro, área44px y espera30s. Lista de cuentas primero y alta aparte en tres pasos; regenerador SVG lateral y entrega confirmada de accesos.
+
+Avisos en el visualViewport al abrir teclado, cuatro segundos, cierre44px y swipe hacia arriba; tonos de estado sin sombra. Después de un guardado aceptado: salida izquierda160ms y entrada derecha180ms, sin carrusel y con alternativa inmediata de movimiento reducido. KISS obligatorio.
+
+## Referencias históricas y componentes conservados
+
+Las descripciones siguientes registran revisiones anteriores; el contrato vigente de arriba prevalece.
 
 ## Ajustes vigentes del 22-10-2026
 
@@ -53,7 +67,7 @@ El cian identifica navegación, progreso y acciones generales. **Rojo** señala 
 - **Áreas, sectores y zonas:** cuadrícula de tarjetas con márgenes, títulos legibles y barra de progreso alimentada por el conteo compartido autorizado. Servicio sigue pasando por sectores; Garzones muestra «Zonas» y los avances correspondientes. La barra cian representa ítems contados y la sección ámbar representa avances.
 - **Conteo:** cabecera con regreso, título, barra de progreso y menú. La navegación mantiene «Anterior / Ver ítems / Siguiente» con acceso central al panel flotante. La ficha separa categoría, nombre, estado, cantidad y nota. Las acciones conservan el orden «Sin stock / Guardar avance / Listo» y los colores funcionales. Los campos usan fondo sólido y foco visible.
 - **Panel de ítems:** conserva búsqueda por nombre, agrupación y acceso a ítems contados. Al abrirlo, solo queda desplegada la categoría del producto actual y la lista se sitúa en ese producto; las demás categorías empiezan cerradas, pero pueden abrirse manualmente. Desde una vista sin producto seleccionado, todas empiezan cerradas. La búsqueda despliega los grupos coincidentes y al limpiarla recupera los grupos abiertos manualmente. «Ver ítems» no enfoca el buscador; la lupa del encabezado sí. El campo permanece integrado en la superficie del panel, sin contorno de reposo. El ítem actual lleva una marca cian discreta.
-- **Resumen:** encabezado compacto con regreso, título y menú; sin barra/contador duplicados ni subtítulo. Anillo SVG sin degradado y barra cian con `contados / total` real; tarjetas de pendientes/avance/contados abren sus listas. Responsable de solo lectura desde la identidad autenticada; Copiar/Enviar resumen y regreso conservados. «Nuevo inventario» está deshabilitado hasta gestión de ciclos 3B, no borra progreso compartido. Indicador decorativo sin bloquear acciones.
+- **Resumen:** el contrato vigente sustituye la barra, responsable y acciones antiguas por anillo combinado, estados y categorías.
 - **Confirmación:** registros ajenos se resuelven mediante Descartar/Sumar/Sobrescribir, revisión de resultado y confirmación; no existe borrado compartido de progreso. Rojo se reserva para acciones destructivas explícitas, como eliminar cuenta conservando conteos/historial. La referencia visual no autoriza «Finalizar inventario» ni flujo de cierre todavía pendiente de 3B.
 
 ## Interacción, accesibilidad y tamaños
@@ -69,13 +83,13 @@ Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportac
 
 ## Etapa 3A — cuenta y colaboración
 
-Se conserva el diseño de inventario. El panel derecho identifica persona, rol, modo Compartido y sincronización. Reúne cambio de contraseña, cierre de sesión, tema y, para administradores, Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación legible, último autor, versión y tabla vigente/propuesto de cantidad, estado y nota. Cada acción de escritura exige revisar su resultado y confirmarlo. Sin stock no ofrece suma válida.
+Se conserva el diseño de inventario. El panel derecho identifica persona, rol y sincronización. Reúne cambio de contraseña, cierre de sesión, tema y, para administradores, Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación legible, último autor, versión y tabla vigente/propuesto de cantidad, estado y nota. Cada acción de escritura exige revisar su resultado y confirmarlo. Sin stock no ofrece suma válida.
 
 La fila de sincronización muestra primero el punto verde y «Sincronizado» y, al extremo derecho, un icono cian de actualizar de **18 px, sin fondo ni pastilla**. Su área táctil invisible conserva 44 × 44 px. Mientras consulta, el icono gira; movimiento reducido omite el giro. El punto pasa a cian durante la consulta, ámbar si hay borradores pendientes y rojo si falla; siempre se conserva una etiqueta de texto. El botón permite una comprobación manual cada **30 segundos por usuario en ese navegador**, compartida entre páginas y pestañas. Queda deshabilitado durante la consulta y la espera; el título informa cuándo podrá usarse. La espera no dispara una nueva consulta y también se aplica después de un error.
 
 Actualizar no recarga formularios ni envía borradores. En Inventario comparte la consulta incremental con el sondeo y reutiliza un resultado aceptado de los últimos cinco segundos; no vuelve a descargar el catálogo ni ejecuta un bucle para recorrer el historial. En Inicio, Cuenta y Usuarios y accesos comprueba sesión/conexión, sin reconstruir los formularios abiertos. El sondeo existente conserva su cadencia y pausa al ocultarse la página.
 
-El conteo conserva Guardar avance/Listo/Sin stock. Historial por producto es lectura. Un resultado incierto protege los campos y ofrece Reintentar envío pendiente; no se etiqueta como sincronizado. Las notas agregadas se ven completas en Nota e Historial. Nuevo inventario queda deshabilitado con referencia a 3B; no hay borrado compartido. Se añadió vista móvil de ingreso/cambio y administración mínima, sin tablero de supervisión.
+El conteo conserva Guardar avance/Listo/Sin stock. Historial por producto es lectura para trabajadores; encargados autorizados pueden anular. Un resultado incierto protege los campos y ofrece Reintentar envío pendiente; no se etiqueta como sincronizado. Las notas agregadas se ven completas en Nota e Historial. El flujo antiguo Nuevo inventario fue retirado; no hay borrado compartido. Se añadió vista móvil de ingreso/cambio y administración mínima, sin tablero de supervisión.
 
 
 ### Ingreso y administración revisados — 21-10-2026

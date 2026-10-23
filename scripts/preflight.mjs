@@ -13,5 +13,5 @@ try {
   const raw = wrangler(["execute", "DB", ...runtime.args, "--command", sql, "--json"]);
   const results = JSON.parse(raw);
   if (!results.some(r => r.results?.some(row => row.ready === 1))) throw Error("Schema/catalog/cycle/admin contract not ready. Do not publish.");
-  console.log(JSON.stringify({ ready: true, readOnly: true, cycle: v.cycle, schemaContract: "supervision-0006", telemetryRequired: false, note: "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU." }));
+  console.log(JSON.stringify({ ready: true, readOnly: true, cycle: v.cycle, schemaContract: "operation-ux-0007", telemetryRequired: false, note: "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU." }));
 } finally { runtime.close(); }

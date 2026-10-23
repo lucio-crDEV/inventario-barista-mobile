@@ -1,8 +1,14 @@
 # AGENTS.md — inventory-v3
 
+## Decisiones de revisión y regla de oro — obligatorias, 23-10-2026
+
+Lee [las decisiones vigentes y su implementación local](docs/decisiones-ux-y-operacion-2026-10-23.md). Cierre para revisión y finalización son distintos; solo Administrador reabre finalizados, con motivo. Reabrir es el único motivo obligatorio. Activo/Inactivo persiste por área con historial, sin borrar conteos. Se conservan los tres roles actuales. Esta versión requiere 0007 después de 0006; no confundir implementación local con despliegue.
+
+**Regla de oro mandatoria:** el libro original es de solo lectura. La salida se genera en una copia con la misma estructura, hojas, filas, ID, unidades, referencias, fórmulas y formatos; únicamente se actualizan las celdas de conteo autorizadas. Desactivar o reagrupar productos nunca elimina ni modifica filas. No cambiar/adaptar una plantilla silenciosamente. La adaptación a futuras versiones del Excel queda para fase 5 o autorización explícita posterior; hasta entonces esta regla prevalece.
+
 ## Etapa 3B vigente — 23-10-2026
 
-[Contrato 3B](docs/etapa-3b.md): supervisión/historial, correcciones/anulación lógica, activación por ciclo y estados global/Servicio implementados localmente. Jefa rectifica/anula y gestiona reapertura/revisión/cierre solo Servicio, con motivo. Administrador controla todo y activa/excluye productos. Cierre estricto: todos los productos activos deben estar contados. Motivo obligatorio; el placeholder no es un motivo automático. Migración operativa 0006 requerida antes de publicar; nunca 0005. Mantener controles de versión, idempotencia, auditoría y borradores. Root y métricas técnicas siguen pendientes. No confundir estos avances locales con despliegue o aceptación remota.
+[Contrato 3B](docs/etapa-3b.md): Panel de supervisión compacto, historial por ítem/rol, corrección/anulación y estados global/Servicio. Jefa solo reabre Servicio en revisión; Administrador puede reabrir finalizados. Rectificar/anular tienen motivo opcional; cerrar/finalizar/actividad no solicitan motivo ni checkbox. El cierre final exige todos los activos contados. Actividad persistente por área; alta de trabajadores con accesos atómicos. Mantener versiones, idempotencia, auditoría y borradores. Publicación manual en [guía 0007](docs/publicar-revision-ux-0007.md); nunca aplicar 0005 ni fixtures remotos. Root/métricas y Excel siguen pendientes.
 
 ## Decisiones del 23-10-2026
 
@@ -48,7 +54,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 - La referencia visual vigente usa blanco crema en modo claro y carbón profundo en modo oscuro, con acentos cian y superficies uniformes sin degradados. Las tarjetas de Inicio llevan tintes por área; no copies cifras de la imagen de referencia. Un icono SVG de cuatro cuadros redondeados arriba a la derecha abre el panel de cuenta y ajustes desde la derecha; el cambio de tema está dentro de ese panel. En ingreso sin sesión solo aparece el toggle de tema, sin menú. Rojo identifica pendiente y el botón «Sin stock» antes de guardar; amarillo identifica avance; verde/teal identifica contado y «Sin stock» ya guardado. Conserva las etiquetas de texto junto al color y el comportamiento de ambos temas. El detalle está en `docs/style-guide.md`.
 - «Sin stock» guarda cantidad cero como contado y marca `outOfStock`; la insignia, el panel, el resumen y el aviso de guardado usan verde. El aviso dice «Sin stock guardado.». Un cero guardado con «Listo» no lleva esa marca.
 - Al volver a un grupo se prioriza el primer ítem pendiente o con avance. La barra superior de conteo mantiene «Anterior / Ver ítems / Siguiente» y el panel de ítems permite acceder también a los ya contados.
-- «Ver ítems» abre el panel sin enfocar el buscador ni activar el teclado móvil; la lupa del encabezado sí enfoca la búsqueda. En cada apertura, solo se despliega la categoría del producto actual y se sitúa el producto a la vista; desde una vista sin producto actual todos los grupos empiezan cerrados. Los botones no cambian color ni relieve al pasar el puntero o al pulsarlos; se conserva el foco visible para teclado. Volver y el toggle liberan el foco tras un toque. La luna y el sol se dibujan con SVG para conservar su apariencia entre plataformas. Al cambiar de vista o de producto se vuelve al inicio de la página.
+- «Ver ítems» abre el panel sin enfocar el buscador ni activar el teclado móvil; la lupa del encabezado sí enfoca la búsqueda. En cada apertura, solo se despliega la categoría del producto actual y se sitúa el producto a la vista; desde una vista sin producto actual todos los grupos empiezan cerrados. Los botones no cambian color ni relieve al pasar el puntero o al pulsarlos; se conserva el foco visible para teclado. Volver y el toggle liberan el foco tras un toque. La luna y el sol se dibujan con SVG para conservar su apariencia entre plataformas. Al cambiar de producto se vuelve al inicio de la página; al regresar al resumen o al Panel de supervisión se restaura su contexto y posición.
 - En el resumen, el encabezado solo conserva título y controles: no repetir allí la barra ni el contador y no añadir el subtítulo descriptivo. El progreso se concentra en la tarjeta de avance.
 - El indicador breve del resumen es decorativo: el contenido está disponible de inmediato, no intercepta interacción y se omite con movimiento reducido. Los avisos superiores usan color uniforme translúcido, sin degradados; duran cuatro segundos, entran desde arriba y salen hacia arriba, no bloquean gestos y tienen alternativa opaca para transparencia reducida.
 - En `inventory-v3` no existen estados AM/PM ni el flujo de Pedido; verifica la rama correspondiente antes de cambiar esas funciones. No incluyas el nombre del empleador en textos de la app o documentación pública.
@@ -63,6 +69,7 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 
 ## Implementación
 
+- **KISS obligatorio:** usa la solución nativa más simple que resuelva el recorrido; no añadas dependencias, carruseles o infraestructura para animaciones y pequeños ajustes.
 - Mantén cambios acotados al objetivo solicitado.
 - Sigue la estructura modular existente bajo `pages/` y `data/`.
 - Conserva HTML, CSS y JavaScript nativos mientras resuelvan el problema.

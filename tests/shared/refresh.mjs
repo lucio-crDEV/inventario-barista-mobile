@@ -79,7 +79,7 @@ try {
   await page.clock.install();
   const api = new Client();
   await api.login("bruno");
-  const item = (await api.boot()).items.find(x => x.unit);
+  const item = (await api.boot()).items.find(x => x.active && x.unit);
   await page.goto(origin + "/pages/inventario/?area=servicio&sector=barra");
   await page.locator("#header-open-item-drawer").click();
   await page.locator("#item-drawer-search").fill(item.name);

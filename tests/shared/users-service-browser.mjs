@@ -29,16 +29,18 @@ try {
   assert.deepEqual(lead.requests.filter(p=>p!=="/api/me"),["/api/login","/api/bootstrap"]);
   await lead.page.locator('[data-settings-toggle]').click();
   await expect(lead.page.locator(".identity-person")).toContainText("Jefa de servicio");
-  await lead.page.getByRole("link",{name:"Usuarios y accesos",exact:true}).click();
+  await lead.page.getByRole("link",{name:"Gestionar usuarios y accesos",exact:true}).click();
   await expect(lead.page.locator("#user-search")).toBeVisible();
   assert.equal(await lead.page.locator('[value="cocina"],[value="pasteleria"],[value="principal"],[value="panaderia"]').count(),0);
   assert.ok(!(await lead.page.locator("#users").innerText()).includes("Administrador ficticio"));
   checks.push("Jefa entra en cinco subáreas sin flecha global ni petición de navegación adicional; administración filtrada");
 
-  const create=lead.page.locator("#create");await lead.page.locator(".create-user summary").click();
-  await create.locator('[name=username]').fill(name);await create.locator('[name=name]').fill("Persona UI Servicio");await create.locator('[name=password]').fill(password);
+  await lead.page.locator(".create-user-trigger").click();const create=lead.page.locator("#create");
+  await create.locator('[name=username]').fill(name);await create.locator('[name=name]').fill("Persona UI Servicio");
+  await create.locator('[data-create-next]').click();await create.locator('.scope-group[data-scope="servicio"] > summary').click();await create.locator('[value="servicio:barra"]').check();await create.locator('[data-create-next]').click();
+  await expect(create.locator('[name=password]')).toHaveValue(/-[a-zA-Z2-9]{12}$/);
   await create.getByRole("button",{name:"Crear usuario",exact:true}).click();
-  await expect(lead.page.locator("#message")).toContainText("Cambios guardados");
+  await expect(lead.page.locator(".account-credentials")).toBeVisible();await lead.page.locator('[data-close]').click();
   createdId=(await users()).find(u=>u.username===name).id;
   await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
   let form=lead.page.locator(`form[data-user="${createdId}"]`);
@@ -121,6 +123,6 @@ try {
   await lead.page.screenshot({path:`${screenshotDirectory}/vitrina.png`});
   checks.push("Copería muestra Aseo y Mercadito distingue Desechables, Productos Elaborados y Vitrina");
   assert.deepEqual(errors,[]);
-  await writeFile("docs/usuarios-servicio-vistas-3b.json",JSON.stringify({environment:"Chromium móvil + Workers/D1 local",date:"2026-10-22",checks,errors,passed:true,physicalDevice:false},null,2)+"\n");
+  await writeFile("docs/usuarios-servicio-vistas-3b.json",JSON.stringify({environment:"Chromium móvil + Workers/D1 local",date:"2026-10-23",checks,errors,passed:true,physicalDevice:false},null,2)+"\n");
   console.log(JSON.stringify({checks,errors},null,2));
 }finally{await updateUser(admin,"sin-areas",{grants:[]}).catch(()=>{});await browser.close();db.close();}

@@ -23,8 +23,8 @@ await a.login("ana");
 await b.login("bruno");
 await k.login("cocina");
 const all = await admin.boot(),
-  bar = (await a.boot()).items,
-  cook = (await k.boot()).items;
+  bar = (await a.boot()).items.filter(i => i.active),
+  cook = (await k.boot()).items.filter(i => i.active);
 await test("Autenticación, cookies y control de origen", async () => {
   const bad = new Client();
   assert.equal(
@@ -149,7 +149,8 @@ await test("Primer guardado, propio sin diálogo, ajeno y 4+3=7 con reintento se
   );
   const history = await a.request(urlFor("/api/history", x));
   assert.equal(history.data.history.length, 4);
-  assert.equal(history.data.history.at(-1).before_record, null);
+  assert.deepEqual(Object.keys(history.data.history[0]).sort(), ["authorName", "createdAt", "quantity", "status", "unit"]);
+  assert.equal(history.data.history.at(-1).quantity, 4);
 });
 await test("Sobrescribir reemplaza 4 por 3; estados, cero y Sin stock", async () => {
   const x = bar[1];
@@ -257,6 +258,7 @@ await test("Cambio, restablecimiento obligatorio, desactivación, revocación e 
   let r = await admin.request("/api/admin/users", {
     username,
     name: "Temporal",
+    grants: ["servicio:barra"],
     role: "worker",
     password,
   });
@@ -280,7 +282,7 @@ await test("Cambio, restablecimiento obligatorio, desactivación, revocación e 
   assert.equal((await c.request("/api/me")).status, 401);
   await c.login(username, "Nueva-personal-2026");
   assert.equal(c.user.id, id);
-  assert.equal((await c.boot()).items.length, 0);
+  assert.equal((await c.boot()).items.filter(i=>i.active).length, bar.length);
   assert.equal(
     (await resetPassword(admin, id, password))
       .status,

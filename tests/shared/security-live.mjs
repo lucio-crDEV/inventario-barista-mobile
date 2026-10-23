@@ -16,7 +16,7 @@ const ownRole = await admin.request("/api/profile", { name: "Admin", role: "root
 assert.equal(ownRole.status, 400);
 db.prepare("INSERT INTO attempts VALUES(?,CAST(unixepoch()/900 AS INTEGER),10) ON CONFLICT(key) DO UPDATE SET n=10,window=excluded.window").run("admin-password:" + admin.user.id);
 const beforeUsers = db.prepare("SELECT count(*) n FROM users").get().n;
-const costly = await admin.request("/api/admin/users", { username: "must-not-create", name: "Quota fixture", role: "worker", password: "Solo-pruebas-2026" });
+const costly = await admin.request("/api/admin/users", { username: "must-not-create", name: "Quota fixture", role: "worker", password: "Solo-pruebas-2026", grants: ["servicio:barra"] });
 assert.equal(costly.status, 429); assert.equal(costly.headers.get("retry-after"), "900");
 assert.equal(db.prepare("SELECT count(*) n FROM users").get().n, beforeUsers);
 db.prepare("DELETE FROM attempts WHERE key=?").run("admin-password:" + admin.user.id);

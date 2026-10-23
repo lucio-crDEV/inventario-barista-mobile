@@ -1,11 +1,12 @@
 # Contexto del proyecto — inventory-v3
 
-## Etapa 3B — implementación local del 23-10-2026
+## Estado vigente — revisión UX local
 
-El usuario informó que b24403d funciona y autorizó desarrollar el resto de 3B. Tablero/historial operativo, rectificación/anulación auditada, activación por ciclo y revisión/cierre/reapertura implementados localmente. Jefa supervisa, rectifica y anula solo Servicio; también gestiona su estado propio (reabrir con motivo, revisión, cierre estricto). Administrador conserva alcance global y activación. No se amplían cuentas mixtas ni roles. Root, telemetría técnica, backups automáticos y Excel 4 siguen pendientes.
+Revisión UX implementada localmente el 23-10-2026: Panel de supervisión y resumen compactos, historial por producto y rol, perfil/menú y Gestionar usuarios y accesos. Finalizar y enviar es interno; solo Administrador reabre finalizados. Motivo obligatorio solo para reabrir. Activo/Inactivo persiste por área con fechas/auditoría; el informe de varios meses queda futuro. Altas de trabajadores con accesos en la misma transacción y claves temporales autogeneradas/copiar/compartir tras éxito. Sin nuevos roles ni ampliación de cuentas mixtas.
 
-Requiere **0006_supervision.sql antes del deploy**, independiente de 0005 (sigue sin aprobarse y fuera de migrations). No aplicar fixtures/bootstrap/ciclo nuevo sobre demo. No SQL remoto, push o despliegue en este encargo. La aceptación operativa de 3A y validación de 3B en el dominio siguen abiertas. [Contrato, seguridad y pruebas](etapa-3b.md).
+Requiere **0007_operation_ux.sql después de 0006 antes del deploy**. No aplicar 0005, fixtures, bootstrap ni crear otro ciclo en la demo. No se ejecutaron operaciones remotas ni push. [Decisiones vigentes](decisiones-ux-y-operacion-2026-10-23.md), [verificación](verification.md), [publicación manual](publicar-revision-ux-0007.md). Excel conserva la regla de oro; exportación en etapa 4 y adaptación de plantillas en fase 5, ambas pendientes. Root/telemetría siguen fuera de alcance.
 
+## Registro histórico anterior
 
 ## Decisión vigente — 23-10-2026, continuidad con Codex
 

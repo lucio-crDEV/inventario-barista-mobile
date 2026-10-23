@@ -19,12 +19,28 @@ assert.equal((await post(lead,command('annul',k))).status,403);
 const review=command('state',null,{scope:'',state:'review'}),normal=operation(i,7,{cycleId,expectedVersion:ver(i),action:'overwrite'});
 const freeze=await Promise.all([post(admin,review),worker.request('/api/count',normal)]);assert.equal(freeze[0].status,200);assert.ok([200,400].includes(freeze[1].status));
 assert.equal((await post(admin,command('state',null,{scope:'',state:'closed',acknowledgeDrafts:true}))).data.code,'PENDING_ITEMS');
+// Global activity has one winner even when confirmations originate in different cycles.
+const otherCycle=cycleId+'-other';db.prepare("INSERT INTO cycles(id,name,catalog_version,state) SELECT ?,'Otro ciclo aislado',catalog_version,'open' FROM cycles WHERE id=?").run(otherCycle,cycleId);
+const oldRecord=db.prepare('SELECT record FROM count_records WHERE cycle_id=? AND item_id=? AND location_id=?').get(cycleId,i.id,i.locationId).record;
+const off=command('activation',i,{active:false,reason:undefined,expectedActivityRevision:0});
+const otherOff={...command('activation',i,{active:false,reason:undefined,expectedActivityRevision:0}),cycleId:otherCycle,expectedRevision:1,expectedVersion:0};
+const activityRace=await Promise.all([post(admin,off),post(admin,otherOff)]);assert.deepEqual(activityRace.map(r=>r.status).sort(),[200,409],JSON.stringify(activityRace));
+const projection=(await admin.request('/api/admin/supervision/items?cycle='+otherCycle+'&item='+encodeURIComponent(i.id))).data.items[0];assert.equal(projection.active,false);assert.equal(projection.activityRevision,1);assert.ok(Number.isFinite(Date.parse(projection.inactiveSince)));
+assert.equal(db.prepare('SELECT record FROM count_records WHERE cycle_id=? AND item_id=? AND location_id=?').get(cycleId,i.id,i.locationId).record,oldRecord);
+assert.equal((await worker.request('/api/count',operation(i,2,{cycleId,expectedVersion:ver(i),action:'overwrite'}))).data.code,'CYCLE_CLOSED');
+assert.equal((await worker.request('/api/count',saved.data.operationId?{...operation(i,4,{cycleId}),id:saved.data.operationId}:{})).status,200);
+assert.equal((await post(admin,command('activation',i,{active:true,reason:undefined,expectedActivityRevision:1}))).status,200);
+assert.deepEqual(db.prepare('SELECT active FROM item_activity_events WHERE item_id=? ORDER BY seq').all(i.id).map(x=>x.active),[0,1]);
+const limited=(await worker.request('/api/history?cycle='+cycleId+'&item='+encodeURIComponent(i.id)+'&location='+encodeURIComponent(i.locationId))).data.history;
+assert.ok(limited.length);for(const row of limited)assert.deepEqual(Object.keys(row).sort(),['authorName','createdAt','quantity','status','unit']);
+
 // Fixture narrowing leaves two active items; closed-state behavior is then exercised through API only.
-db.prepare('INSERT INTO cycle_item_states SELECT cycle_id,id,location_id,0 FROM supervision_items WHERE cycle_id=?').run(cycleId);
-for(const x of [i,k])db.prepare('UPDATE cycle_item_states SET active=1 WHERE cycle_id=? AND item_id=? AND location_id=?').run(cycleId,x.id,x.locationId);
+db.prepare("INSERT INTO item_activity(area_id,item_id,active,changed_at,inactive_since) SELECT area_id,id,0,strftime('%Y-%m-%dT%H:%M:%fZ','now'),strftime('%Y-%m-%dT%H:%M:%fZ','now') FROM supervision_items WHERE cycle_id=? ON CONFLICT(area_id,item_id) DO UPDATE SET active=0").run(cycleId);
+for(const x of [i,k])db.prepare('UPDATE item_activity SET active=1,inactive_since=NULL WHERE item_id=? AND area_id=?').run(x.id,x.areaId);
 for(const x of [i,k])assert.equal((await post(admin,command('rectify',x,{quantity:0,status:'counted',note:'Cero confirmado en ensayo',outOfStock:true}))).status,200);
 assert.equal((await post(admin,command('state',null,{scope:'',state:'closed',acknowledgeDrafts:true}))).status,200);
-assert.equal((await post(lead,command('state',null,{scope:'servicio',state:'open'}))).status,200);
+assert.equal((await post(lead,command('state',null,{scope:'servicio',state:'open'}))).status,403);
+assert.equal((await post(admin,command('state',null,{scope:'servicio',state:'open'}))).status,200);
 assert.equal((await worker.request('/api/bootstrap?cycle='+cycleId)).data.cycle.scopeStates.find(s=>s.scope_id==='servicio').state,'open');
 assert.equal((await admin.request('/api/count',operation(k,2,{cycleId,expectedVersion:ver(k),action:'overwrite'}))).data.code,'CYCLE_CLOSED');
 assert.equal((await worker.request('/api/count',operation(i,2,{cycleId,expectedVersion:ver(i),action:'overwrite'}))).status,200);
@@ -32,4 +48,4 @@ assert.equal((await post(lead,command('state',null,{scope:'servicio',state:'revi
 assert.equal((await post(lead,command('state',null,{scope:'servicio',state:'closed',acknowledgeDrafts:true}))).status,200);
 assert.equal(db.prepare('SELECT count(*) n FROM operations o JOIN history h ON h.operation_id=o.id WHERE o.result!=h.after_record').get().n,0);
 assert.equal(db.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n,0);
-console.log(JSON.stringify({checks:['Two simultaneous identical commands deduplicate in D1','Competing mutations have one winner and one conflict','Review races safely with normal save','Strict close rejects pending active products','Jefa reopens only Servicio, Cocina stays closed','Counts/history/results remain atomic; no telemetry']}));db.close();
+console.log(JSON.stringify({checks:['Two simultaneous identical commands deduplicate in D1','Competing mutations have one winner and one conflict','Review races safely with normal save','Strict close rejects pending active products','Only admin reopens finalized Servicio; Cocina stays closed','Cross-cycle activity confirmations have one winner and preserve quantities', 'Activity dates/audit persist; worker history DTO omits private/technical fields', 'Counts/history/results remain atomic; no telemetry']}));db.close();

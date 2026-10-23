@@ -16,7 +16,7 @@ const adminAPI = new Client(),
   aAPI = new Client();
 await adminAPI.login("admin-prueba");
 await aAPI.login("ana");
-const items = (await aAPI.boot()).items,
+const items = (await aAPI.boot()).items.filter(i=>i.active),
   target = items[12],
   other = items[13];
 const browser = await chromium.launch({ headless: true });
@@ -202,7 +202,10 @@ try {
   const users = await adminAPI.request("/api/admin/users");
   const bruno = users.data.users.find((u) => u.username === "bruno");
   const form = D.page.locator(`form[data-user="${bruno.id}"]`);
-  await form.locator("xpath=ancestor::details").locator("summary").click();
+  const userCard = D.page.locator(`.user-card[data-id="${bruno.id}"]`);
+  await userCard.locator(".user-details > summary").click();
+  await userCard.getByRole("tab",{name:"Accesos",exact:true}).click();
+  await form.locator('.scope-group[data-scope="servicio"] > summary').click();
   await form.locator('input[value="servicio:barra"]').uncheck();
   await form.getByRole("button", { name: "Guardar cuenta y accesos" }).click();
   await expect(D.page.locator("#message")).toContainText("Cambios guardados");

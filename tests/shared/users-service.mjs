@@ -36,24 +36,26 @@ await test("Jefas: Servicio por rol, sin lectura/escritura exterior ni promoció
   assert.equal((await lead.request(`/api/admin/users/${admin.user.id}`,{expectedRevision:admin.user.revision,username:"otro",role:"worker",active:false,grants:[]})).status,404);
   checks.push("Dos jefas acotadas a Servicio; trabajador/superiores/otras áreas rechazados por API");
 });
-await test("Alta de Servicio sin áreas, contraseña temporal y ámbitos múltiples administrados",async()=>{
-  const r=await lead.request("/api/admin/users",{username:pureName,name:"Persona de Servicio",role:"worker",password});
+await test("Alta de Servicio con acceso obligatorio, contraseña temporal y ámbitos múltiples administrados",async()=>{
+  assert.equal((await lead.request("/api/admin/users",{username:pureName,name:"Persona de Servicio",role:"worker",password,grants:[]})).data.code,"SCOPE_REQUIRED");
+  const r=await lead.request("/api/admin/users",{username:pureName,name:"Persona de Servicio",role:"worker",password,grants:["servicio:barra"]});
   assert.equal(r.status,201,JSON.stringify(r.data)); pureId=r.data.id;
   assert.ok(await account(secondLead,pureId),"ambas jefas administran la cuenta");
   person=new Client(); await person.login(pureName);
   assert.equal((await person.request("/api/bootstrap")).data.code,"PASSWORD_CHANGE_REQUIRED");
   assert.equal((await person.request("/api/password",{currentPassword:password,newPassword:"Servicio-08"})).status,200);
   await person.login(pureName,"Servicio-08");
-  assert.equal((await person.boot()).items.length,0);
+  assert.ok((await person.boot()).items.every(i=>i.locationId==="servicio:barra"));
+  assert.ok((await person.boot()).items.length>0);
   assert.equal((await update(lead,pureId,{grants:["servicio:barra","servicio:coperia","servicio:mercadito:vitrina"]})).status,200);
   const b=await person.boot();
   assert.ok(b.items.every(i=>["servicio:barra","servicio:coperia","servicio:mercadito:vitrina"].includes(i.locationId)));
   assert.equal((await update(lead,pureId,{grants:["cocina"]})).status,403);
   assert.equal((await update(lead,pureId,{role:"service_lead"})).status,403);
-  checks.push("Alta por jefa, cambio obligatorio, sin asignaciones y unión de Barra/Copería/Vitrina");
+  checks.push("Alta por jefa con al menos un acceso atómico, cambio obligatorio y unión de Barra/Copería/Vitrina");
 });
 await test("Cuenta mixta: solo ámbitos de Servicio, sin tocar cuenta ni permisos exteriores",async()=>{
-  const made=await admin.request("/api/admin/users",{username:mixedName,name:"Persona mixta",role:"worker",password});
+  const made=await admin.request("/api/admin/users",{username:mixedName,name:"Persona mixta",role:"worker",password,grants:["cocina","servicio:barra"]});
   assert.equal(made.status,201); mixedId=made.data.id;
   assert.equal((await update(admin,mixedId,{grants:["cocina","servicio:barra"]})).status,200);
   const target=await account(lead,mixedId);
@@ -72,7 +74,7 @@ await test("Cuenta mixta: solo ámbitos de Servicio, sin tocar cuenta ni permiso
   checks.push("Cuenta mixta: solo accesos de Servicio; Cocina intacta; contraseña/username/activación/eliminación bloqueados");
 });
 await test("Perfil propio: cambia nombre, conserva UUID e historia, rechaza cambiar username/rol ajeno",async()=>{
-  countedItem=(await person.boot()).items.find(i=>i.locationId==="servicio:barra" && !db.prepare("SELECT 1 FROM counts WHERE cycle_id='prueba-compartida' AND item_id=? AND location_id=?").get(i.id,i.locationId));
+  countedItem=(await person.boot()).items.find(i=>i.active && i.locationId==="servicio:barra" && !db.prepare("SELECT 1 FROM counts WHERE cycle_id='prueba-compartida' AND item_id=? AND location_id=?").get(i.id,i.locationId));
   let saved=await person.save(countedItem,4,{note:"Nota previa"}); assert.equal(saved.status,200);
   const me=(await person.request("/api/me")).data.user;
   assert.equal((await person.request("/api/profile",{name:"Nombre propio nuevo",username:"prohibido",expectedRevision:me.revision})).status,400);
@@ -80,7 +82,7 @@ await test("Perfil propio: cambia nombre, conserva UUID e historia, rechaza camb
   const changed=await person.request("/api/profile",{name:"Nombre propio nuevo",expectedRevision:me.revision});
   assert.equal(changed.status,200); assert.equal(changed.data.user.id,pureId); assert.equal(changed.data.user.username,pureName);
   assert.equal((await person.request(urlFor("/api/record",countedItem))).data.record.authorName,"Nombre propio nuevo");
-  assert.equal((await person.request(urlFor("/api/history",countedItem))).data.history[0].after_record.authorName,"Persona de Servicio");
+  assert.equal((await person.request(urlFor("/api/history",countedItem))).data.history[0].authorName,"Persona de Servicio");
   const target=await account(admin,pureId);
   assert.equal((await update(admin,pureId,{name:"Nombre impuesto"})).status,400);
   assert.equal((await account(admin,pureId)).revision,target.revision);
@@ -125,7 +127,7 @@ await test("Eliminación irreversible con confirmación/revisión: sesiones fuer
   assert.equal((await admin.request(urlFor("/api/record",countedItem))).data.record.quantity,4);
   assert.equal((await admin.request(urlFor("/api/record",countedItem))).data.record.authorId,pureId);
   assert.throws(()=>db.prepare("UPDATE users SET active=1,deleted_at=NULL WHERE id=?").run(pureId),/DELETED_USER/);
-  const recreated=await lead.request("/api/admin/users",{username:pureName,name:"Persona distinta",role:"worker",password});
+  const recreated=await lead.request("/api/admin/users",{username:pureName,name:"Persona distinta",role:"worker",password,grants:["servicio:barra"]});
   assert.equal(recreated.status,201); assert.notEqual(recreated.data.id,pureId);
   assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(),[]);
   checks.push("Eliminar exige confirmación, no restaura cuentas, conserva autoría/conteos y permite nueva identidad con el username libre");
@@ -157,4 +159,4 @@ await test("Copería y Vitrina: conteos independientes y ciclos anteriores conse
   checks.push("32 Copería/42 Línea, Vitrina 3 y resto 4 separados; catálogo anterior de 1.227 entradas intacto");
 });
 db.close();
-writeFileSync("docs/usuarios-servicio-local-3b.json",JSON.stringify({environment:"Workers + D1 local",date:"2026-10-22",groups:checks.length,checks,passed:true},null,2)+"\n");
+writeFileSync("docs/usuarios-servicio-local-3b.json",JSON.stringify({environment:"Workers + D1 local",date:"2026-10-23",groups:checks.length,checks,passed:true},null,2)+"\n");

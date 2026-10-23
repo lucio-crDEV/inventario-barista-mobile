@@ -25,12 +25,13 @@ try {
   const count = await page.locator("#user-results").boundingBox();
   assert.ok(Math.abs(heading.y - count.y) < 10);
   assert.ok(count.x >= heading.x + heading.width);
-  await page.locator(".create-user > summary").click();
-  const lines = page.locator(".create-note span");
-  await expect(lines).toHaveCount(2);
-  assert.ok((await lines.nth(1).boundingBox()).y > (await lines.nth(0).boundingBox()).y);
-  await page.locator(".create-user > summary").click();
-  checks.push("Sin subtítulo; total junto a Cuentas existentes y ayuda de creación en dos líneas");
+  await page.locator(".create-user-trigger").click();
+  await expect(page.locator(".account-create")).toBeVisible();
+  await expect(page.locator('[data-step-label="0"]')).toHaveAttribute("aria-current", "step");
+  await expect(page.locator('[data-create-step="1"]')).toBeHidden();
+  await expect(page.locator('[data-create-step="2"]')).toBeHidden();
+  await page.keyboard.press("Escape");await expect(page.locator(".account-create")).toHaveCount(0);
+  checks.push("Lista primero; total junto a Cuentas y alta separada con pasos Cuenta/Accesos/Confirmar");
 
   await page.locator("#user-search").fill("bruno");
   await expect(page.locator("#user-results")).toHaveText("1 cuenta");
@@ -127,7 +128,7 @@ try {
   assert.equal(await limited.locator('[value="cocina"]').count(), 0);
   checks.push("DTO mixto simulado: jefa ve solo el editor de accesos de Servicio, sin pestañas de cuenta/seguridad ni datos exteriores; sin alterar permisos en D1");
   assert.deepEqual(errors, []);
-  const report = { date: "2026-10-22", environment: "Chromium + Workers/D1 local", checks, errors, passed: true, physicalDevice: false };
+  const report = { date: "2026-10-23", environment: "Chromium + Workers/D1 local", checks, errors, passed: true, physicalDevice: false };
   await writeFile("docs/usuarios-diseno-local-3b.json", JSON.stringify(report, null, 2) + "\n");
   console.log(JSON.stringify(report, null, 2));
   await context.close(); await lead.context.close();

@@ -4,7 +4,7 @@ import {
   validPassword,
   dummyHash,
 } from "./password.js";
-import { supervisionRequest } from "./supervision.js";
+import { supervisionRequest, historyDTO, workerHistoryDTO } from "./supervision.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
 import { routeName, allowRequest, logEvent } from "./telemetry.js";
@@ -140,7 +140,7 @@ async function boot(db, hash, cycle) {
     db
       .prepare(
         actorCTE +
-          `SELECT ci.data, coalesce(st.active,json_extract(ci.data,'$.active'),1) operational_active FROM catalog_items ci JOIN cycles cy ON ci.version=cy.catalog_version LEFT JOIN cycle_item_states st ON st.cycle_id=cy.id AND st.item_id=ci.id AND st.location_id=ci.location_id WHERE cy.id=?2 AND ci.location_id IN (SELECT id FROM allowed)`,
+          `SELECT i.data, i.active operational_active FROM supervision_items i WHERE i.cycle_id=?2 AND i.location_id IN (SELECT id FROM allowed)`,
       )
       .bind(hash, cycle),
     db
@@ -391,21 +391,12 @@ async function api(req, env, url, event) {
     event.scope = location;
     if (p === "/api/record")
       return json({ record: await current(db, hash, cycle, item, location) });
-    const rows = await db
-      .prepare(
-        actorCTE +
-          `SELECT h.* FROM history h WHERE h.cycle_id=?2 AND h.item_id=?3 AND h.location_id=?4 AND h.location_id IN (SELECT id FROM allowed) ORDER BY seq DESC LIMIT 100`,
-      )
-      .bind(hash, cycle, item, location)
-      .all();
-    return json({
-      history: rows.results.map((x) => ({
-        ...x,
-        before_record: JSON.parse(x.before_record),
-        entered_record: JSON.parse(x.entered_record),
-        after_record: JSON.parse(x.after_record),
-      })),
-    });
+    const cursor=Number(url.searchParams.get('cursor')||0);
+    if(!Number.isSafeInteger(cursor)||cursor<0)fail(400,'INVALID_CURSOR');
+    const manager=['admin','service_lead'].includes(u.role),limit=manager?51:10;
+    const rows=await db.prepare(actorCTE+`SELECT h.*,u.name author_name,json_extract(ci.data,'$.name') product,ci.unit FROM history h JOIN users u ON u.id=h.user_id JOIN cycles cy ON cy.id=h.cycle_id JOIN catalog_items ci ON ci.version=cy.catalog_version AND ci.id=h.item_id AND ci.location_id=h.location_id WHERE h.cycle_id=?2 AND h.item_id=?3 AND h.location_id=?4 AND h.location_id IN(SELECT id FROM allowed) AND (?5=0 OR h.seq<?5) ${manager?"AND EXISTS(SELECT 1 FROM actor WHERE role IN('admin','service_lead'))":''} ORDER BY h.seq DESC LIMIT ${limit}`).bind(hash,cycle,item,location,manager?cursor:0).all();
+    const page=rows.results.slice(0,manager?50:10);
+    return json({history:page.map(manager?historyDTO:workerHistoryDTO),nextCursor:manager&&rows.results.length>50?page.at(-1).seq:null});
   }
   if (p === "/api/count" && req.method === "POST") {
     if (req.headers.get("X-Inventory-User") !== u.id)

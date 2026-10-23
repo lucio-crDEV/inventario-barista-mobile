@@ -107,6 +107,8 @@ try {
     "cycle_item_states",
     "cycle_scope_states",
     "supervision_commands",
+    "item_activity",
+    "item_activity_events",
   ];
   const snapshot = Object.fromEntries(
     tables.map((t) => [
@@ -220,7 +222,7 @@ try {
   copy.prepare("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,active,reason) VALUES('ops-activation','ops-fingerprint','admin-ops','new-admin-session',1,'ops-cycle',1,'activation',?,?,0,0,'Exclusión de ensayo')").run(extraItem.id,extraItem.location_id);
   assert.equal(copy.prepare("SELECT count(*) n FROM supervision_commands").get().n,commandsBefore);
   assert.equal(copy.prepare("SELECT revision FROM cycles WHERE id='ops-cycle'").get().revision,4);
-  checks.push("Recupera exclusiones, estado de Servicio y comandos auditados 3B; reintento con sesión nueva no duplica ni cambia revisión");
+  checks.push("Recupera actividad persistente por área, estado de Servicio y comandos auditados 3B; reintento con sesión nueva no duplica ni cambia revisión");
   const sql = readFileSync(join(backup, "database.sql"));
   writeFileSync(
     join(backup, "database.sql"),
@@ -277,7 +279,7 @@ try {
   assert.equal(cleanedWithoutUsage.remaining.expired_attempt_keys, 0);
   assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 3);
   for (const t of tables) assert.equal(JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()), snapshot[t], t);
-  checks.push("Consulta y limpieza sobre esquema operativo 0006 sin tabla de telemetría funcionan y conservan datos");
+  checks.push("Consulta y limpieza sobre esquema operativo 0007 sin tabla de telemetría funcionan y conservan datos");
   for (const script of ["backup", "restore-local", "maintenance"]) {
     const denied = spawnSync(
       process.execPath,

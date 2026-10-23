@@ -33,7 +33,7 @@ if (unavailable) {
 } else if (user && !user.mustChange && new URLSearchParams(location.search).has("profile")) {
   identityBar(user);
   document.querySelector("#account-back").hidden = false;
-  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${esc(user.username)}</p><h2>Mi perfil</h2></div></div><form><label>Nombre visible<input name="name" value="${esc(user.name)}" required maxlength="80" autocomplete="name"></label><p class="field-hint">Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo ${esc(user.username)}.</p><button class="button button-primary" type="submit">Guardar nombre visible</button></form></section>`;
+  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${esc(user.username)}</p><h2>Mi perfil</h2></div></div><form><label>Nombre visible<input name="name" value="${esc(user.name)}" required maxlength="80" autocomplete="name"></label><p class="field-hint">Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo ${esc(user.username)}.</p><button class="button button-primary" type="submit">Guardar nombre visible</button></form><a class="profile-password-link" href="/pages/cuenta/?change=1">Cambiar contraseña<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></section>`;
   content.querySelector("form").onsubmit = async e => {
     e.preventDefault();
     const form = e.target, button = form.querySelector("button"), restore = pendingButton(button,"Guardando nombre…");

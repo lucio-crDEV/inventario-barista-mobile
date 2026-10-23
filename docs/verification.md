@@ -1,5 +1,21 @@
 # Verificación — inventory-v3
 
+## Revisión UX/operación 0007 — comprobación local 23-10-2026
+
+**49 pruebas Node, 7 Python y 24 etapas aisladas aprobadas.** Las etapas incluyen build Pages, preparación nueva, preflight positivo/negativo, integración, extended, usuarios/Servicio, 15 clientes concurrentes, sync/backoff, navegadores de usuarios/supervisión/resumen, carga lenta/refresh, administración, conflictos entre personas, vistas, migración poblada, respaldo/restauración, paquete público y Pages HTTPS. La etapa de vistas se repitió aparte después de actualizar sus expectativas al alta con acceso obligatorio y al foco del menú; los demás resultados finales no se sustituyen por los de un intento fallido. Además pasaron las suites de navegador simuladas de cuentas y diseño de supervisión.
+
+[Informe nuevo y resultados exactos](revision-ux-local-2026-10-23.json). Los informes 3A/3B que siguen son históricos y no se sobrescribieron. El runner utiliza puertos 8990/8991 y una copia base de D1 por suite; no toca la base del proyecto, libros, credenciales ni servidor de vista 8890. Sin llamadas a producción ni mutaciones remotas.
+
+La migración 0007 se prueba sobre 0006 poblada: IDs/rowids, fingerprints, resultados aceptados, catálogo, conteos, historia, usuarios/sesiones y auditoría preservados; integridad/FK válidas. Cubre reapertura final exclusiva de Administrador, reintentos antiguos después de cambios, revocación en transacción, conflictos entre ciclos de actividad, privacidad por rol y paginación. D1/workerd real confirma 8 grupos operativos; respaldo/restauración 10 grupos. No hay 0005 ni telemetría nueva.
+
+Resumen/navegador: recuadros con punto/etiqueta/cifra en una línea, tonos y títulos a 320/390/1024 en ambos temas; categorías/contexto tras volver y revalidar; historial mínimo con tiempo relativo y fecha accesible; anulación autorizada; gesto exterior sin pérdida; transición 160/180 ms y movimiento reducido; avisos en visualViewport con descarte hacia arriba. Claves temporales con generación/regeneración, alta atómica y entrega solo confirmada; copiar/compartir sin secreto en URL/storage. Capturas inspeccionadas de resumen, menú y administración.
+
+Contrato de libros repetido: 1.151 filas y 41 referencias Vitrina coinciden. No se cambiaron datos/referencias/migraciones 0001–0006 ni archivos originales. La regla de oro es mandatoria; exportación sigue pendiente.
+
+La vista local 8890 se actualizó en otra copia de los datos ficticios anteriores, migrada a 0007; el original de esa vista permanece intacto. No hubo push/deploy. Android/iOS físicos, teclado real, lector de pantalla, contraste completo, capacidad sostenida y CPU facturada Cloudflare siguen sin certificarse. [Pasos manuales para publicar](publicar-revision-ux-0007.md).
+
+Comandos reproducibles (solo local): `npm test`, `npm run test:bootstrap`, `python3 tests/workbook_contract.py`, `npm run test:security:isolated`, `node tests/account-revision-browser.mjs` y `node tests/shared/supervision-layout.mjs`. Los dos últimos usan API simulada y servidor local propio; el runner usa D1/workerd real.
+
 ## Etapa 3B — pruebas nuevas del 23-10-2026
 
 Desarrollo local posterior a b24403d: 31 pruebas Node (incluyen seis grupos nuevos de permisos/atomicidad/estado Servicio/paginación) y 7 Python aprobadas. Suite aislada final **19/19**, incluidos API 3B D1 real, **5 grupos** nuevos de navegador y **10 grupos** de recuperación/mantenimiento. Carga final: 528 solicitudes totales, 151 escrituras, 150 reintentos deduplicados, 14 conflictos esperados y cero errores inesperados. [Evidencia nueva](supervision-local-3b-2026-10-23.json). No producción, bases existentes, fuentes/libros o respaldos privados. [Contrato y límites](etapa-3b.md).

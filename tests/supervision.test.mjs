@@ -4,8 +4,8 @@ import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import worker from '../worker/index.js';
 import {sqliteDB} from './shared/sqlite-adapter.mjs';
 const origin='https://example.test';
-function setup(){
- const db=sqliteDB(),tag=randomUUID();const identities={};
+function setup(through=7){
+ const db=sqliteDB(through),tag=randomUUID();const identities={};
  for(const [key,role] of [['admin','admin'],['lead','service_lead'],['worker','worker']]){
   const id=randomUUID(),token=randomBytes(32).toString('hex'),hash=createHash('sha256').update(token).digest('hex');
   db.sqlite.prepare('INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES(?,?,?,?,?,0)').run(id,key+tag,key,'!hash',role);
@@ -52,7 +52,7 @@ await test('3B: rectify and annul are atomic, versioned and idempotent; annul re
   assert.equal((await f.call('lead',base+'/command',f.command('rectify',f.item('cocina'),{quantity:1,status:'counted',note:'',outOfStock:false}))).status,403);
  }finally{f.db.sqlite.close();}
 });
-await test('3B: excluded items retain counts, block new writes, preserve accepted retries and other cycles',async()=>{
+await test('3B: area activity retains counts, blocks new writes, preserves accepted retries and persists across cycles',async()=>{
  const f=setup(),i=f.item('servicio:barra');try{
   const op=f.count(i);assert.equal((await f.call('worker','/api/count',op)).status,200);
   assert.equal((await f.call('lead',base+'/command',f.command('activation',i,{active:false}))).status,403);
@@ -63,7 +63,7 @@ await test('3B: excluded items retain counts, block new writes, preserve accepte
   const boot=await f.call('worker','/api/bootstrap');assert.equal(boot.data.items.find(x=>x.id===i.id).active,false);
   assert.equal((await f.call('worker','/api/count',f.count(i))).data.code,'ITEM_INACTIVE');
   assert.equal((await f.call('worker','/api/count',op)).status,200);
-  const other=f.db.sqlite.prepare("SELECT active FROM supervision_items WHERE cycle_id='other' AND id=? AND location_id=?").get(i.id,i.location_id);assert.equal(other.active,1);
+  const other=f.db.sqlite.prepare("SELECT active FROM supervision_items WHERE cycle_id='other' AND id=? AND location_id=?").get(i.id,i.location_id);assert.equal(other.active,0);
   assert.equal((await f.call('admin',base+'/command',f.command('activation',i,{active:true}))).status,200);
   assert.equal(f.record(i).quantity,4);
  }finally{f.db.sqlite.close();}
@@ -71,8 +71,8 @@ await test('3B: excluded items retain counts, block new writes, preserve accepte
 await test('3B: strict close and review; Service reopens independently with reason and closes again',async()=>{
  const f=setup(),s=f.item('servicio:barra'),k=f.item('cocina');try{
   // Fixture: only two active items, to exercise full closure without inventing quantities for the catalog.
-  f.db.sqlite.exec("INSERT INTO cycle_item_states SELECT cycle_id,id,location_id,0 FROM supervision_items WHERE cycle_id='test'");
-  for(const i of [s,k])f.db.sqlite.prepare("UPDATE cycle_item_states SET active=1 WHERE cycle_id='test' AND item_id=? AND location_id=?").run(i.id,i.location_id);
+  f.db.sqlite.exec("INSERT INTO item_activity(area_id,item_id,active,changed_at,inactive_since) SELECT area_id,id,0,datetime('now'),datetime('now') FROM supervision_items WHERE cycle_id='test'");
+  for(const i of [s,k])f.db.sqlite.prepare("UPDATE item_activity SET active=1,inactive_since=NULL WHERE item_id=? AND area_id=?").run(i.id,JSON.parse(i.data).areaId);
   assert.equal((await f.call('admin','/api/count',f.count(k))).status,200);
   assert.equal((await f.call('worker','/api/count',f.count(s,{status:'partial'}))).status,200);
   assert.equal((await f.call('admin',base+'/command',f.command('state',null,{scope:'',state:'review'}))).status,200);
@@ -82,7 +82,8 @@ await test('3B: strict close and review; Service reopens independently with reas
   assert.equal((await f.call('admin',base+'/command',f.command('state',null,{scope:'',state:'closed',acknowledgeDrafts:true}))).status,200);
   assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'',state:'open'}))).status,403);
   assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'open',reason:''}))).status,400);
-  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'open'}))).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'open'}))).status,403);
+  assert.equal((await f.call('admin',base+'/command',f.command('state',null,{scope:'servicio',state:'open'}))).status,200);
   assert.equal((await f.call('worker','/api/bootstrap')).data.cycle.scopeStates.find(s=>s.scope_id==='servicio').state,'open');
   assert.equal((await f.call('admin','/api/count',f.count(k))).data.code,'CYCLE_CLOSED');
   assert.equal((await f.call('worker','/api/count',f.count(s,{action:'overwrite'}))).status,200);
@@ -110,10 +111,126 @@ await test('3B: stale confirmations, revoked session and SQL-time role change ca
 await test('3B: history cursor and stable author filters do not mix cycles or duplicate rows',async()=>{
  const f=setup(),i=f.item('servicio:barra');try{
   for(let n=0;n<55;n++)assert.equal((await f.call('worker','/api/count',f.count(i))).status,200);
-  const first=await f.call('lead',base+'/history?cycle=test&author='+f.identities.worker.id);assert.equal(first.data.history.length,50);
-  const second=await f.call('lead',base+'/history?cycle=test&cursor='+first.data.nextCursor);assert.equal(second.data.history.length,5);assert.ok(!first.data.history.some(a=>second.data.history.some(b=>a.seq===b.seq)));
-  assert.equal((await f.call('lead',base+'/history?cycle=other')).data.history.length,0);
+  const grouped=await f.call('lead',base+'/history?cycle=test&author='+f.identities.worker.id);assert.equal(grouped.data.items.length,1);assert.equal(grouped.data.items[0].counts.counts,55);
+  const first=await f.call('lead',base+'/history?cycle=test&item='+encodeURIComponent(i.id)+'&location='+encodeURIComponent(i.location_id));assert.equal(first.data.history.length,50);
+  const second=await f.call('lead',base+'/history?cycle=test&item='+encodeURIComponent(i.id)+'&location='+encodeURIComponent(i.location_id)+'&cursor='+first.data.nextCursor);assert.equal(second.data.history.length,5);assert.ok(!first.data.history.some(a=>second.data.history.some(b=>a.seq===b.seq)));
+  assert.equal((await f.call('lead',base+'/history?cycle=other')).data.items.length,0);
   f.db.sqlite.prepare('UPDATE users SET name=? WHERE id=?').run('Renombrado',f.identities.worker.id);
-  const h=await f.call('lead',base+'/history?cycle=test&author='+f.identities.worker.id);assert.equal(h.data.history.length,50);assert.equal(h.data.history[0].after.authorName,'worker');
+  const h=await f.call('lead',base+'/history?cycle=test&item='+encodeURIComponent(i.id)+'&location='+encodeURIComponent(i.location_id));assert.equal(h.data.history.length,50);assert.equal(h.data.history[0].after.authorName,'worker');
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: optional motives, manager review reopening, admin-only final reopening and accepted retries',async()=>{
+ const f=setup(),i=f.item('servicio:barra');try{
+  const review=f.command('state',null,{scope:'servicio',state:'review',reason:undefined});
+  assert.equal((await f.call('lead',base+'/command',review)).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('rectify',i,{quantity:2,status:'counted',note:'',outOfStock:false,reason:undefined}))).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('annul',i,{reason:undefined}))).status,200);
+  const reopen=f.command('state',null,{scope:'servicio',state:'open'});
+  const accepted=await f.call('lead',base+'/command',reopen);assert.equal(accepted.status,200);
+  f.db.sqlite.exec("UPDATE cycles SET state='closed',revision=revision+1 WHERE id='test'; DELETE FROM cycle_scope_states");
+  assert.deepEqual(await f.call('lead',base+'/command',reopen),accepted,'Accepted operation may be recovered after finalization');
+  const next=f.command('state',null,{scope:'servicio',state:'open'});
+  assert.equal((await f.call('lead',base+'/command',next)).data.code,'ADMIN_REOPEN_REQUIRED');
+  assert.equal((await f.call('admin',base+'/command',{...next,id:randomUUID(),reason:''})).status,400);
+  assert.equal((await f.call('admin',base+'/command',{...next,id:randomUUID()})).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'review',reason:undefined}))).status,200);
+  assert.equal(f.db.sqlite.prepare('SELECT reason FROM supervision_commands WHERE id=?').get(review.id).reason,'');
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: per-area activity has cross-cycle CAS, immutable counts/catalog, dated activity events and no false zero',async()=>{
+ const f=setup(),i=f.item('servicio:barra');try{
+  const original=f.db.sqlite.prepare('SELECT data FROM catalog_items WHERE version=? AND id=? AND location_id=?').get('inventory-v2-2026-10-21',i.id,i.location_id).data;
+  assert.equal((await f.call('worker','/api/count',f.count(i))).status,200);
+  const before=f.record(i),otherRevision=f.db.sqlite.prepare("SELECT revision FROM cycles WHERE id='other'").get().revision;
+  const staleOther={...f.command('activation',i,{active:true,reason:undefined,expectedActivityRevision:0}),cycleId:'other',expectedRevision:otherRevision,expectedVersion:0};
+  assert.equal((await f.call('admin',base+'/command',f.command('activation',i,{active:false,reason:undefined,expectedActivityRevision:0}))).status,200);
+  assert.equal((await f.call('admin',base+'/command',staleOther)).data.code,'CYCLE_CHANGED');
+  const projected=(await f.call('admin',base+'/items?cycle=other&item='+encodeURIComponent(i.id))).data.items[0];
+  assert.equal(projected.active,false);assert.equal(projected.activityRevision,1);assert.ok(Number.isFinite(Date.parse(projected.inactiveSince)));
+  assert.equal((await f.call('admin',base+'/command',f.command('activation',i,{active:true,reason:undefined,expectedActivityRevision:0}))).data.code,'ACTIVITY_CHANGED');
+  assert.equal((await f.call('admin',base+'/command',f.command('activation',i,{active:true,reason:undefined,expectedActivityRevision:1}))).status,200);
+  assert.deepEqual(f.record(i),before);
+  const events=f.db.sqlite.prepare('SELECT * FROM item_activity_events ORDER BY seq').all();assert.deepEqual(events.map(x=>x.active),[0,1]);assert.ok(events.every(x=>x.area_id==='servicio'&&x.user_id===f.identities.admin.id&&Number.isFinite(Date.parse(x.created_at))));
+  assert.equal(f.db.sqlite.prepare('SELECT inactive_since FROM item_activity WHERE item_id=?').get(i.id).inactive_since,null);
+  assert.equal(f.db.sqlite.prepare('SELECT data FROM catalog_items WHERE version=? AND id=? AND location_id=?').get('inventory-v2-2026-10-21',i.id,i.location_id).data,original);
+  assert.deepEqual(f.db.sqlite.prepare('PRAGMA foreign_key_check').all(),[]);
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: grouped category filters include matching products, preserve full detail and paginate movements by role',async()=>{
+ const f=setup(),a=f.item('servicio:barra'),b=f.item('servicio:mercadito');try{
+  assert.equal((await f.call('worker','/api/count',f.count(a))).status,200);
+  assert.equal((await f.call('worker','/api/count',f.count(a,{action:'add',quantity:3}))).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('rectify',a,{quantity:8,status:'counted',note:'Private manager note',outOfStock:false,reason:'Private managerial reason'}))).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('rectify',b,{quantity:2,status:'counted',note:'',outOfStock:false}))).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('annul',b))).status,200);
+  const group=async category=>(await f.call('lead',base+'/history?cycle=test&category='+category)).data.items;
+  assert.deepEqual((await group('count')).map(x=>x.itemId),[a.id]);
+  assert.deepEqual(new Set((await group('correction')).map(x=>x.itemId)),new Set([a.id,b.id]));
+  assert.deepEqual((await group('annul')).map(x=>x.itemId),[b.id]);
+  const detail=(await f.call('lead',base+'/history?cycle=test&category=annul&item='+encodeURIComponent(a.id)+'&location='+encodeURIComponent(a.location_id))).data.history;
+  assert.deepEqual(detail.map(x=>x.action),['rectify','add','direct']);assert.equal(detail[1].entered.quantity,3);assert.equal(detail[1].before.quantity,4);assert.equal(detail[1].after.quantity,7);
+  for(let n=0;n<55;n++)assert.equal((await f.call('worker','/api/count',f.count(a,{action:'add',quantity:1}))).status,200);
+  const path='/api/history?cycle=test&item='+encodeURIComponent(a.id)+'&location='+encodeURIComponent(a.location_id);
+  const minimal=(await f.call('worker',path)).data;assert.equal(minimal.history.length,10);assert.equal(minimal.nextCursor,null);
+  for(const row of minimal.history)assert.deepEqual(Object.keys(row).sort(),['authorName','createdAt','quantity','status','unit']);
+  const full=(await f.call('lead',path)).data;assert.equal(full.history.length,50);assert.ok(full.nextCursor);
+  const older=(await f.call('lead',path+'&cursor='+full.nextCursor)).data;assert.equal(older.history.length,8);assert.ok(older.history.some(x=>x.reason==='Private managerial reason'));assert.ok(!full.history.some(x=>older.history.some(y=>x.seq===y.seq)));
+  assert.equal((await f.call('worker','/api/history?cycle=test&item='+encodeURIComponent(b.id)+'&location='+encodeURIComponent(b.location_id))).status,403);
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: migration of populated 0006 retains accepted fingerprints, results and exact catalogue; lead retry survives stronger guard',async()=>{
+ const f=setup(6),i=f.item('servicio:barra');try{
+  const op=f.count(i),countKeys=['id','cycleId','itemId','locationId','expectedVersion','action','quantity','unit','status','note','outOfStock'];
+  const fingerprint=createHash('sha256').update(JSON.stringify(countKeys.map(k=>op[k]))).digest('hex');
+  f.db.sqlite.prepare('INSERT INTO operations(id,fingerprint,user_id,session_hash,cycle_id,item_id,location_id,expected_version,action,q,unit,status,note,out_of_stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(op.id,fingerprint,f.identities.worker.id,f.identities.worker.hash,'test',i.id,i.location_id,0,'direct',4000,i.unit,'counted','',0);
+  f.db.sqlite.exec("UPDATE cycles SET state='closed' WHERE id='test'");
+  const b=f.command('state',null,{scope:'servicio',state:'open'}),keys=['id','cycleId','expectedRevision','kind','itemId','locationId','expectedVersion','quantity','status','note','outOfStock','active','scope','state','reason','confirm','acknowledgeDrafts'];
+  const hash=createHash('sha256').update(JSON.stringify(keys.map(k=>b[k]??null))).digest('hex');
+  f.db.sqlite.prepare('INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,new_state,scope_id,reason) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(b.id,hash,f.identities.lead.id,f.identities.lead.hash,1,'test',b.expectedRevision,'state','open','servicio',b.reason);
+  // Legacy states with no timestamp are retained as an explicitly unknown baseline.
+  f.db.sqlite.prepare('INSERT INTO cycle_item_states VALUES(?,?,?,0)').run('test',i.id,i.location_id);
+  const snapshots={};for(const table of ['counts','operations','history','admin_audit','catalog_items'])snapshots[table]=JSON.stringify(f.db.sqlite.prepare('SELECT * FROM '+table).all());
+  const previousResult=f.db.sqlite.prepare('SELECT result FROM supervision_commands WHERE id=?').get(b.id).result;
+  f.db.migrate(7,7);
+  for(const [table,snapshot]of Object.entries(snapshots))assert.equal(JSON.stringify(f.db.sqlite.prepare('SELECT * FROM '+table).all()),snapshot,table+' preserved');
+  assert.equal(f.db.sqlite.prepare('SELECT result FROM supervision_commands WHERE id=?').get(b.id).result,previousResult);
+  f.db.sqlite.exec("UPDATE cycles SET state='closed'; DELETE FROM cycle_scope_states");
+  assert.equal((await f.call('lead',base+'/command',b)).status,200);
+  assert.equal((await f.call('worker','/api/count',op)).status,200);
+  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'open'}))).status,403);
+  assert.equal(f.db.sqlite.prepare('SELECT active FROM item_activity WHERE item_id=?').get(i.id).active,0);
+  assert.deepEqual(f.db.sqlite.prepare('PRAGMA foreign_key_check').all(),[]);
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: group pagination bounds products independently of their movement counts',async()=>{
+ const f=setup();try{
+  const items=f.db.sqlite.prepare("SELECT * FROM catalog_items WHERE version='inventory-v2-2026-10-21' AND location_id='servicio:barra' AND unit!='' AND json_extract(data,'$.active')=1 LIMIT 55").all();assert.equal(items.length,55);
+  for(const i of items)assert.equal((await f.call('worker','/api/count',f.count(i))).status,200);
+  const first=(await f.call('lead',base+'/history?cycle=test&category=count')).data;assert.equal(first.items.length,50);assert.ok(first.nextCursor);
+  const second=(await f.call('lead',base+'/history?cycle=test&category=count&cursor='+first.nextCursor)).data;assert.equal(second.items.length,5);assert.equal(second.nextCursor,null);
+  const identities=[...first.items,...second.items].map(x=>x.itemId+'|'+x.locationId);assert.equal(new Set(identities).size,55);
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: product history role projection is revalidated at SQL time',async()=>{
+ const f=setup(),i=f.item('servicio:barra');try{
+  assert.equal((await f.call('lead',base+'/command',f.command('rectify',i,{quantity:3,status:'counted',note:'private text',outOfStock:false,reason:'private reason'}))).status,200);
+  f.db.sqlite.prepare('INSERT INTO grants VALUES(?,?)').run(f.identities.lead.id,i.location_id);
+  const prepare=f.db.prepare.bind(f.db);
+  f.db.prepare=sql=>{const st=prepare(sql);if(sql.includes('SELECT h.*,u.name author_name')){const all=st.all.bind(st);st.all=async()=>{f.db.sqlite.prepare("UPDATE users SET role='worker',revision=revision+1 WHERE id=?").run(f.identities.lead.id);return all();};}return st;};
+  const response=await f.call('lead','/api/history?cycle=test&item='+encodeURIComponent(i.id)+'&location='+encodeURIComponent(i.location_id));
+  assert.equal(response.status,200);assert.deepEqual(response.data.history,[]);assert.ok(!JSON.stringify(response).includes('private'));
+ }finally{f.db.sqlite.close();}
+});
+await test('3B revision: legacy migration prefers activation chronology over cycle creation and preserves event rowids',async()=>{
+ const f=setup(6),i=f.item('servicio:barra');try{
+  const sql=f.db.sqlite.prepare("INSERT INTO supervision_commands(rowid,id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,active,reason,created_at) VALUES(?,?,?,?,?,1,?,?,'activation',?,?,?,'Legacy activity',?)");
+  const insert=(row,cycle,rev,active,time)=>sql.run(row,randomUUID(),'legacy-'+row,f.identities.admin.id,f.identities.admin.hash,cycle,rev,i.id,i.location_id,active,time);
+  insert(3,'test',1,0,'2026-10-20T12:00:00.000Z');
+  insert(7,'other',1,1,'2026-10-21T12:00:00.000Z');
+  insert(12,'test',2,0,'2026-10-22T12:00:00.000Z');
+  f.db.migrate(7,7);
+  assert.equal(f.db.sqlite.prepare('SELECT active FROM item_activity WHERE item_id=?').get(i.id).active,0);
+  assert.deepEqual(f.db.sqlite.prepare('SELECT rowid FROM supervision_commands ORDER BY rowid').all().map(x=>x.rowid),[3,7,12]);
+  const events=(await f.call('admin',base+'/events?cycle=test')).data.events;assert.equal(events[0].authorName,'admin');assert.equal(events[0].seq,12);
  }finally{f.db.sqlite.close();}
 });

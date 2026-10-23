@@ -1,11 +1,12 @@
 # Usuarios y Servicio — contrato del incremento del 22-10-2026
 
-## Etapa 3B — implementación local del 23-10-2026
+## Estado vigente — revisión UX local
 
-El usuario informó que b24403d funciona y autorizó desarrollar el resto de 3B. Tablero/historial operativo, rectificación/anulación auditada, activación por ciclo y revisión/cierre/reapertura implementados localmente. Jefa supervisa, rectifica y anula solo Servicio; también gestiona su estado propio (reabrir con motivo, revisión, cierre estricto). Administrador conserva alcance global y activación. No se amplían cuentas mixtas ni roles. Root, telemetría técnica, backups automáticos y Excel 4 siguen pendientes.
+Revisión UX implementada localmente el 23-10-2026: Panel de supervisión y resumen compactos, historial por producto y rol, perfil/menú y Gestionar usuarios y accesos. Finalizar y enviar es interno; solo Administrador reabre finalizados. Motivo obligatorio solo para reabrir. Activo/Inactivo persiste por área con fechas/auditoría; el informe de varios meses queda futuro. Altas de trabajadores con accesos en la misma transacción y claves temporales autogeneradas/copiar/compartir tras éxito. Sin nuevos roles ni ampliación de cuentas mixtas.
 
-Requiere **0006_supervision.sql antes del deploy**, independiente de 0005 (sigue sin aprobarse y fuera de migrations). No aplicar fixtures/bootstrap/ciclo nuevo sobre demo. No SQL remoto, push o despliegue en este encargo. La aceptación operativa de 3A y validación de 3B en el dominio siguen abiertas. [Contrato, seguridad y pruebas](etapa-3b.md).
+Requiere **0007_operation_ux.sql después de 0006 antes del deploy**. No aplicar 0005, fixtures, bootstrap ni crear otro ciclo en la demo. No se ejecutaron operaciones remotas ni push. [Decisiones vigentes](decisiones-ux-y-operacion-2026-10-23.md), [verificación](verification.md), [publicación manual](publicar-revision-ux-0007.md). Excel conserva la regla de oro; exportación en etapa 4 y adaptación de plantillas en fase 5, ambas pendientes. Root/telemetría siguen fuera de alcance.
 
+## Registro histórico anterior
 
 Actualización 23-10-2026: el contrato funcional de Administrador/Jefa/Trabajador y cuentas mixtas se conserva. Root es únicamente un diseño pendiente, sin ampliación de roles ni provisionamiento. Los roles actuales no acceden al endpoint técnico; telemetría persistente desactivada. [Diseño y estado real](seguridad-observabilidad-3a.md).
 
@@ -17,7 +18,7 @@ Proyecto: inventario brioche, rama técnica `inventory-v3`. Contrato escrito ant
 - Jefa de servicio tiene lectura/escritura únicamente en Servicio por su rol. Administra trabajadores de Servicio; no promueve roles ni administra otras jefas/administradores.
 - En cuentas con accesos de Servicio y de otras áreas, la jefa solo modifica asignaciones de Servicio. No modifica usuario, contraseña, activación ni eliminación de esa cuenta; son acciones exclusivas del Administrador. No recibe asignaciones ni datos de otras áreas.
 - «Activar/desactivar zonas» significa asignar/retirar accesos de cada trabajador, no deshabilitar una zona para todos.
-- Al crear se introducen usuario de ingreso, nombre visible, rol y contraseña temporal. Después el Administrador cambia usuario de ingreso, rol, activación y accesos; cada persona cambia su propio nombre visible. La jefa cambia el usuario/contraseña de trabajadores exclusivamente de Servicio. Nadie cambia su propio usuario mediante el perfil.
+- Al crear se introducen usuario de ingreso, nombre visible, rol y al menos un acceso para Trabajador; el campo de clave temporal se genera automáticamente y admite regeneración. Después el Administrador cambia usuario de ingreso, rol, activación y accesos; cada persona cambia su propio nombre visible. La jefa cambia el usuario/contraseña de trabajadores exclusivamente de Servicio. Nadie cambia su propio usuario mediante el perfil.
 - Eliminar exige diálogo explícito irreversible con Cancelar como foco inicial y confirmación en servidor. Retira cuenta, sesiones y accesos; conserva UUID, nombre histórico, conteos, operaciones y auditoría mediante una marca irreversible de eliminación. La cuenta no puede reactivarse; reutilizar un nombre de ingreso crea otra identidad.
 - Copería se separa de Línea/Armado y recibe los 32 productos de Aseo del sector combinado. Los otros 42 quedan en Línea/Armado. Se conserva el identificador técnico anterior para Línea/Armado; no se cambian ID ni referencias de los productos existentes.
 - Vitrina es un lugar físico. Las 41 marcas del libro de reparto están contrastadas por producto y unidad con Mercadito; la prueba de contrato se repitió al retomar. Se presentan como categoría Vitrina con ubicación/conteo propios, separados del resto. Conservan referencia de salida para consolidar en etapa 4; no se suman a otra ubicación durante el guardado. El contraste documental no cierra la aceptación física de etapa 2.
@@ -30,7 +31,7 @@ Permisos efectivos de inventario calculados en servidor y usados también por el
 
 Solicitudes de edición, restablecimiento y eliminación incluyen `expectedRevision`. Confirmaciones rechazadas conservan los campos y exigen recargar/revisar antes de reenviar. Modificar usuario de ingreso o contraseña revoca sesiones. Los cambios de perfil conservan UUID y snapshots históricos. Auditoría guarda antes/después sin contraseñas ni hashes.
 
-API: POST `/api/profile` recibe `{name, expectedRevision}` y solo edita al autenticado. POST `/api/admin/users/:id` recibe `{username, role, active, grants, expectedRevision}`; para cuentas mixtas administradas por jefa únicamente `{grants, expectedRevision}`. Restablecer usa `/:id/password` con `{password, expectedRevision}`; eliminar `/:id/delete` con `{confirm:true, expectedRevision}`. Se comprueba `X-Inventory-User` como aserción de pestaña; identidad/permisos proceden de la cookie/servidor. La cuenta eliminada conserva una fila histórica sin credenciales utilizables y no tiene ruta de restauración.
+API: POST `/api/admin/users` recibe `{username,name,role,password,grants}`. Trabajador exige al menos un grant; Administrador y Jefa usan `[]` y su alcance heredado. Alta y grants son atómicos. POST `/api/profile` recibe `{name, expectedRevision}` y solo edita al autenticado. POST `/api/admin/users/:id` recibe `{username, role, active, grants, expectedRevision}`; para cuentas mixtas administradas por jefa únicamente `{grants, expectedRevision}`. Restablecer usa `/:id/password` con `{password, expectedRevision}`; eliminar `/:id/delete` con `{confirm:true, expectedRevision}`. Se comprueba `X-Inventory-User` como aserción de pestaña; identidad/permisos proceden de la cookie/servidor. La cuenta eliminada conserva una fila histórica sin credenciales utilizables y no tiene ruta de restauración.
 
 Catálogo nuevo inmutable por ciclo para Copería/Vitrina. Mantener catálogo y conteos de ciclos anteriores; no mover ni dividir cantidades anteriores automáticamente. Preparar un ciclo nuevo explícito para probar el reparto separado y documentar cómo seleccionarlo. El build no aplica migraciones ni inicializa datos remotos.
 
@@ -70,7 +71,7 @@ npx wrangler d1 execute DB --config wrangler.pages.production.jsonc --remote --f
 3. En Pages → inventario-login → variables Production, guardar `ACTIVE_CYCLE_ID=piloto-v3-servicio`; mantener `APP_ENV`, origen y DB. Después enviar los commits v3; el deployment automático toma las variables. No crear otro commit vacío, repetir bootstrap ni cargar fixtures. Sin las migraciones nuevas, el Worker falla cerrado con 503.
 4. Comprobar commit y `npm run verify:public` (16 GET anónimos). Con el administrador existente, crear las dos jefas personales con contraseñas privadas y completar el cambio obligatorio. Probar el incremento con cuentas de ensayo elegidas expresamente, sin carga ni fixtures sobre producción.
 
-Con el ciclo anterior, las cantidades conservan su reparto anterior; la interfaz etiqueta el sector combinado como «ciclo anterior». Las ubicaciones nuevas requieren seleccionar el ciclo nuevo. Cierre/reapertura visual sigue pendiente de 3B.
+Con el ciclo anterior, las cantidades conservan su reparto anterior; la interfaz etiqueta el sector combinado como «ciclo anterior». Las ubicaciones nuevas requieren seleccionar el ciclo nuevo. La revisión 0007 añade el ciclo de cierre/revisión/finalización; ver contrato vigente.
 
 ## Navegación e interfaz
 

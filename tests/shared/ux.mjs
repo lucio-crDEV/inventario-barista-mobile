@@ -267,7 +267,7 @@ try {
     "Administración obtiene identidad y cuentas en una petición y retira su skeleton al terminar",
   );
 
-  const x = boot.items[90],
+  const x = boot.items.filter(i=>i.active)[50],
     old = await record(a, x);
   await a.save(x, 4, {
     expectedVersion: old?.version || 0,

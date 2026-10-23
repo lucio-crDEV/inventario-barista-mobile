@@ -37,10 +37,10 @@ await test("Identidad histórica estable al renombrar y propio actualizado sin d
     r = await a.save(x, 3, { expectedVersion: latest.version });
     assert.equal(r.status, 200);
     const h = await a.request(urlFor("/api/history", x));
-    assert.ok(h.data.history.every((row) => row.user_id === a.user.id));
+    assert.ok(h.data.history.every(row => Object.keys(row).sort().join(",") === ["authorName","createdAt","quantity","status","unit"].sort().join(",")));
     assert.ok(
       h.data.history.some(
-        (row) => row.after_record.authorName === "Ana ficticia",
+        (row) => row.authorName === "Ana ficticia",
       ),
     );
   } finally {
@@ -150,7 +150,7 @@ await test("Desactivar una cuenta revoca dos dispositivos y reactivar no restaur
 });
 await test("Ocho caracteres: alta, ingreso, cambio y restablecimiento; siete se rechazan sin revocar sesión", async () => {
   const username = "clave8-" + Date.now();
-  const payload = { username, name: "Ensayo mínimo ocho", role: "worker", password: "Clave-0" };
+  const payload = { username, name: "Ensayo mínimo ocho", role: "worker", password: "Clave-0", grants: ["servicio:barra"] };
   assert.equal((await admin.request("/api/admin/users", payload)).status, 400);
   const created = await admin.request("/api/admin/users", { ...payload, password: "Clave-08" });
   assert.equal(created.status, 201);

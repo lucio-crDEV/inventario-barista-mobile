@@ -122,7 +122,7 @@ try {
   assert.equal(await panel.locator("main > .identity-bar, .back-link").count(), 0);
   await panel.locator("[data-settings-toggle]").click();
   await expect(panel.locator(".identity-bar")).toContainText("Administrador ficticio");
-  await expect(panel.getByRole("link", { name: "Usuarios y accesos", exact: true })).toBeVisible();
+  await expect(panel.getByRole("link", { name: "Gestionar usuarios y accesos", exact: true })).toBeVisible();
   await panel.locator(".settings-backdrop").click({ position: { x: 2, y: 2 } });
   await expect(panel.locator("[data-settings-toggle]")).toHaveAttribute("aria-expanded", "false");
   for (const width of [320, 390, 1024]) {
@@ -164,11 +164,15 @@ try {
   checks.push(
     "Administración compacta en claro/oscuro, cuentas plegables y búsqueda",
   );
-  await panel.locator(".create-user>summary").click();
+  await panel.locator(".create-user-trigger").click();
   const create = panel.locator("#create"),
     username = "vista-" + Date.now();
   await create.locator("[name=username]").fill(username);
   await create.locator("[name=name]").fill("Persona de ensayo");
+  await create.locator('[data-create-next]').click();
+  await create.locator('.scope-group[data-scope="servicio"] > summary').click();
+  await create.locator('[value="servicio:barra"]').check();
+  await create.locator('[data-create-next]').click();
   await create.locator("[name=password]").fill("Clave-08");
   let releaseCreate;
   const createGate = new Promise(resolve => { releaseCreate = resolve; });
@@ -179,13 +183,14 @@ try {
   const submitCreate = create.getByRole("button", { name: "Crear usuario", exact: true });
   await submitCreate.click();
   try {
-    await expect(create.locator(".button-primary")).toBeDisabled();
-    await expect(create.locator(".button-primary")).toContainText("Creando");
+    await expect(create.locator("[data-create-next]")).toBeDisabled();
+    await expect(create.locator("[data-create-next]")).toContainText("Creando");
     await expect(create.locator(".reveal-password")).toBeEnabled();
   } finally {
     releaseCreate();
   }
-  await expect(panel.locator("#message")).toContainText("Cambios guardados");
+  await expect(panel.locator(".account-credentials")).toBeVisible();
+  await panel.locator("[data-close]").click();
   await panel.unroute("**/api/admin/users");
   const people = await (
     await admin.request.get(origin + "/api/admin/users")
@@ -216,9 +221,9 @@ try {
   await expect(work.locator("[name=username]")).toBeVisible();
   await login(worker, username, "Nueva-08");
   await work.goto(origin + "/");
-  await expect(work.locator("nav")).toContainText("No tienes áreas asignadas");
+  await expect(work).toHaveURL(/area=servicio&sector=barra$/);
   checks.push(
-    "Alta desde administración, cambio obligatorio, confirmación de contraseña y acceso sin áreas",
+    "Alta desde administración, cambio obligatorio, confirmación de contraseña y acceso asignado",
   );
   // The worker changed their password/revision after this administrative snapshot.
   await panel.reload();
@@ -232,7 +237,7 @@ try {
   await form.locator('[value="servicio:armado-linea-coperia"]').check();
   await form.getByRole("button", { name: "Guardar cuenta y accesos" }).click();
   await expect(panel.locator("#message")).toContainText("Cambios guardados");
-  await expect(work).toHaveURL(/area=servicio$/, { timeout: 10000 });
+  await expect(work).toHaveURL(/area=servicio&sector=barra$/, { timeout: 10000 });
   await work.goto(origin + "/pages/inventario/?area=servicio");
   await expect(work.locator(".scope-card")).toHaveCount(2);
   checks.push("Dos ámbitos otorgados en sesión activa y navegación filtrada");
@@ -246,7 +251,8 @@ try {
   assert.equal((await worker.request.get(origin + "/api/me")).status(), 200);
   await reset.getByRole("button", { name: "Restablecer contraseña", exact: true }).click();
   await panel.locator("#confirm-reset").click();
-  await expect(panel.locator("#message")).toContainText("Cambios guardados");
+  await expect(panel.locator(".account-credentials")).toBeVisible();
+  await panel.locator("[data-close]").click();
   assert.equal((await worker.request.get(origin + "/api/me")).status(), 401);
   await login(worker, username, "Temporal-reset-2026");
   await work.goto(origin + "/pages/cuenta/");

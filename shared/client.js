@@ -104,7 +104,7 @@ export function identityBar(user, refresh) {
   const bar = document.createElement("section");
   bar.className = "identity-bar";
   bar.setAttribute("aria-label", "Cuenta y sincronización");
-  bar.innerHTML = `<div class="identity-person"><span class="identity-avatar" aria-hidden="true">${escapeHtml(user.name.slice(0, 1).toUpperCase())}</span><span><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(roleNames[user.role] || user.role)} · Compartido</small></span></div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></svg></button></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" href="/pages/cuenta/?profile=1">Mi perfil</a><a class="settings-action" href="/pages/cuenta/?change=1">Cambiar contraseña</a>' + (managesUsers(user) ? '<a class="settings-action" href="/pages/admin/">Usuarios y accesos</a><a class="settings-action" href="/pages/admin/supervision.html">Supervisión</a>' : "") : ""}<button class="settings-action" type="button" id="logout">Cerrar sesión</button></div>`;
+  bar.innerHTML = `<div class="identity-person"><span class="identity-name"><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(roleNames[user.role] || user.role)}</small></span>${!user.mustChange ? '<a class="identity-profile" href="/pages/cuenta/?profile=1">Mi perfil</a>' : ""}</div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7"/></svg></button></div><div class="settings-actions">${!user.mustChange && managesUsers(user) ? '<a class="settings-action" href="/pages/admin/">Gestionar usuarios y accesos</a><a class="settings-action" href="/pages/admin/supervision.html">Panel de supervisión</a>' : ""}</div><button class="settings-action account-logout" type="button" id="logout">Cerrar sesión</button>`;
   settingsAccount(bar);
   const button = bar.querySelector(".sync-refresh");
   const limit = refreshLimit(user.id);
@@ -222,6 +222,21 @@ export function dialog(title, content) {
       first?.focus();
     }
   });
+  // A complete gesture must start and end on the backdrop. Dragging from a
+  // field outside the dialog must never discard its presentation or draft.
+  const outside = event => {
+    const rect = el.getBoundingClientRect();
+    return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+  };
+  let backdropPointer = null;
+  el.addEventListener("pointerdown", event => {
+    backdropPointer = outside(event) ? event.pointerId : null;
+  });
+  el.addEventListener("pointerup", event => {
+    if (backdropPointer === event.pointerId && outside(event)) el.close();
+    backdropPointer = null;
+  });
+  el.addEventListener("pointercancel", () => { backdropPointer = null; });
   el.addEventListener("close", () => {
     el.remove();
     if (previous?.isConnected) previous.focus();

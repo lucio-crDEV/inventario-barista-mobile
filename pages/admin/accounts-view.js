@@ -2,9 +2,19 @@ import { passwordField, bindPasswordFields } from "/shared/password-field.js";
 import { api, authenticated, identityBar, escapeHtml as esc, dialog } from "/shared/client.js";
 import { loading, reveal, pendingButton } from "/shared/loading.js";
 import { roleNames } from "/shared/roles.js";
+import { temporaryPassword, regenerateIcon } from "/shared/temporary-password.js";
 
 const host = document.querySelector("#users"), message = document.querySelector("#message");
-let actor;
+let actor, createDraft = null, createPending = false;
+const temporaryField = () => passwordField("Contraseña temporal", "password", "new-password").replace('class="password-field"', 'class="password-field temporary-password-field"').replace('</span></label>', `<button type="button" class="regenerate-password" aria-label="Generar otra contraseña temporal" title="Generar otra contraseña temporal">${regenerateIcon}</button></span></label>`);
+function bindTemporaryFields(root) {
+  bindPasswordFields(root);
+  for (const button of root.querySelectorAll(".regenerate-password")) {
+    const input = button.closest(".password-field").querySelector("input");
+    if (!input.value) input.value = temporaryPassword();
+    button.onclick = () => { input.value = temporaryPassword(); input.dispatchEvent(new Event("input", { bubbles: true })); };
+  }
+}
 const roleSelect = (role, manager) => manager === "service_lead"
   ? '<input name="role" type="hidden" value="worker"><p class="field-hint">Rol: Trabajador</p>'
   : `<label>Rol<select name="role">${["admin","service_lead","worker"].map(r => `<option value="${r}" ${role === r ? "selected" : ""}>${roleNames[r]}</option>`).join("")}</select></label>`;
@@ -44,14 +54,14 @@ function card(u, scopes) {
           </div>`}
           <div class="editor-panel access-panel" ${panelAttributes(u,"access")}>
             <div class="access-heading"><h3>Áreas y zonas</h3><span class="assignment-count" data-assignment-count></span></div>
-            <p class="field-hint" data-access-hint>Selecciona uno o varios ámbitos. Sin asignaciones no hay acceso al inventario.</p>
+            <p class="field-hint" data-access-hint>Selecciona áreas, subáreas o zonas. Sin asignaciones no hay acceso al inventario.</p>
             ${assignments(u,scopes)}
           </div>
           <div class="editor-save"><button class="button button-primary">Guardar cuenta y accesos</button></div>
         </form>
         ${u.limited ? "" : `<div class="editor-panel security-panel" ${panelAttributes(u,"security")}>
           <section class="security-section"><h3>Restablecer contraseña</h3><p class="field-hint">Cierra sus sesiones. Deberá cambiar la contraseña temporal al ingresar.</p>
-            <form class="reset-form" data-reset="${u.id}" data-revision="${u.revision}">${passwordField("Nueva contraseña temporal","password","new-password")}<button class="button button-secondary">Restablecer contraseña</button></form>
+            <form class="reset-form" data-reset="${u.id}" data-revision="${u.revision}">${temporaryField()}<button class="button button-secondary">Restablecer contraseña</button></form>
           </section>
           <section class="security-section delete-account"><h3>Eliminar usuario</h3><p class="field-hint">Acción irreversible. Los conteos y el historial se conservan.</p><button class="button button-danger" type="button" data-delete="${u.id}" data-revision="${u.revision}" data-username="${esc(u.username)}">Eliminar usuario</button></section>
         </div>`}
@@ -99,7 +109,7 @@ function bindAccountEditor(row) {
     const role = form.querySelector('[name="role"]')?.value || "worker";
     form.querySelector(".scope-tree").hidden = role !== "worker";
     count.hidden = role !== "worker";
-    form.querySelector("[data-access-hint]").textContent = role === "admin" ? "Acceso a todas las áreas por su rol de Administrador." : role === "service_lead" ? "Acceso a todas las subáreas y zonas de Servicio por su rol de Jefa de servicio." : "Selecciona uno o varios ámbitos. Sin asignaciones no hay acceso al inventario.";
+    form.querySelector("[data-access-hint]").textContent = role === "admin" ? "Acceso a todas las áreas por su rol de Administrador." : role === "service_lead" ? "Acceso a todas las subáreas y zonas de Servicio por su rol de Jefa de servicio." : "Selecciona áreas, subáreas o zonas. Sin asignaciones no hay acceso al inventario.";
   };
   form.addEventListener("change", updateAssignments); updateAssignments();
 }
@@ -115,13 +125,84 @@ function confirmation(title, text, label, danger = false) {
 function notify(text, tone = "error") {
   message.hidden = false; message.dataset.tone = tone; message.textContent = text; message.focus();
 }
+function credentials(username, password) {
+  // Only call after the API confirmed success. The text exists solely in this
+  // dialog closure and is released when dismissed; never add a URL parameter.
+  const text = `Acceso al inventario\nUsuario: ${username}\nContraseña temporal: ${password}\nAl ingresar deberás cambiar tu contraseña.`;
+  const el = dialog("Acceso preparado", `<p>Comparte estas credenciales con la persona. Deberá cambiar la contraseña al ingresar.</p><dl class="credentials"><dt>Usuario</dt><dd>${esc(username)}</dd><dt>Contraseña temporal</dt><dd class="credential-secret">${esc(password)}</dd></dl><p class="field-hint">La clave solo se muestra aquí. Para recuperarla después, genera una nueva.</p><p class="credential-feedback" role="status"></p><div class="dialog-actions"><button type="button" data-copy class="button-secondary">Copiar accesos</button>${navigator.share ? '<button type="button" data-share>Compartir</button>' : ""}<button type="button" data-close class="button-secondary">Cerrar</button></div>`);
+  el.classList.add("account-credentials");
+  const feedback = el.querySelector(".credential-feedback");
+  el.querySelector("[data-copy]").onclick = async () => {
+    try { await navigator.clipboard.writeText(text); feedback.textContent = "Accesos copiados."; }
+    catch { feedback.textContent = "No se pudo copiar. Selecciona las credenciales y cópialas."; }
+  };
+  if (navigator.share) el.querySelector("[data-share]").onclick = async () => {
+    try { await navigator.share({ title: "Acceso al inventario", text }); feedback.textContent = "Se abrió el menú para compartir."; }
+    catch (error) { if (error.name !== "AbortError") feedback.textContent = "No se pudo compartir. Puedes copiar los accesos."; }
+  };
+  el.querySelector("[data-close]").onclick = () => el.close();
+}
+function createAccount(scopes) {
+  if (createPending) { notify("La creación sigue en curso. Espera la confirmación antes de intentarlo de nuevo.", "pending"); return; }
+  const draft = createDraft || { username: "", name: "", role: "worker", grants: [], password: temporaryPassword(), step: 0 };
+  createDraft = draft;
+  const el = dialog("Crear usuario", `<form id="create" novalidate><nav class="create-steps" aria-label="Pasos del alta">${["Cuenta", "Accesos", "Confirmar"].map((name, i) => `<span data-step-label="${i}">${i + 1}. ${name}</span>`).join("")}</nav><section data-create-step="0"><label>Usuario<input name="username" value="${esc(draft.username)}" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>Nombre visible<input name="name" value="${esc(draft.name)}" maxlength="80" required autocomplete="off"></label>${roleSelect(draft.role, actor.role)}</section><section data-create-step="1"><p class="field-hint" data-create-scope-hint></p>${assignments(draft, scopes)}</section><section data-create-step="2"><p class="create-confirmation"></p>${temporaryField()}<p class="field-hint">Se exigirá cambiarla al ingresar.</p></section><p class="create-feedback" role="status"></p><div class="dialog-actions"><button type="button" class="button-secondary" data-create-back>Atrás</button><button type="submit" data-create-next>Continuar</button></div></form>`);
+  el.classList.add("account-create");
+  const form = el.querySelector("form"), next = form.querySelector("[data-create-next]"), back = form.querySelector("[data-create-back]"), feedback = form.querySelector(".create-feedback");
+  form.elements.password.value = draft.password;
+  bindTemporaryFields(form);
+  function capture() {
+    const values = new FormData(form);
+    Object.assign(draft, { username: values.get("username"), name: values.get("name"), role: values.get("role"), password: values.get("password"), grants: values.getAll("grants") });
+  }
+  function show() {
+    for (const section of form.querySelectorAll("[data-create-step]")) section.hidden = Number(section.dataset.createStep) !== draft.step;
+    for (const label of form.querySelectorAll("[data-step-label]")) {
+      label.classList.toggle("is-current", Number(label.dataset.stepLabel) === draft.step);
+      if (Number(label.dataset.stepLabel) === draft.step) label.setAttribute("aria-current", "step"); else label.removeAttribute("aria-current");
+    }
+    const role = form.elements.role.value;
+    form.querySelector(".scope-tree").hidden = role !== "worker";
+    form.querySelector("[data-create-scope-hint]").textContent = role === "admin" ? "Acceso global incluido por el rol de Administrador." : role === "service_lead" ? "Acceso a Servicio incluido por el rol de Jefa de servicio." : "Selecciona al menos un área, subárea o zona.";
+    form.querySelector(".create-confirmation").textContent = `${draft.name || "Nueva persona"} · ${draft.username || "Usuario"} · ${roleNames[role]}. ${role === "worker" ? `${draft.grants.length} asignaciones seleccionadas.` : "Alcance incluido por su rol."}`;
+    next.textContent = draft.step === 2 ? "Crear usuario" : "Continuar";
+    back.textContent = draft.step === 0 ? "Cancelar" : "Atrás";
+  }
+  form.addEventListener("input", capture);
+  form.addEventListener("change", () => { capture(); show(); });
+  back.onclick = () => { if (draft.step === 0) el.close(); else { draft.step--; feedback.textContent = ""; show(); } };
+  form.onsubmit = async event => {
+    event.preventDefault(); capture(); feedback.textContent = "";
+    if (draft.step === 0) {
+      const fields = [...form.querySelectorAll('[data-create-step="0"] input')];
+      if (fields.some(field => !field.reportValidity())) return;
+      draft.step++; show(); return;
+    }
+    if (draft.step === 1) {
+      if (draft.role === "worker" && !draft.grants.length) { feedback.textContent = "Selecciona al menos un área, subárea o zona."; return; }
+      draft.step++; show(); return;
+    }
+    if (!form.elements.password.reportValidity()) return;
+    const restore = pendingButton(next, "Creando usuario…"); back.disabled = true; createPending = true;
+    host.querySelector(".create-user-trigger").disabled = true;
+    const submitted = { username: draft.username, name: draft.name, role: draft.role, password: draft.password, grants: draft.role === "worker" ? [...draft.grants] : [] };
+    try {
+      await api("/api/admin/users", submitted);
+      createDraft = null; el.close(); await load(); credentials(submitted.username, submitted.password);
+    } catch (error) {
+      feedback.textContent = error.message + (error.status >= 500 || !error.status ? " No se confirmó el resultado: revisa la lista antes de volver a crear la cuenta." : "");
+    } finally { createPending = false; restore(); back.disabled = false; const trigger = host.querySelector(".create-user-trigger"); if (trigger) trigger.disabled = false; }
+  };
+  show();
+}
 async function load() {
   const finish = loading(host);
   try {
     const { users, scopes, user } = await authenticated("/api/admin/users");
     actor = user; identityBar(user);
-    host.innerHTML = `<details class="create-user"><summary>Crear usuario</summary><form id="create"><label>Usuario<input name="username" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>Nombre visible<input name="name" maxlength="80" required></label>${roleSelect("worker",actor.role)}${passwordField("Contraseña temporal","password","new-password")}<p class="field-hint create-note"><span>Se exigirá cambiarla al ingresar.</span><span>Los trabajadores nuevos no tienen áreas.</span></p><button class="button button-primary">Crear usuario</button></form></details><div class="users-toolbar"><div class="users-heading"><h2>Cuentas existentes</h2><p id="user-results" role="status" aria-live="polite"></p></div><label>Buscar cuenta<input id="user-search" type="search" placeholder="Nombre o usuario" autocomplete="off"></label></div>${users.map(u => card(u, scopes)).join("")}`;
-    bindPasswordFields(host); reveal(host, crypto.randomUUID());
+    host.innerHTML = `<div class="users-toolbar"><div class="users-heading"><h2>Cuentas</h2><p id="user-results" role="status" aria-live="polite"></p></div><button type="button" class="button button-primary create-user-trigger">Crear usuario</button><label class="users-search"><span class="visually-hidden">Buscar cuenta</span><input id="user-search" type="search" placeholder="Buscar nombre o usuario" autocomplete="off"></label></div><div class="users-list">${users.map(u => card(u, scopes)).join("")}</div>`;
+    bindTemporaryFields(host); reveal(host, crypto.randomUUID());
+    host.querySelector(".create-user-trigger").onclick = () => createAccount(scopes);
     for (const row of host.querySelectorAll(".user-card")) bindAccountEditor(row);
     const search = host.querySelector("#user-search");
     const filter = () => {
@@ -138,34 +219,35 @@ async function load() {
       const button = form.querySelector('button:not([type]),button[type="submit"]');
       button.disabled = true; let restore = () => {};
       try {
-        const f = new FormData(form); let path, payload;
-        if (form.id === "create") { path = "/api/admin/users"; payload = Object.fromEntries(f); }
-        else if (form.dataset.reset) {
-          if (!await confirmation("Restablecer contraseña", "Se cerrarán las sesiones de esta persona y deberá cambiar su contraseña temporal al ingresar.", "Confirmar restablecimiento")) { button.disabled = false; button.focus(); return; }
+        const f = new FormData(form); let path, payload, preparedCredentials;
+        if (form.dataset.reset) {
+          if (!await confirmation("Restablecer contraseña", "Se cerrarán sus sesiones y deberá cambiar la contraseña temporal al ingresar.", "Restablecer contraseña")) { button.disabled = false; button.focus(); return; }
           path = `/api/admin/users/${form.dataset.reset}/password`;
           payload = { password: f.get("password"), expectedRevision: Number(form.dataset.revision) };
+          preparedCredentials = { username: users.find(u => u.id === form.dataset.reset).username, password: f.get("password") };
         } else {
           path = `/api/admin/users/${form.dataset.user}`;
           const user = users.find(u => u.id === form.dataset.user);
           payload = { expectedRevision: Number(form.dataset.revision), grants: f.getAll("grants") };
           if (!user.limited) Object.assign(payload, { username: f.get("username"), role: f.get("role"), active: f.has("active"), grants: f.get("role") === "worker" ? f.getAll("grants") : [] });
         }
-        restore = pendingButton(button, form.id === "create" ? "Creando usuario…" : form.dataset.reset ? "Restableciendo…" : "Guardando accesos…");
-        await api(path,payload); await load(); notify("Cambios guardados.","success");
-      } catch (e) { notify(e.message); restore(); button.disabled = false; }
+        restore = pendingButton(button, form.dataset.reset ? "Restableciendo…" : "Guardando accesos…");
+        await api(path, payload); await load(); notify("Cambios guardados.", "success");
+        if (preparedCredentials) credentials(preparedCredentials.username, preparedCredentials.password);
+      } catch (error) { notify(error.message); restore(); button.disabled = false; }
     };
     for (const button of host.querySelectorAll("[data-delete]")) button.onclick = async () => {
       message.hidden = true; message.textContent = "";
       button.disabled = true; let restore = () => {};
       try {
-        if (!await confirmation("Eliminar usuario", `Vas a eliminar <strong>${esc(button.dataset.username)}</strong>. Esta acción es irreversible: se retirarán sus accesos y se cerrarán sus sesiones. Los conteos y el historial se conservan.`, "Eliminar definitivamente", true)) { button.disabled = false; button.focus(); return; }
-        restore = pendingButton(button,"Eliminando…");
+        if (!await confirmation("Eliminar usuario", `Vas a eliminar <strong>${esc(button.dataset.username)}</strong>. Esta acción es irreversible. Se conservan sus conteos e historial.`, "Eliminar definitivamente", true)) { button.disabled = false; button.focus(); return; }
+        restore = pendingButton(button, "Eliminando…");
         await api(`/api/admin/users/${button.dataset.delete}/delete`, { confirm: true, expectedRevision: Number(button.dataset.revision) });
         if (button.dataset.delete === actor.id) { location.replace("/pages/cuenta/"); return; }
-        await load(); notify("Usuario eliminado. Su historial se conserva.","success");
-      } catch (e) { notify(e.message); restore(); button.disabled = false; }
+        await load(); notify("Usuario eliminado. Su historial se conserva.", "success");
+      } catch (error) { notify(error.message); restore(); button.disabled = false; }
     };
-  } catch (e) { notify(e.message); host.replaceChildren(); }
+  } catch (error) { notify(error.message); host.replaceChildren(); }
   finally { finish(); }
 }
 await load();

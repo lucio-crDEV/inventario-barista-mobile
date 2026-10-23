@@ -10,18 +10,23 @@ const validUsername = value => typeof value === "string" && /^[a-z0-9._-]{3,40}$
 
 export async function accountRequest(req, db, path, { u, hash }, helpers) {
   const { body, fail, json, userDTO, quota, event } = helpers;
-  const guard = (target, revision, mode = "account", createRole = "worker") => {
+  const guard = (target, revision, mode = "account", createRole = "worker", createGrants = []) => {
     let condition;
     if (mode === "profile") condition = `a.id=?2 AND a.revision=?3`;
-    else if (!target) condition = `(a.role='admin' OR (a.role='service_lead' AND ?2='worker'))`;
+    else if (!target) {
+      const placeholders = createGrants.map((_, i) => `?${i + 3}`).join(",");
+      const validScopes = createGrants.length ? ` AND (SELECT count(*) FROM scopes WHERE id IN (${placeholders}))=${createGrants.length}` : "";
+      const serviceScopes = createGrants.length ? ` AND NOT EXISTS(SELECT 1 FROM scopes s WHERE s.id IN (${placeholders}) AND NOT EXISTS(SELECT 1 FROM scope_closure c WHERE c.ancestor='servicio' AND c.descendant=s.id))` : "";
+      condition = `(a.role='admin' OR (a.role='service_lead' AND ?2='worker'${serviceScopes}))${validScopes}`;
+    }
     else condition = `EXISTS(SELECT 1 FROM users t WHERE t.id=?2 AND t.deleted_at IS NULL AND t.revision=?3 AND (a.role='admin' OR (a.role='service_lead' AND t.role='worker' AND ${serviceMember("t")} ${mode === "grants" ? "" : `AND NOT ${externalGrant("t")}`})))`;
     const sql = `INSERT INTO guards SELECT CASE WHEN EXISTS(${actorSQL} AND a.revision=${Number(u.revision)} AND ${condition}) THEN 1 ELSE 0 END`;
-    return db.prepare(sql).bind(hash, ...(target ? [target, revision] : [createRole]));
+    return db.prepare(sql).bind(hash, ...(target ? [target, revision] : [createRole, ...createGrants]));
   };
-  const write = async (target, revision, mode, action, detail, statements, createRole) => {
+  const write = async (target, revision, mode, action, detail, statements, createRole, createGrants = []) => {
     try {
       await db.batch([
-        guard(target, revision, mode, createRole),
+        guard(target, revision, mode, createRole, createGrants),
         ...statements,
         db.prepare("INSERT INTO admin_audit(actor,target,action,detail) VALUES(?,?,?,?)").bind(u.id, target || detail.id, action, JSON.stringify(detail)),
         db.prepare("DELETE FROM guards"),
@@ -70,14 +75,27 @@ export async function accountRequest(req, db, path, { u, hash }, helpers) {
   }
   if (path === "/api/admin/users" && req.method === "POST") {
     const b = await body(req);
-    if (Object.keys(b).some(k => !["username", "name", "role", "password"].includes(k)) || !validUsername(b.username) || typeof b.name !== "string" || !b.name.trim() || b.name.length > 80 || !validPassword(b.password) || !roles.includes(b.role))
+    if (Object.keys(b).some(k => !["username", "name", "role", "password", "grants"].includes(k)) || !validUsername(b.username) || typeof b.name !== "string" || !b.name.trim() || b.name.length > 80 || !validPassword(b.password) || !roles.includes(b.role))
       fail(400, "INVALID_USER", "Revisa usuario, nombre, rol y contraseña temporal.");
     if (u.role === "service_lead" && b.role !== "worker") fail(403, "FORBIDDEN");
+    if (!Array.isArray(b.grants) || b.grants.length > 25 || new Set(b.grants).size !== b.grants.length || b.grants.some(s => typeof s !== "string"))
+      fail(400, "INVALID_SCOPE", "Selecciona accesos válidos para la cuenta.");
+    if (b.role === "worker" && !b.grants.length)
+      fail(400, "SCOPE_REQUIRED", "Asigna al menos un área, subárea o zona al trabajador.");
+    if (b.role !== "worker" && b.grants.length)
+      fail(400, "ROLE_SCOPE", "Este rol obtiene su alcance por función.");
+    const scopes = (await db.prepare("SELECT id FROM scopes").all()).results.map(s => s.id);
+    if (b.grants.some(s => !scopes.includes(s))) fail(400, "INVALID_SCOPE");
+    if (u.role === "service_lead") {
+      const allowed = (await db.prepare("SELECT descendant id FROM scope_closure WHERE ancestor='servicio'").all()).results.map(s => s.id);
+      if (b.grants.some(s => !allowed.includes(s))) fail(403, "FORBIDDEN");
+    }
     await quota(db, "admin-password:" + u.id, 10);
     const id = crypto.randomUUID(), h = await hashPassword(b.password);
-    await write(null, null, "create", "create", { id, username: b.username, name: b.name.trim(), role: b.role }, [
+    await write(null, null, "create", "create", { id, username: b.username, name: b.name.trim(), role: b.role, grants: b.grants }, [
       db.prepare("INSERT INTO users(id,username,name,password_hash,role,managed_scope) VALUES(?,?,?,?,?,?)").bind(id, b.username, b.name.trim(), h, b.role, u.role === "service_lead" ? "servicio" : null),
-    ], b.role);
+      ...b.grants.map(scope => db.prepare("INSERT INTO grants(user_id,scope_id) VALUES(?,?)").bind(id, scope)),
+    ], b.role, b.grants);
     return json({ id }, 201);
   }
   const match = path.match(/^\/api\/admin\/users\/([a-f0-9-]+)(\/(?:password|delete))?$/);

@@ -1,5 +1,8 @@
 // Read-only deployment contract; legacy cycles remain intentionally supported.
-const schemaSQL = `AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='trigger' AND name='guard_supervision')
+const schemaSQL = `AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='item_activity')
+ AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='item_activity_events')
+ AND EXISTS(SELECT 1 FROM pragma_table_info('supervision_commands') WHERE name='expected_activity_revision')
+ AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='trigger' AND name='guard_supervision')
  AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='trigger' AND name='apply_supervision')
  AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='view' AND name='supervision_items')
  AND EXISTS(SELECT 1 FROM users WHERE role='admin' AND active=1 AND deleted_at IS NULL)

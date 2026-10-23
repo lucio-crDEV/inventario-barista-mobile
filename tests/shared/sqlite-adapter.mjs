@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync, readdirSync } from "node:fs";
 // Real SQLite adapter for HTTP contract/failure injection tests. D1/workerd is tested separately.
-export function sqliteDB(through = 6) {
+export function sqliteDB(through = 7) {
   const sqlite = new DatabaseSync(":memory:");
   sqlite.exec("PRAGMA foreign_keys=ON");
   const db = {

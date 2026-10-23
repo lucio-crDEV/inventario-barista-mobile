@@ -1,4 +1,4 @@
-import { mkdtempSync, cpSync, symlinkSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, cpSync, rmSync, symlinkSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve, join } from "node:path";
 import { execFileSync, spawn } from "node:child_process";
@@ -39,13 +39,17 @@ try {
   run("scripts/prepare-tests.mjs");
   run("scripts/preflight.mjs", ["--local", "--state", ".wrangler/test-state", "--cycle", "prueba-compartida"]);
   run("tests/shared/preflight-negative.mjs");
+  const baseline=join(root,".wrangler/test-baseline");
+  cpSync(join(root,".wrangler/test-state"),baseline,{recursive:true});
   const logs = [];
-  for (const script of ["integration", "extended", "users-service", "load", "sync", "backoff", "refresh", "users-service-browser", "security-live", "supervision-live", "supervision-browser"]) {
-    // Separate suite rate windows; the 15-client simulation itself is uninterrupted.
-    server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "dev", "--env", "local", "--ip", "127.0.0.1", "--port", "8890", "--inspector-port", "9332", "--persist-to", ".wrangler/test-state", "--var", "APP_ORIGIN:http://127.0.0.1:8890"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
+  for (const script of ["integration", "extended", "users-service", "load", "sync", "backoff", "users-service-browser", "security-live", "supervision-live", "supervision-browser", "revision-browser", "ux", "refresh", "admin-layout", "browser", "views"]) {
+    // Every suite starts from the same disposable D1 snapshot; persistent activity must not leak between suites.
+    rmSync(join(root,".wrangler/test-state"),{recursive:true,force:true});
+    cpSync(baseline,join(root,".wrangler/test-state"),{recursive:true});
+    server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "dev", "--env", "local", "--ip", "127.0.0.1", "--port", "8990", "--inspector-port", "9432", "--persist-to", ".wrangler/test-state", "--var", "APP_ORIGIN:http://127.0.0.1:8990"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
     server.stdout.on("data", c => logs.push(c)); server.stderr.on("data", c => logs.push(c));
-    await ready("http://127.0.0.1:8890/api/me");
-    run(`tests/shared/${script}.mjs`, [], { INVENTORY_TEST_ORIGIN: "http://127.0.0.1:8890" });
+    await ready("http://127.0.0.1:8990/api/me");
+    run(`tests/shared/${script}.mjs`, [], { INVENTORY_TEST_ORIGIN: "http://127.0.0.1:8990" });
     server.kill("SIGTERM");
     await new Promise(r => server.once("exit", r));
     server = null;
@@ -55,12 +59,12 @@ try {
   run("tests/shared/migration-service.mjs");
   run("tests/shared/operations.mjs");
   run("tests/shared/package-security.mjs");
-  server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "pages", "dev", "dist", "--port", "8891", "--ip", "127.0.0.1", "--inspector-port", "9331", "--persist-to", ".wrangler/pages-test-state", "--d1", "DB=00000000-0000-0000-0000-000000000001", "--binding", "APP_ENV=production", "--binding", "APP_ORIGIN=https://127.0.0.1:8891", "--binding", "ACTIVE_CYCLE_ID=prueba-compartida", "--local-protocol", "https"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
+  server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "pages", "dev", "dist", "--port", "8991", "--ip", "127.0.0.1", "--inspector-port", "9431", "--persist-to", ".wrangler/pages-test-state", "--d1", "DB=00000000-0000-0000-0000-000000000001", "--binding", "APP_ENV=production", "--binding", "APP_ORIGIN=https://127.0.0.1:8991", "--binding", "ACTIVE_CYCLE_ID=prueba-compartida", "--local-protocol", "https"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
   const pagesLogs = [];
   server.stdout.on("data", c => pagesLogs.push(c)); server.stderr.on("data", c => pagesLogs.push(c));
   // Playwright uses ignoreHTTPSErrors only in its isolated local context.
   await new Promise(r => setTimeout(r, 4000));
-  run("tests/shared/pages.mjs", [], { INVENTORY_PAGES_ORIGIN: "https://127.0.0.1:8891" });
+  run("tests/shared/pages.mjs", [], { INVENTORY_PAGES_ORIGIN: "https://127.0.0.1:8991" });
   server.kill("SIGTERM");
   await new Promise(r => server.once("exit", r));
   writeFileSync(join(root, "pages.log"), Buffer.concat(pagesLogs));

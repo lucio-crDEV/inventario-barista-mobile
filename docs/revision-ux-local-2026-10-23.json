@@ -1,0 +1,182 @@
+{
+  "root": "/var/folders/_9/2g2q1c950rz8vh1m26c8gt_w0000gn/T/inventory-codex-tests/inventory-security-clkWYB",
+  "startedAt": "2026-10-23T19:41:51.960Z",
+  "runs": [
+    {
+      "script": "scripts/build-pages.mjs",
+      "durationMs": 109,
+      "passed": true
+    },
+    {
+      "script": "scripts/prepare-tests.mjs",
+      "durationMs": 16529,
+      "passed": true
+    },
+    {
+      "script": "scripts/preflight.mjs",
+      "durationMs": 830,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/preflight-negative.mjs",
+      "durationMs": 1731,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/integration.mjs",
+      "durationMs": 10796,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/extended.mjs",
+      "durationMs": 4663,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service.mjs",
+      "durationMs": 4951,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/load.mjs",
+      "durationMs": 6536,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/sync.mjs",
+      "durationMs": 1371,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/backoff.mjs",
+      "durationMs": 805,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/users-service-browser.mjs",
+      "durationMs": 7962,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/security-live.mjs",
+      "durationMs": 1751,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/supervision-live.mjs",
+      "durationMs": 1143,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/supervision-browser.mjs",
+      "durationMs": 5282,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/revision-browser.mjs",
+      "durationMs": 4448,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/ux.mjs",
+      "durationMs": 13034,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/refresh.mjs",
+      "durationMs": 6681,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/admin-layout.mjs",
+      "durationMs": 3640,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/browser.mjs",
+      "durationMs": 27593,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/views.mjs",
+      "durationMs": 9258,
+      "passed": true,
+      "retestedSeparately": true,
+      "note": "Repetida tras adaptar foco del menú y navegación con acceso obligatorio; cero errores JavaScript.",
+      "retestLog": "Vistas repetidas por separado:8grupos,ceroerroresJavaScript; todos aprobados."
+    },
+    {
+      "script": "tests/shared/migration-service.mjs",
+      "durationMs": 5706,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/operations.mjs",
+      "durationMs": 13942,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/package-security.mjs",
+      "durationMs": 139,
+      "passed": true
+    },
+    {
+      "script": "tests/shared/pages.mjs",
+      "durationMs": 2373,
+      "passed": true
+    }
+  ],
+  "finishedAt": "2026-10-23T19:44:41.268Z",
+  "suiteIsolation": "Cada suite parte de una copia idéntica de D1 ficticia; servidores detenidos antes de restaurar el snapshot.",
+  "node": {
+    "passed": 49,
+    "failed": 0,
+    "command": "npm test"
+  },
+  "python": {
+    "passed": 7,
+    "failed": 0,
+    "command": "python3 -m unittest discover -s tests -p '*_test.py'"
+  },
+  "workbook": {
+    "rows": 1151,
+    "vitrinaReferences": 41,
+    "result": "ID/nombre/unidad/categoría coinciden; originales no modificados"
+  },
+  "browserMockSuites": [
+    "tests/account-revision-browser.mjs",
+    "tests/shared/supervision-layout.mjs"
+  ],
+  "limitations": {
+    "remoteChanges": false,
+    "push": false,
+    "physicalDevice": false,
+    "keyboard": "visualViewport simulado en Chromium; falta teclado físico Android/iOS",
+    "productionAcceptance": false,
+    "cloudflareBilledCPU": "no medida"
+  },
+  "rootBaseCommit": "e1c8a0633f815870dc29532c2287fc11aa55ee80",
+  "intermediateRepairs": [
+    "Fixtures eligen productos activos y crean trabajadores con acceso obligatorio",
+    "Cada suite usa su snapshot para aislar actividad persistente",
+    "Switch acepta toque directo y refresco SVG18px",
+    "Resumen conserva contexto al revalidar ciclo/permisos",
+    "Prueba de vistas adaptada al flujo de alta con accesos y al orden de foco vigente"
+  ],
+  "revision-browser-local-2026-10-23.json": {
+    "checks": [
+      "Resumen sin acciones obsoletas, anillo combinado y cifras reales; punto, etiqueta y cifra en una línea a320/390/1024 en ambos temas",
+      "Historial trabajador mínimo con tiempo relativo y fecha accesible; cierre exterior conserva borrador y regreso conserva filtro/categoría",
+      "Revalidación automática de ciclo conserva estado y categorías del resumen después de recargar la proyección autorizada",
+      "Resumen agregado Servicio permite abrir producto; Administrador ve secuencia y anula por el mismo comando sin motivo obligatorio",
+      "Aviso se reposiciona con visualViewport de teclado, se descarta deslizando arriba o con cierre accesible",
+      "Transición breve izquierda/derecha y cambio inmediato con movimiento reducido"
+    ],
+    "errors": [],
+    "physicalDevice": false,
+    "keyboard": "Geometría visualViewport simulada, no teclado físico",
+    "screenshots": "test-results/revision/"
+  },
+  "loadOutput": "{\n  \"environment\": \"Workers/workerd + D1 local; no garantiza capacidad de producción\",\n  \"clients\": 15,\n  \"rounds\": 10,\n  \"durationMs\": 6486,\n  \"measuredRequests\": 496,\n  \"totalRequestsIncludingVerification\": 528,\n  \"statuses\": {\n    \"200\": 482,\n    \"409\": 14\n  },\n  \"expectedConflicts\": 14,\n  \"unexpectedErrors\": 0,\n  \"acceptedWrites\": 151,\n  \"duplicateRetries\": 150,\n  \"localStorage\": {\n    \"telemetryPersistence\": \"disabled\",\n    \"pageGrowth\": 72,\n    \"pageSizeBytes\": 4096,\n    \"cloudflareCpuAndBilledRows\": \"Not measurable from this local simulation\"\n  },\n  \"latencyMs\": {\n    \"p50\": 41,\n    \"p95\": 85,\n    \"max\": 4245\n  },\n  \"consistency\": \"151 operaciones aceptadas, historial y resultados coincidentes; cantidades finales verificadas\",\n  \"note\": \"Duración incluye ingresos bcrypt. Medidas incluyen login/bootstrap/guardar/reintento/sync/race; lecturas auxiliares de verificación no se contabilizan.\"\n}",
+  "verificationCompletedAt": "2026-10-23T19:49:45.046287+00:00"
+}

@@ -23,7 +23,9 @@
   >
   <link rel="stylesheet" href="../../theme.css">
   <link rel="stylesheet" href="/shared/shared.css">
-</head>
+    <link rel="stylesheet" href="/shared/revision.css">
+    <link rel="stylesheet" href="./summary.css">
+  </head>
 
 <body>
 
@@ -94,73 +96,6 @@
     </section>
 
   </main>
-
-
-  <!-- ======================================================
-       MODAL: NUEVO INVENTARIO
-       ====================================================== -->
-
-  <div
-    id="confirm-modal"
-    class="modal-backdrop"
-    hidden
-  >
-
-    <section
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-modal-title"
-    >
-
-      <div class="modal-icon">
-        !
-      </div>
-
-
-      <h2 id="confirm-modal-title">
-        ¿Comenzar un nuevo inventario?
-      </h2>
-
-
-      <p>
-        Se perderá
-        <strong>
-          todo el progreso del inventario actual en todas las áreas
-        </strong>,
-        incluyendo cantidades, notas y estados.
-      </p>
-
-
-      <p>
-        Esta acción no se puede deshacer.
-      </p>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="cancel-new-session"
-          class="button button-secondary"
-          type="button"
-        >
-          Cancelar
-        </button>
-
-
-        <button
-          id="confirm-new-session"
-          class="button button-danger"
-          type="button"
-        >
-          Sí, borrar progreso
-        </button>
-
-      </div>
-
-    </section>
-
-  </div>
 
 
   <script

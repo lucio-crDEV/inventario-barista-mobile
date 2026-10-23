@@ -1,4 +1,5 @@
-import { loading, reveal, pendingButton, historyLoading } from "./loading.js";
+import { openProductHistory } from "./product-history.js";
+import { pendingButton } from "./loading.js";
 import { describeCountValue } from "./count-display.js";
 import {
   api,
@@ -11,8 +12,8 @@ import {
   loginRedirect,
 } from "./client.js";
 export class SharedInventory {
-  static async create() {
-    const data = await authenticated("/api/bootstrap");
+  static async create(cycle) {
+    const data = await authenticated("/api/bootstrap"+(cycle?"?cycle="+encodeURIComponent(cycle):""));
     const inventory = new SharedInventory(data.user, data);
     identityBar(data.user, async () => {
       await inventory.sync({ manual: true });
@@ -99,27 +100,7 @@ export class SharedInventory {
         ? '<button type="button" class="button button-secondary" id="retry-operation">Reintentar envío pendiente</button>'
         : "");
     info.after(controls);
-    controls.querySelector("#record-history").onclick = async () => {
-      const el = dialog(
-        "Historial del producto",
-        `<div class="history-content">${historyLoading()}</div><button type="button">Cerrar</button>`,
-      );
-      const body = el.querySelector(".history-content");
-      el.querySelector("button").onclick = () => el.close();
-      const finishLoading = loading(body);
-      try {
-        const r = await api(this.recordURL("/api/history", item));
-        if (!el.open) return;
-        body.innerHTML = `<p>${esc(item.name)} · ${esc(this.locationName(item))}</p><ol class="history-list">${r.history.map((h) => `<li><div class="history-heading"><strong>${esc(h.after_record.authorName)}</strong><small>${esc(new Date(h.created_at).toLocaleString("es-CL"))}</small></div><span class="state-chip">${{ direct: "Guardado directo", add: "Suma", overwrite: "Sobrescritura", rectify: "Rectificación", annul: "Anulación" }[h.action] || esc(h.action)}</span><p>${esc(h.before_record?.quantity ?? "Sin conteo")} → <strong>${h.after_record.status === "pending" ? "Sin conteo vigente" : esc(h.after_record.quantity)+" "+esc(item.unit)}</strong> · ${h.after_record.outOfStock ? "Sin stock" : h.after_record.status === "partial" ? "Avance" : h.after_record.status === "pending" ? "Pendiente" : "Contado"}</p>${h.reason ? `<p class="history-note">Motivo: ${esc(h.reason)}</p>` : ""}${h.after_record.note ? `<p class="history-note">${esc(h.after_record.note)}</p>` : ""}</li>`).join("")}</ol>${r.history.length ? "" : "<p>Sin movimientos.</p>"}`;
-        reveal(body);
-      } catch (e) {
-        if (el.open)
-          body.textContent = e.message || "No se pudo cargar el historial.";
-        this.handleError(e);
-      } finally {
-        finishLoading();
-      }
-    };
+    controls.querySelector("#record-history").onclick = () => openProductHistory(this,item);
     this.pendingUI(item);
     controls
       .querySelector("#retry-operation")

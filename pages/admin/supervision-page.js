@@ -1,107 +1,351 @@
-import {api,authenticated,identityBar,escapeHtml as esc,dialog} from '/shared/client.js';
-import {describeCountValue} from '/shared/count-display.js';
-const root=document.querySelector('#supervision'),message=document.querySelector('#message');
-const names={open:'Abierto',review:'En revisión',closed:'Cerrado',pending:'Pendiente',partial:'Avance',counted:'Contado',excluded:'Excluido',rectify:'Rectificación',annul:'Anulación',activation:'Activación',state:'Estado',direct:'Guardado',add:'Suma',overwrite:'Sobrescritura'};
-let user,cycle,scopes=[],items=[],cursor=null,mode='items',generation=0,pendingCommand=null;
-const qs=()=>new URLSearchParams({cycle:document.querySelector('#cycle').value,scope:document.querySelector('#scope').value});
-function styleButtons(host){for(const b of host.querySelectorAll('button')){b.classList.add('button');if(!b.classList.contains('button-danger'))b.classList.add(b.hasAttribute('data-confirm')?'button-primary':'button-secondary');}}
-function notice(text){message.hidden=!text;message.textContent=text;if(text)message.focus();}
-function locationName(id){return scopes.find(s=>s.id===id)?.name||id;}
-function value(r,unit){return !r||r.status==='pending'?'Sin conteo vigente':describeCountValue(r,unit);}
-function recordMarkup(r,unit){return `<p>${esc(value(r,unit))}</p>${r?.note?`<p>Nota: ${esc(r.note)}</p>`:''}`;}
-async function refresh(){
-  const ticket=++generation;notice('');root.setAttribute('aria-busy','true');
-  document.querySelector('#results').textContent='Cargando…';
-  try{
-    const data=await authenticated('/api/admin/supervision?'+qs());if(ticket!==generation)return;
-    if(data.user.id!==user.id){location.reload();return;} user=data.user;cycle=data.cycle;scopes=data.scopes;
-    document.querySelector('#cycle-state').textContent=`Actualizado ${new Date(data.updatedAt).toLocaleString('es-CL')}`;
-    document.querySelector('#stats').innerHTML=data.groups.map(g=>`<section class="supervision-card"><h2>${esc(locationName(g.areaId))}</h2><p>${g.counted} contados / ${g.total} activos</p><progress max="${g.total||1}" value="${g.counted}" aria-label="Progreso de ${esc(locationName(g.areaId))}"></progress><p>${g.pending} pendientes · ${g.partial} con avance · ${g.excluded} excluidos</p></section>`).join('');
-    renderCycleActions();cursor=null;items=[];await loadPage(false,ticket);
-  }catch(e){if(ticket===generation){document.querySelector('#results').textContent='No se pudo cargar el inventario.';notice(e.message);}}
-  finally{if(ticket===generation)root.setAttribute('aria-busy','false');}
-}
-async function loadPage(append=false,ticket=generation){
-  const params=qs();if(append&&cursor!==null)params.set('cursor',cursor);
-  if(mode==='items'){params.set('status',document.querySelector('#status').value);params.set('q',document.querySelector('#search').value);}
-  else if(mode==='history'){
-    for(const key of ['item','location','author','action']){const v=document.querySelector('#history-'+key).value.trim();if(v)params.set(key,v);}
-    for(const key of ['from','to']){const v=document.querySelector('#history-'+key).value;if(v)params.set(key,new Date(v).toISOString());}
-  }
-  const endpoint=mode==='items'?'items':mode==='history'?'history':'events';
-  const data=await authenticated('/api/admin/supervision/'+endpoint+'?'+params);if(ticket!==generation)return;
-  const list=data.items||data.history||data.events;cursor=data.nextCursor;
-  const results=document.querySelector('#results');if(!append)results.innerHTML='';
-  if(mode==='items'){
-    items.push(...list);
-    results.insertAdjacentHTML('beforeend',list.map(i=>`<article class="supervision-card"><h3>${esc(i.name)}</h3><p>${esc(locationName(i.locationId))} · ${esc(i.unit||'Unidad pendiente')}</p><p class="supervision-status" data-state="${i.status}">${i.active?names[i.status]:'Excluido del conteo'}</p>${recordMarkup(i.record,i.unit)}<div class="supervision-actions"><button type="button" data-history="${esc(i.id)}" data-location="${esc(i.locationId)}">Ver historial</button>${itemActions(i)}</div></article>`).join(''));
-    for(const b of results.querySelectorAll('[data-history]'))b.onclick=()=>{document.querySelector('#history-item').value=b.dataset.history;document.querySelector('#history-location').value=b.dataset.location;setMode('history');};
-    bindItemActions();
-  }else{
-    results.insertAdjacentHTML('beforeend',list.map(h=>`<article class="supervision-card"><h3>${esc(h.product||names[h.kind]||h.kind)}</h3><p>${esc(names[h.action||h.kind]||h.action||h.kind)} · ${esc(new Date(h.createdAt||h.created_at).toLocaleString('es-CL'))}</p><p>Autor: ${esc(h.after?.authorName||h.authorId||h.user_id)}${h.authorId?` · ID ${esc(h.authorId)}`:''}</p>${h.locationId?`<p>${esc(locationName(h.locationId))}</p>`:''}${h.before||h.after?`<p>Antes: ${esc(value(h.before,h.after?.unit))}<br>Después: ${esc(value(h.after,h.after?.unit))}</p>`:''}${h.after?.note?`<p>Nota: ${esc(h.after.note)}</p>`:''}${h.reason?`<p>Motivo: ${esc(h.reason)}</p>`:''}</article>`).join(''));
-  }
-  if(!list.length&&!append)results.textContent='Sin resultados para estos filtros.';
-  document.querySelector('#more').hidden=cursor==null;styleButtons(root);
-}
-function setMode(next){mode=next;for(const b of root.querySelectorAll('[data-mode]'))b.setAttribute('aria-pressed',String(b.dataset.mode===mode));document.querySelector('#item-filters').hidden=mode!=='items';document.querySelector('#history-filters').hidden=mode!=='history';refresh();}
-function effective(scope){return cycle.scopeStates?.find(s=>s.scope_id===scope)?.state||cycle.state;}
-function renderCycleActions(){
- const host=document.querySelector('#cycle-actions');
- host.innerHTML=`<p>Estado global: ${names[cycle.state]} · Servicio: ${names[effective('servicio')]}</p>`;
- const controls=document.createElement('details');controls.className='supervision-card';controls.innerHTML='<summary>Gestionar revisión, cierre o reapertura</summary>';host.append(controls);
- for(const scope of user.role==='admin'?['','servicio']:['servicio']){
-  const box=document.createElement('div');box.className='supervision-actions';
-  box.innerHTML=`<span>${scope?'Servicio':'Todo el inventario'}:</span>${['review','closed','open'].map(state=>`<button type="button" data-state="${state}">${{review:'Pasar a revisión',closed:'Cerrar',open:'Reabrir'}[state]}</button>`).join('')}`;
-  for(const b of box.querySelectorAll('button')){const current=scope?effective(scope):cycle.state,overrides=!scope&&cycle.scopeStates?.length;b.disabled=(b.dataset.state===current&&!overrides)||(b.dataset.state==='closed'&&current!=='review'&&!overrides)||(b.dataset.state==='review'&&current==='closed'&&!overrides);b.onclick=()=>changeDialog({kind:'state',scope,state:b.dataset.state},null);}
-  controls.append(box);
- }
- if(pendingCommand){const b=document.createElement('button');b.textContent='Reintentar cambio pendiente';b.onclick=()=>submitCommand(pendingCommand);host.append(b);}
- styleButtons(host);
-}
-function itemActions(i){if(effective(i.locationId.startsWith('servicio:')?'servicio':'')==='closed')return '<p>Reabre este alcance antes de modificar.</p>';return `${i.active?'<button type="button" data-change="rectify">Rectificar</button>'+ (i.record&&i.record.status!=='pending'?'<button type="button" data-change="annul" class="button-danger">Anular conteo</button>':''):''}${user.role==='admin'?`<button type="button" data-change="activation">${i.active?'Excluir de este inventario':'Volver a activar'}</button>`:''}`;}
-function bindItemActions(){
- const cards=[...document.querySelectorAll('#results article')];
- cards.forEach((card,index)=>{for(const b of card.querySelectorAll('[data-change]'))b.onclick=()=>changeDialog({kind:b.dataset.change},items[index]);});
-}
-function changeDialog(change,item){
- if(pendingCommand){notice('Hay un envío de resultado incierto. Reinténtalo antes de iniciar otro cambio.');return;}
- const titles={rectify:'Rectificar conteo',annul:'Anular conteo',activation:item?.active?'Excluir producto':'Activar producto',state:change.state==='open'?'Reabrir':change.state==='review'?'Pasar a revisión':'Cerrar'};
- const b={id:crypto.randomUUID(),cycleId:cycle.id,expectedRevision:cycle.revision,...change,confirm:true};
- if(item)Object.assign(b,{itemId:item.id,locationId:item.locationId,expectedVersion:item.record?.version||0});
- if(change.kind==='activation')b.active=!item.active;
- const el=dialog(titles[change.kind],`<p>${esc(cycle.name)} · ${esc(item?item.name:change.scope?'Servicio':'Todo el inventario')}</p>${item?`<p>Vigente: ${esc(value(item.record,item.unit))} · versión ${b.expectedVersion}</p>`:''}${change.kind==='annul'?'<p>Volverá a pendiente. El conteo anterior y su historial se conservarán.</p>':''}${change.kind==='activation'?'<p>Solo afecta este inventario. Conserva conteos y referencias Excel; excluir no confirma cero.</p>':''}${change.kind==='state'?`<p>${change.scope?'Solo cambia Servicio. Las demás áreas conservan su estado.':'Cambia todas las áreas y sustituye los estados particulares de Servicio.'} ${change.state==='review'?'Detendrá el conteo normal; se permiten correcciones de supervisión.':change.state==='closed'?'Exige todos los productos activos contados. El servidor no conoce borradores de dispositivos desconectados.':'Habilitará de nuevo el conteo en este alcance.'}</p>`:''}<form id="change-form">${change.kind==='rectify'?`<label>Cantidad<input name="quantity" inputmode="decimal" type="number" min="0" max="1000000" step="0.001" value="${item.record?.quantity??''}" required></label><label>Estado<select name="status"><option value="counted">Contado</option><option value="partial" ${item.status==='partial'?'selected':''}>Avance</option></select></label><label><input type="checkbox" name="outOfStock"> Sin stock (cero contado)</label><label>Nota<textarea name="note" maxlength="1000">${esc(item.record?.note||'')}</textarea></label><p id="change-preview" aria-live="polite"></p>`:''}<label>Motivo<textarea name="reason" minlength="3" maxlength="500" placeholder="actualizacion/revision item" required></textarea></label>${change.kind==='state'&&change.state==='closed'?'<label><input type="checkbox" name="ack" required> Revisé con los participantes que no quedan borradores sin enviar en este alcance.</label>':''}<p data-command-error role="alert"></p><div class="supervision-actions"><button type="button" data-cancel autofocus>Cancelar</button><button type="submit" data-confirm>Confirmar cambio</button></div></form>`);
- el.classList.add('supervision-modal');styleButtons(el);const form=el.querySelector('form');
- el.querySelector('[data-cancel]').onclick=()=>el.close();
- const preview=()=>{if(change.kind!=='rectify')return;const f=new FormData(form),zero=f.has('outOfStock');form.elements.quantity.disabled=zero;form.elements.status.disabled=zero;el.querySelector('#change-preview').textContent=`Resultado propuesto: ${zero?'Sin stock · cero confirmado':`${f.get('quantity')} ${item.unit||'(unidad pendiente)'} · ${names[f.get('status')]}`}`;};form.oninput=preview;preview();
- form.onsubmit=async e=>{e.preventDefault();const f=new FormData(form);b.reason=String(f.get('reason')).trim();if(change.kind==='rectify')Object.assign(b,{quantity:f.has('outOfStock')?0:Number(f.get('quantity')),status:f.has('outOfStock')?'counted':f.get('status'),note:String(f.get('note')),outOfStock:f.has('outOfStock')});if(change.kind==='state'&&change.state==='closed')b.acknowledgeDrafts=f.has('ack');
-  for(const c of form.elements)c.disabled=true;
-  const done=await submitCommand(b);if(done)el.close();else{el.querySelector('[data-command-error]').textContent=message.textContent;if(!pendingCommand){for(const c of form.elements)c.disabled=false;preview();}else{el.querySelector('[data-cancel]').disabled=false;el.querySelector('[data-cancel]').textContent='Cerrar y conservar envío';}}
- };
-}
-function pendingKey(){return `inventory-supervision-pending:${user.id}`;}
-async function submitCommand(b){
- try{
-  // Retain the operation ID and reviewed payload before sending. Never replay automatically.
-  sessionStorage.setItem(pendingKey(),JSON.stringify(b));pendingCommand=b;
-  await api('/api/admin/supervision/command',b);
-  pendingCommand=null;sessionStorage.removeItem(pendingKey());await refresh();notice('Cambio guardado.');return true;
- }catch(e){
-  if(e.status&&e.status<500){pendingCommand=null;sessionStorage.removeItem(pendingKey());}
-  notice(e.message+(pendingCommand?' Resultado incierto: conserva este envío y reinténtalo con el mismo ID.':''));renderCycleActions();return false;
- }
-}
+import { authenticated, identityBar, escapeHtml as esc, dialog, setSync } from '/shared/client.js';
+import { readCommand, submitCommand as sendSupervisionCommand } from '/shared/supervision-command.js';
+import { describeCountValue } from '/shared/count-display.js';
+import { stateNames, actionNames, progressParts, dateTime, calendarDay, mayReopen, movementQuantity } from './supervision-ui.js';
 
-try{
- const data=await authenticated('/api/admin/supervision/cycles');user=data.user;try{pendingCommand=JSON.parse(sessionStorage.getItem(pendingKey())||'null');}catch{pendingCommand=null;}identityBar(user,async()=>{await refresh();return 'Sincronizado';});
- root.innerHTML=`<label>Inventario<select id="cycle">${data.cycles.map(c=>`<option value="${esc(c.id)}">${esc(c.name)} · ${names[c.state]}</option>`).join('')}</select></label><p id="cycle-state" role="status"></p><div id="cycle-actions" class="supervision-actions"></div><div class="supervision-filters"><label>Ámbito<select id="scope"><option value="">Todo mi alcance</option></select></label><button type="button" id="refresh">Actualizar</button></div><div id="stats" class="supervision-stats"></div><div class="supervision-tabs"><button type="button" data-mode="items" aria-pressed="true">Productos</button><button type="button" data-mode="history" aria-pressed="false">Historial</button>${user.role==='admin'?'<button type="button" data-mode="events" aria-pressed="false">Cambios administrativos</button>':''}</div><form id="filters"><div id="item-filters" class="supervision-filters"><label>Estado<select id="status"><option value="">Todos</option>${['pending','partial','counted','excluded'].map(s=>`<option value="${s}">${names[s]}</option>`).join('')}</select></label><label>Buscar producto<input id="search" type="search" maxlength="100"></label></div><div id="history-filters" class="supervision-filters" hidden>${`<input id="history-item" type="hidden"><label>Ubicación<select id="history-location"><option value="">Todas</option></select></label><label>Autor<select id="history-author"><option value="">Todos</option></select></label>`}<label>Acción<select id="history-action"><option value="">Todas</option>${['direct','add','overwrite','rectify','annul'].map(s=>`<option value="${s}">${names[s]}</option>`).join('')}</select></label><label>Desde<input id="history-from" type="datetime-local"></label><label>Hasta<input id="history-to" type="datetime-local"></label></div><button type="submit">Aplicar filtros</button><button type="button" id="clear-filters">Limpiar filtros</button></form><section id="results" aria-live="polite"></section><button type="button" id="more" hidden>Cargar más</button>`;
- styleButtons(root);
- root.querySelector('#cycle').onchange=async()=>{root.querySelector('#scope').value='';root.querySelector('#history-item').value='';const d=await authenticated('/api/admin/supervision/authors?'+qs());root.querySelector('#history-author').innerHTML='<option value="">Todos</option>'+d.authors.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');await refresh();};root.querySelector('#scope').onchange=refresh;root.querySelector('#refresh').onclick=refresh;
- root.querySelector('#clear-filters').onclick=()=>{root.querySelector('#filters').reset();root.querySelector('#history-item').value='';refresh();};
- root.querySelector('#filters').onsubmit=e=>{e.preventDefault();refresh();};
- for(const b of root.querySelectorAll('[data-mode]'))b.onclick=()=>setMode(b.dataset.mode);
- root.querySelector('#more').onclick=async e=>{e.target.disabled=true;try{await loadPage(true);}catch(err){notice(err.message);}finally{e.target.disabled=false;}};
- const originalRefresh=refresh;
- // Populate scopes once from the server projection; every read revalidates them.
- if(data.cycles.length){const d=await authenticated('/api/admin/supervision?'+qs());scopes=d.scopes;root.querySelector('#scope').insertAdjacentHTML('beforeend',scopes.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join(''));root.querySelector('#history-location').insertAdjacentHTML('beforeend',scopes.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join(''));const authorData=await authenticated('/api/admin/supervision/authors?'+qs());root.querySelector('#history-author').insertAdjacentHTML('beforeend',authorData.authors.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join(''));await originalRefresh();}
- else{root.textContent='No hay inventarios disponibles.';root.setAttribute('aria-busy','false');}
-}catch(e){root.textContent='Supervisión no disponible.';root.setAttribute('aria-busy','false');notice(e.message);}
+const root = document.querySelector('#supervision');
+const message = document.querySelector('#message');
+const state = { mode: 'areas', cycleId: '', scope: '', status: '', search: '', category: '', author: '',
+  location: '', pageCount: 1, openProducts: [], openHistory: [], scroll: 0, drafts: {} };
+let user, cycle, scopes = [], groups = [], products = [], historyItems = [], cursor = null;
+let generation = 0, pendingCommand = null, sending = false, loading = false, timer, searchTimer;
+let commandDialog = null, restoreScroll = null, restoring = false;
+const details = new Map();
+const $ = selector => root.querySelector(selector);
+const key = item => `${item.id || item.itemId}\u001f${item.locationId}`;
+const storageKey = () => `inventory-supervision-view:${user.id}`;
+const locationName = id => scopes.find(scope => scope.id === id)?.name || id;
+const areaOf = item => item.areaId || (item.locationId?.startsWith('servicio') ? 'servicio' : item.locationId?.split(':')[0]);
+const recordValue = (record, unit) => !record || record.status === 'pending' ? 'Sin conteo' : describeCountValue(record, unit);
+const effective = scope => cycle.scopeStates?.find(item => item.scope_id === scope)?.state || cycle.state;
+const currentScope = () => user.role === 'service_lead' || state.scope === 'servicio' || state.scope.startsWith('servicio:') ? 'servicio' : '';
+const params = () => new URLSearchParams({ cycle: state.cycleId, scope: state.scope });
+
+function notice(text, tone = 'error', focus = false) {
+  message.hidden = !text; message.textContent = text; message.dataset.tone = tone;
+  if (text && focus) message.focus({ preventScroll: true });
+}
+function snapshot() {
+  state.scroll = window.scrollY;
+  state.openProducts = [...root.querySelectorAll('details[data-product][open]')].map(el => el.dataset.product);
+  state.openHistory = [...root.querySelectorAll('details[data-history][open]')].map(el => el.dataset.history);
+  const value = JSON.parse(JSON.stringify(state));
+  try { sessionStorage.setItem(storageKey(), JSON.stringify(value)); } catch {}
+  history.replaceState({ ...history.state, supervision: { userId: user.id, value } }, '');
+}
+function restore(saved) {
+  if (!saved || typeof saved !== 'object') return;
+  for (const field of ['cycleId', 'scope', 'status', 'search', 'category', 'author', 'location']) {
+    if (typeof saved[field] === 'string') state[field] = saved[field].slice(0, 150);
+  }
+  if (['areas', 'items', 'history', 'events'].includes(saved.mode)) state.mode = saved.mode;
+  if (Number.isSafeInteger(saved.pageCount)) state.pageCount = Math.min(30, Math.max(1, saved.pageCount));
+  for (const field of ['openProducts', 'openHistory']) if (Array.isArray(saved[field])) state[field] = saved[field].filter(x => typeof x === 'string').slice(0, 1000);
+  if (saved.drafts && typeof saved.drafts === 'object') state.drafts = saved.drafts;
+  restoreScroll = Math.max(0, Number(saved.scroll) || 0);
+}
+function ring(group) {
+  const p = progressParts(group);
+  return `<span class="supervision-ring" role="img" aria-label="${p.percent}% con registro: ${p.counted} contados, ${p.partial} con avance, ${p.total} activos"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-base" cx="22" cy="22" r="18" pathLength="100"/><circle class="ring-counted" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${p.countedPercent} 100"/><circle class="ring-partial" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${p.partialPercent} 100" stroke-dashoffset="-${p.countedPercent}"/></svg><span>${p.percent}%</span></span>`;
+}
+function skeleton() { return '<div class="skeleton-stack" aria-hidden="true"><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-line"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span></div></div>'; }
+function renderShell(cycles) {
+  root.innerHTML = `<section class="supervision-context" aria-label="Inventario seleccionado"><label class="supervision-cycle-label">Inventario<select id="cycle">${cycles.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label><p id="cycle-state" class="supervision-updated" role="status"></p><div id="cycle-actions"></div></section><div class="supervision-tabs" role="tablist" aria-label="Vistas de supervisión">${[['areas','Áreas'],['items','Productos'],['history','Historial']].map(([id,title]) => `<button type="button" id="tab-${id}" role="tab" data-mode="${id}" aria-controls="supervision-panel" aria-selected="false">${title}</button>`).join('')}</div><section id="supervision-panel" role="tabpanel"><div class="supervision-tools"><label>Área<select id="scope"><option value="">${user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas'}</option></select></label><label id="status-filter">Estado<select id="status"><option value="">Todos los productos</option>${['pending','partial','counted','excluded'].map(id => `<option value="${id}">${stateNames[id]}</option>`).join('')}</select></label></div><a id="scope-summary" class="supervision-scope-summary" hidden></a><div id="list-tools"><label class="supervision-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" maxlength="100" placeholder="Buscar producto" aria-label="Buscar producto"></label><div id="history-filters"><div class="supervision-pills" aria-label="Tipo de movimientos">${[['','Todos'],['count','Conteos'],['correction','Correcciones'],['annul','Anulaciones']].map(([id,title]) => `<button type="button" data-category="${id}" aria-pressed="false">${title}</button>`).join('')}</div><details class="supervision-extra-filters"><summary>Ubicación y autor</summary><div class="supervision-tools"><label>Ubicación<select id="history-location"><option value="">Todas las ubicaciones</option></select></label><label>Autor<select id="history-author"><option value="">Todos</option></select></label></div></details></div></div><div class="supervision-list-heading"><h2 id="result-title">Avance por área</h2><span id="result-count"></span></div><section id="results" aria-label="Resultados de supervisión"></section><div class="supervision-list-footer"><button type="button" class="button button-secondary" id="more" hidden>Cargar más</button><button type="button" class="supervision-text-action" id="clear-filters" hidden>Limpiar filtros</button></div></section>${user.role === 'admin' ? '<button class="supervision-text-action supervision-admin-events" type="button" id="admin-events">Actividad administrativa</button>' : ''}`;
+  $('#cycle').value = state.cycleId;
+  $('#status').value = state.status; $('#search').value = state.search;
+  $('#cycle').onchange = async event => { state.cycleId = event.target.value; state.scope = ''; resetList(); details.clear(); await refresh({ reset: true, authors: true }); };
+  $('#scope').onchange = async event => { state.scope = event.target.value; resetList(); await refresh({ reset: true }); };
+  $('#status').onchange = event => { state.status = event.target.value; changeFilters(); };
+  $('#search').oninput = event => { state.search = event.target.value; clearTimeout(searchTimer); searchTimer = setTimeout(changeFilters, 250); };
+  for (const [selector, field] of [['#history-location','location'],['#history-author','author']]) $(selector).onchange = event => { state[field] = event.target.value; changeFilters(); };
+  for (const button of root.querySelectorAll('[data-mode]')) button.onclick = () => setMode(button.dataset.mode);
+  for (const button of root.querySelectorAll('[data-category]')) button.onclick = () => { state.category = button.dataset.category; changeFilters(); };
+  root.querySelector('.supervision-tabs').onkeydown = event => {
+    if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+    const tabs = [...root.querySelectorAll('[role="tab"]')], at = tabs.indexOf(document.activeElement); if (at < 0) return;
+    event.preventDefault(); const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (at + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next].click(); tabs[next].focus();
+  };
+  $('#clear-filters').onclick = () => { Object.assign(state, {status:'',search:'',category:'',author:'',location:''}); $('#status').value = ''; $('#search').value = ''; $('#history-author').value = ''; $('#history-location').value = ''; changeFilters(); };
+  $('#more').onclick = () => loadMore();
+  if ($('#admin-events')) $('#admin-events').onclick = () => setMode(state.mode === 'events' ? 'areas' : 'events');
+  updateMode();
+}
+function updateMode() {
+  for (const button of root.querySelectorAll('[data-mode]')) { const selected = button.dataset.mode === state.mode; button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected || state.mode === 'events' && button.dataset.mode === 'areas' ? 0 : -1; }
+  $('#supervision-panel').setAttribute('aria-labelledby', state.mode === 'events' ? 'admin-events' : `tab-${state.mode}`);
+  $('#status-filter').hidden = state.mode !== 'items'; $('#list-tools').hidden = !['items','history'].includes(state.mode);
+  $('#history-filters').hidden = state.mode !== 'history';
+  for (const button of root.querySelectorAll('[data-category]')) button.setAttribute('aria-pressed', String(button.dataset.category === state.category));
+  $('#result-title').textContent = { areas:'Avance por área',items:'Productos',history:'Productos con movimientos',events:'Actividad administrativa' }[state.mode];
+  $('#admin-events')?.setAttribute('aria-pressed', String(state.mode === 'events'));
+  $('#clear-filters').hidden = ![state.status,state.search,state.category,state.author,state.location].some(Boolean) || state.mode === 'areas';
+}
+function resetList() { state.pageCount = 1; state.openProducts = []; state.openHistory = []; cursor = null; }
+async function changeFilters() { resetList(); details.clear(); updateMode(); await refresh({ reset: true }); }
+async function setMode(next) { if (state.mode === next) return; snapshot(); state.mode = next; resetList(); updateMode(); await refresh({ reset: true }); }
+function renderScopes() {
+  for (const id of ['#scope','#history-location']) {
+    const el = $(id), value = id === '#scope' ? state.scope : state.location;
+    const options = scopes.map(scope => `<option value="${esc(scope.id)}">${esc(scope.name)}</option>`).join('');
+    el.innerHTML = `<option value="">${id === '#scope' ? user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas' : 'Todas las ubicaciones'}</option>${options}`;
+    el.value = value; if (id === '#scope' && el.value !== state.scope) state.scope = '';
+  }
+}
+async function refresh({ reset = false, quiet = false, authors = false } = {}) {
+  if (loading && quiet || sending && quiet || document.hidden && quiet || document.querySelector('dialog[open]') && quiet) return;
+  if (quiet && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  const ticket = ++generation; loading = true;
+  const y = window.scrollY;
+  const focused = quiet ? focusSnapshot() : null;
+  if (!reset && !restoring) snapshot();
+  if (!quiet) { root.setAttribute('aria-busy', 'true'); $('#results').innerHTML = skeleton(); }
+  try {
+    const data = await authenticated('/api/admin/supervision?' + params());
+    if (ticket !== generation) return;
+    if (data.user.id !== user.id || data.user.role !== user.role) { location.reload(); return; }
+    user = data.user; cycle = data.cycle; scopes = data.scopes; groups = data.groups;
+    renderScopes();
+    $('#cycle-state').textContent = `Actualizado ${dateTime(data.updatedAt)}`;
+    renderCycleActions(); renderScopeSummary();
+    if (authors) {
+      const authorData = await authenticated('/api/admin/supervision/authors?' + params());
+      if (ticket !== generation) return;
+      $('#history-author').innerHTML = '<option value="">Todos</option>' + authorData.authors.map(author => `<option value="${esc(author.id)}">${esc(author.name)}</option>`).join('');
+      $('#history-author').value = state.author;
+    }
+    if (state.mode === 'areas') { cursor = null; renderAreas(); }
+    else await fetchPages(reset ? 1 : state.pageCount, ticket);
+    if (ticket !== generation) return;
+    updateMode(); setSync(pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado', pendingCommand ? 'pending' : 'synced');
+    if (quiet || restoreScroll !== null) window.scrollTo({ top: restoreScroll ?? y, behavior: 'instant' });
+    restoreScroll = null;
+    if (focused) restoreFocus(focused);
+    snapshot();
+  } catch (error) {
+    if (ticket !== generation) return;
+    if (!quiet) $('#results').innerHTML = '<p class="supervision-empty">No se pudo cargar el inventario. Puedes volver a elegir una vista para reintentar.</p>';
+    notice(error.message); setSync('No se pudo actualizar', 'error');
+  } finally { if (ticket === generation) { loading = false; root.setAttribute('aria-busy','false'); } }
+}
+function focusSnapshot() {
+  const active = document.activeElement;
+  if (!root.contains(active)) return null;
+  if (active.id) return {id:active.id};
+  const card = active.closest('[data-product],[data-history]');
+  if (card) return {product:card.dataset.product,history:card.dataset.history,summary:active.tagName === 'SUMMARY',change:active.dataset.change,itemHistory:active.hasAttribute('data-item-history'),active:active.hasAttribute('data-active'),moreHistory:active.hasAttribute('data-more-history')};
+  if (active.dataset.transition) return {transition:active.dataset.transition,scope:active.dataset.scope};
+  return null;
+}
+function restoreFocus(saved) {
+  let target;
+  if (saved.id) target = document.getElementById(saved.id);
+  else if (saved.transition) target = [...root.querySelectorAll('[data-transition]')].find(button => button.dataset.transition === saved.transition && button.dataset.scope === saved.scope);
+  else {
+    const card = [...root.querySelectorAll('[data-product],[data-history]')].find(el => saved.product ? el.dataset.product === saved.product : el.dataset.history === saved.history);
+    if (card) target = saved.summary ? card.querySelector('summary') : saved.change ? [...card.querySelectorAll('[data-change]')].find(button => button.dataset.change === saved.change) : saved.itemHistory ? card.querySelector('[data-item-history]') : saved.active ? card.querySelector('[data-active]') : saved.moreHistory ? card.querySelector('[data-more-history]') : null;
+  }
+  target?.focus({preventScroll:true});
+}
+function renderCycleActions() {
+  const scopesToShow = user.role === 'admin' ? ['', 'servicio'] : ['servicio'];
+  $('#cycle-actions').innerHTML = scopesToShow.map(scope => {
+    const current = scope ? effective(scope) : cycle.state, title = scope ? 'Servicio' : 'Inventario Global';
+    const canOpen = mayReopen(user.role, current);
+    return `<div class="supervision-lifecycle"><div><span>${title}</span><strong data-state="${current}">${stateNames[current]}</strong></div><div class="supervision-state-actions">${current === 'open' ? `<button type="button" class="supervision-text-action" data-transition="review" data-scope="${scope}">Cerrar</button>` : ''}${current === 'review' ? `<button type="button" class="supervision-text-action" data-transition="closed" data-scope="${scope}">Finalizar y enviar</button>` : ''}${canOpen ? `<button type="button" class="supervision-text-action" data-transition="open" data-scope="${scope}">Reabrir</button>` : ''}</div></div>`;
+  }).join('') + (pendingCommand ? '<div class="supervision-pending"><span>Hay un cambio cuyo resultado falta confirmar.</span><button type="button" id="retry-command" class="button button-secondary">Reintentar cambio pendiente</button></div>' : '');
+  for (const button of root.querySelectorAll('[data-transition]')) { button.disabled = !!pendingCommand || sending; button.onclick = () => changeDialog({ kind:'state', scope:button.dataset.scope, state:button.dataset.transition }); }
+  if ($('#retry-command')) { $('#retry-command').disabled = sending; $('#retry-command').onclick = () => submitCommand(pendingCommand); }
+}
+function summaryUrl(scope) {
+  const [area, sector, zone] = scope.split(':');
+  const query = new URLSearchParams({area, inventory:state.cycleId, summary:'1', from:'supervision'});
+  if (sector) query.set('sector', sector); if (zone) query.set('zone',zone);
+  return '/pages/inventario/?' + query;
+}
+function renderScopeSummary() {
+  const link = $('#scope-summary');
+  link.hidden = !state.scope || state.mode === 'areas' || state.mode === 'events' || !groups.length;
+  if (link.hidden) return;
+  const totals = groups.reduce((sum, group) => ({total:sum.total + group.total,counted:sum.counted + group.counted,partial:sum.partial + group.partial}), {total:0,counted:0,partial:0});
+  link.href = summaryUrl(state.scope);
+  link.innerHTML = `${ring(totals)}<span><strong>${esc(locationName(state.scope))}</strong><small>${totals.counted} contados · ${totals.partial} con avance</small></span><span class="supervision-scope-link">Ver resumen ›</span>`;
+  link.onclick = () => snapshot();
+}
+function renderAreas() {
+  $('#result-count').textContent = `${groups.length} ${groups.length === 1 ? 'área' : 'áreas'}`;
+  $('#results').innerHTML = groups.length ? `<div class="supervision-area-list">${groups.map(group => `<a class="supervision-area-row" data-area="${esc(group.areaId)}" href="${esc(summaryUrl(state.scope || group.areaId))}">${ring(group)}<span><strong>${esc(locationName(group.areaId))}</strong><small>${group.counted} contados · ${group.partial} con avance</small><small>${group.pending} pendientes · ${group.excluded} inactivos</small></span><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a>`).join('')}</div><p class="supervision-legend"><span><i class="state-dot counted"></i>Contado</span><span><i class="state-dot partial"></i>Avance</span><span><i class="state-dot pending"></i>Pendiente</span></p>` : '<p class="supervision-empty">No hay productos disponibles en esta área.</p>';
+  for (const link of root.querySelectorAll('.supervision-area-row')) link.onclick = () => snapshot();
+  $('#more').hidden = true;
+}
+function listParams(atCursor = null) {
+  const query = params(); if (atCursor !== null) query.set('cursor', atCursor);
+  if (state.search) query.set('q', state.search);
+  if (state.mode === 'items') { if (state.status) query.set('status',state.status); }
+  if (state.mode === 'history') for (const [field,name] of [['category','category'],['author','author'],['location','location']]) if (state[field]) query.set(name,state[field]);
+  return query;
+}
+async function fetchPages(count, ticket) {
+  let next = null, list = [];
+  const endpoint = state.mode === 'items' ? 'items' : state.mode === 'history' ? 'history' : 'events';
+  for (let page = 0; page < count; page++) {
+    const data = await authenticated(`/api/admin/supervision/${endpoint}?` + listParams(next));
+    if (ticket !== generation) return;
+    list.push(...(data.items || data.events || [])); next = data.nextCursor;
+    if (next == null) { state.pageCount = page + 1; break; }
+  }
+  cursor = next;
+  if (state.mode === 'items') { products = list; renderProducts(); }
+  else if (state.mode === 'history') {
+    for (const item of list) { const previous = historyItems.find(old => key(old) === key(item)); if (previous && previous.lastSeq !== item.lastSeq) details.delete(key(item)); }
+    historyItems = list; renderHistory();
+  }
+  else renderEvents(list);
+  $('#more').hidden = cursor == null;
+}
+async function loadMore() {
+  if (loading || cursor == null) return;
+  snapshot(); const y = window.scrollY; state.pageCount++;
+  $('#more').disabled = true;
+  try { await refresh({ quiet:true }); window.scrollTo({ top:y, behavior:'instant' }); }
+  finally { $('#more').disabled = false; }
+}
+function itemActions(item) {
+  const closed = effective(areaOf(item) === 'servicio' ? 'servicio' : '') === 'closed';
+  return `${user.role === 'admin' ? `<label class="supervision-activity"><span>Producto en ${esc(locationName(areaOf(item)))}</span><span class="supervision-switch"><input type="checkbox" role="switch" data-active="${esc(key(item))}" ${item.active ? 'checked' : ''} ${closed || pendingCommand || sending ? 'disabled' : ''} aria-label="Producto activo en ${esc(locationName(areaOf(item)))}"><span aria-hidden="true"></span><b>${item.active ? 'Activo' : 'Inactivo'}</b></span></label>` : ''}${!item.active ? `<p class="supervision-muted">${item.inactiveSince ? `Inactivo desde ${esc(dateTime(item.inactiveSince))}. ` : ''}No aparece en el conteo normal.</p>` : ''}${closed ? '<p class="supervision-muted">Finalizado. Un Administrador debe reabrir antes de modificar.</p>' : item.active ? `<div class="supervision-item-actions"><button type="button" class="button button-secondary" data-change="rectify">Corregir total</button>${item.record && item.record.status !== 'pending' ? '<button type="button" class="button button-danger" data-change="annul">Anular conteo</button>' : ''}</div>` : ''}<button type="button" class="supervision-text-action" data-item-history>Ver historial</button>`;
+}
+function renderProducts() {
+  $('#result-count').textContent = `${products.length} cargados`;
+  $('#results').innerHTML = products.length ? `<div class="supervision-rows">${products.map(item => `<details class="supervision-product" data-product="${esc(key(item))}" ${state.openProducts.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.name)}</strong><small><i class="state-dot ${item.active ? item.status : 'inactive'}" aria-hidden="true"></i>${item.active ? stateNames[item.status] : 'Inactivo'} · ${esc(locationName(item.locationId))}</small></span><span class="supervision-row-value">${esc(recordValue(item.record, item.unit))}<svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></span></summary><div class="supervision-product-detail">${item.record?.note ? `<p class="supervision-note">${esc(item.record.note)}</p>` : ''}${itemActions(item)}</div></details>`).join('')}</div>` : '<p class="supervision-empty">Sin productos para estos filtros.</p>';
+  for (const card of root.querySelectorAll('details[data-product]')) {
+    const item = products.find(i => key(i) === card.dataset.product);
+    card.ontoggle = () => snapshot();
+    for (const button of card.querySelectorAll('[data-change]')) { button.disabled = !!pendingCommand || sending; button.onclick = () => changeDialog({kind:button.dataset.change}, item); }
+    const toggle = card.querySelector('[data-active]');
+    if (toggle) toggle.onchange = () => {
+      const command = {id:crypto.randomUUID(),cycleId:cycle.id,expectedRevision:cycle.revision,kind:'activation',itemId:item.id,locationId:item.locationId,expectedVersion:item.record?.version || 0,confirm:true,active:toggle.checked};
+      if (Number.isSafeInteger(item.activityRevision)) command.expectedActivityRevision = item.activityRevision;
+      toggle.disabled = true; submitCommand(command);
+    };
+    card.querySelector('[data-item-history]').onclick = () => openProductHistory(item);
+  }
+}
+function historySummary(item) {
+  const counts = item.counts || {};
+  return [[counts.counts,'conteos'],[counts.corrections,'correcciones'],[counts.annulments,'anulaciones']].filter(([n]) => n).map(([n,label]) => `${n} ${label}`).join(' · ');
+}
+function renderHistory() {
+  $('#result-count').textContent = `${historyItems.length} ítems cargados`;
+  $('#results').innerHTML = historyItems.length ? `<div class="supervision-rows">${historyItems.map(item => `<details class="supervision-history-item" data-history="${esc(key(item))}" ${state.openHistory.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.product)}</strong><small>${esc(locationName(item.locationId))}</small><small>${esc(historySummary(item))}</small></span><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary><div class="supervision-history-detail">${details.has(key(item)) ? chronology(details.get(key(item)).rows, item.unit) + moreHistoryMarkup(details.get(key(item)).cursor) : skeleton()}</div></details>`).join('')}</div>` : '<p class="supervision-empty">Sin movimientos para estos filtros.</p>';
+  for (const card of root.querySelectorAll('details[data-history]')) {
+    const item = historyItems.find(i => key(i) === card.dataset.history);
+    card.ontoggle = () => { snapshot(); if (card.open && !details.has(key(item))) loadHistory(item, card.querySelector('.supervision-history-detail')); };
+    if (card.open && !details.has(key(item))) loadHistory(item, card.querySelector('.supervision-history-detail'));
+    bindHistoryMore(card.querySelector('.supervision-history-detail'),item);
+  }
+}
+function chronology(rows, unit) {
+  if (!rows.length) return '<p class="supervision-muted">Sin movimientos.</p>';
+  let day = '';
+  return '<ol class="supervision-timeline">' + rows.map(event => {
+    const nextDay = calendarDay(event.createdAt), heading = nextDay === day ? '' : `<li class="supervision-day">${esc(nextDay)}</li>`; day = nextDay;
+    return `${heading}<li class="supervision-movement"><p><strong>${esc(movementQuantity({...event,unit:event.unit || unit}))}</strong><span> · ${esc(event.authorName || event.after?.authorName || 'Usuario')}</span></p><p class="supervision-movement-meta">${esc(actionNames[event.action] || event.action)} · <time datetime="${esc(event.createdAt)}">${esc(dateTime(event.createdAt))}</time></p><p class="supervision-before-after">Antes: ${esc(recordValue(event.before, event.unit || unit))}<br>Después: ${esc(recordValue(event.after, event.unit || unit))}</p>${event.after?.note ? `<p class="supervision-note">${esc(event.after.note)}</p>` : ''}${event.reason ? `<p class="supervision-muted">Motivo: ${esc(event.reason)}</p>` : ''}</li>`;
+  }).join('') + '</ol>';
+}
+function moreHistoryMarkup(next) { return next == null ? '' : '<button type="button" class="supervision-text-action" data-more-history>Movimientos anteriores</button>'; }
+function bindHistoryMore(host,item) { const button = host.querySelector('[data-more-history]'); if (button) button.onclick = () => loadHistory(item,host,true); }
+async function loadHistory(item, host, append = false) {
+  const id = key(item), ticket = generation, existing = details.get(id), query = params();
+  query.delete('scope'); query.set('item', item.id || item.itemId); query.set('location',item.locationId);
+  if (append && existing?.cursor != null) query.set('cursor',existing.cursor);
+  const button = host.querySelector('[data-more-history]'); if (button) button.disabled = true;
+  try {
+    const data = await authenticated('/api/admin/supervision/history?' + query);
+    if (!host.isConnected || ticket !== generation) return;
+    const entry = {rows:append ? [...existing.rows,...data.history] : data.history,cursor:data.nextCursor}; details.set(id,entry);
+    host.innerHTML = chronology(entry.rows,item.unit) + moreHistoryMarkup(entry.cursor); bindHistoryMore(host,item); snapshot();
+  } catch (error) { if (!host.isConnected) return; host.innerHTML = `<p role="alert">${esc(error.message)}</p><button type="button" class="supervision-text-action" data-history-retry>Reintentar</button>`; host.querySelector('button').onclick = () => loadHistory(item,host,append); }
+}
+function openProductHistory(item) {
+  const canAnnul = item.active && item.record && item.record.status !== 'pending' && effective(areaOf(item) === 'servicio' ? 'servicio' : '') !== 'closed';
+  const el = dialog('Historial del producto', `<p class="supervision-muted">${esc(item.name)} · ${esc(locationName(item.locationId))}</p><div class="supervision-history-dialog">${skeleton()}</div><div class="supervision-dialog-actions">${canAnnul ? '<button type="button" class="button button-danger" data-annul-history>Anular conteo</button>' : ''}<button type="button" class="button button-secondary" data-close autofocus>Cerrar</button></div>`);
+  el.classList.add('supervision-modal'); el.querySelector('[data-close]').onclick = () => el.close();
+  if (el.querySelector('[data-annul-history]')) { el.querySelector('[data-annul-history]').disabled = !!pendingCommand || sending; el.querySelector('[data-annul-history]').onclick = () => { el.close(); changeDialog({kind:'annul'},item); }; }
+  const host = el.querySelector('.supervision-history-dialog'); loadHistory(item,host);
+}
+function renderEvents(events) {
+  $('#result-count').textContent = `${events.length} cambios cargados`;
+  $('#results').innerHTML = events.length ? '<div class="supervision-rows">' + events.map(event => `<article class="supervision-event"><strong>${esc(actionNames[event.kind] || event.kind)}${event.kind === 'state' && stateNames[event.result?.scopeState] ? ' · ' + esc(stateNames[event.result.scopeState]) : ''}</strong><p>${esc(event.authorName || event.user_id || 'Usuario')} · ${esc(event.scope_id ? locationName(event.scope_id) : 'Inventario Global')} · ${esc(dateTime(event.created_at))}</p>${event.reason ? `<p class="supervision-note">${esc(event.reason)}</p>` : ''}</article>`).join('') + '</div>' : '<p class="supervision-empty">Sin cambios administrativos.</p>';
+}
+function changeDialog(change,item) {
+  if (pendingCommand || sending) { notice('Reintenta el cambio pendiente antes de iniciar otro.'); return; }
+  const reopen = change.kind === 'state' && change.state === 'open';
+  const edit = change.kind === 'rectify', annul = change.kind === 'annul';
+  const scopeName = change.scope ? 'Servicio' : 'Inventario Global';
+  const titles = {rectify:'Corregir total',annul:'Anular conteo',state:reopen ? 'Reabrir inventario' : change.state === 'review' ? 'Cerrar conteo' : 'Finalizar y enviar'};
+  const descriptions = annul ? `Esta acción cambia el ítem de ${stateNames[item.status]?.toLowerCase() || 'contado'} a pendiente.` : edit ? 'Indica el total correcto para este producto.' : reopen ? `Se habilitará nuevamente el conteo de ${scopeName}. Indica el motivo de reapertura.` : change.state === 'review' ? `Se pausará el conteo ${change.scope ? 'de Servicio' : 'de todas las áreas'} para que los encargados completen la revisión antes del envío final. Puedes reabrirlo cuando lo necesites.` : `Estás por enviar ${change.scope ? 'Servicio' : 'el inventario global'} cerrado y revisado. Quedará finalizado en la app.`;
+  const command = {id:crypto.randomUUID(),cycleId:cycle.id,expectedRevision:cycle.revision,...change,confirm:true};
+  if (item) Object.assign(command,{itemId:item.id,locationId:item.locationId,expectedVersion:item.record?.version || 0});
+  const draftKey = `${state.cycleId}:${item ? key(item) : change.scope || 'global'}:${change.kind}:${change.state || ''}`;
+  const el = dialog(titles[change.kind], `<p class="supervision-dialog-context">${esc(item ? item.name + ' · ' + locationName(item.locationId) : scopeName)}</p><p>${esc(descriptions)}</p><form id="change-form">${edit ? `<label>Total (${esc(item.unit || 'unidad pendiente')})<input name="quantity" inputmode="decimal" type="number" min="0" max="1000000" step="0.001" value="${item.record?.quantity ?? ''}" required></label><label>Estado<select name="status"><option value="counted">Contado</option><option value="partial" ${item.status === 'partial' ? 'selected' : ''}>Avance</option></select></label><label class="supervision-check"><input type="checkbox" name="outOfStock" ${item.record?.outOfStock ? 'checked' : ''}>Sin stock (cero contado)</label><label>Nota (opcional)<textarea name="note" maxlength="1000">${esc(item.record?.note || '')}</textarea></label><p id="change-preview" class="supervision-preview" aria-live="polite"></p>` : ''}${reopen ? '<div class="supervision-reasons"><button type="button" data-reason="Revisar o corregir conteos">Revisar conteos</button><button type="button" data-reason="Completar el conteo de productos">Completar productos</button></div>' : ''}${reopen || edit || annul ? `<label>Motivo${reopen ? '' : ' (opcional)'}<textarea name="reason" ${reopen ? 'minlength="3" required' : ''} maxlength="500" placeholder="${reopen ? 'Elige una sugerencia o escribe otro motivo' : annul ? 'Por ejemplo: producto contado por error' : 'Por ejemplo: ajuste tras revisar el conteo'}"></textarea></label>` : ''}<p data-command-error role="alert"></p><div class="supervision-dialog-actions"><button type="button" class="button button-secondary" data-cancel autofocus>Cancelar</button><button type="submit" class="button ${annul ? 'button-danger' : 'button-primary'}" data-confirm>${edit ? 'Guardar' : annul ? 'Anular' : reopen ? 'Reabrir' : change.state === 'review' ? 'Cerrar' : 'Finalizar y enviar'}</button></div></form>`);
+  el.classList.add('supervision-modal'); commandDialog = el;
+  const form = el.querySelector('form');
+  const saveDraft = () => { const data = Object.fromEntries(new FormData(form)); if (edit) data.outOfStock = form.elements.outOfStock.checked; state.drafts[draftKey] = data; snapshot(); };
+  const draft = state.drafts[draftKey];
+  if (draft) for (const field of [...form.elements]) { if (!field.name || draft[field.name] == null) continue; if (field.type === 'checkbox') field.checked = !!draft[field.name]; else field.value = draft[field.name]; }
+  const preview = () => { if (!edit) return; const zero = form.elements.outOfStock.checked; form.elements.quantity.disabled = zero; form.elements.status.disabled = zero; el.querySelector('#change-preview').textContent = `Resultado: ${zero ? 'Sin stock · cero contado' : `${form.elements.quantity.value || '—'} ${item.unit || ''} · ${stateNames[form.elements.status.value]}`}`; };
+  form.oninput = () => { preview(); saveDraft(); }; preview();
+  for (const button of el.querySelectorAll('[data-reason]')) button.onclick = () => { form.elements.reason.value = button.dataset.reason; form.elements.reason.focus(); saveDraft(); };
+  el.querySelector('[data-cancel]').onclick = () => el.close();
+  el.addEventListener('close', () => { if (commandDialog === el) commandDialog = null; }, {once:true});
+  form.onsubmit = async event => {
+    event.preventDefault(); saveDraft();
+    if (form.elements.reason) command.reason = form.elements.reason.value.trim();
+    if (edit) Object.assign(command,{quantity:form.elements.outOfStock.checked ? 0 : Number(form.elements.quantity.value),status:form.elements.outOfStock.checked ? 'counted' : form.elements.status.value,note:form.elements.note.value,outOfStock:form.elements.outOfStock.checked});
+    for (const field of form.elements) field.disabled = true;
+    el.querySelector('[data-cancel]').disabled = false;
+    const done = await submitCommand(command);
+    if (done) { delete state.drafts[draftKey]; snapshot(); if (el.open) el.close(); }
+    else if (el.isConnected) {
+      el.querySelector('[data-command-error]').textContent = message.textContent;
+      if (!pendingCommand) { for (const field of form.elements) field.disabled = false; preview(); }
+      else { el.querySelector('[data-cancel]').textContent = 'Cerrar'; }
+    }
+  };
+}
+async function submitCommand(command) {
+  if (sending) return false;
+  sending = true;
+  try {
+    // Retain the exact reviewed payload/operation ID. A retry is always explicit.
+    pendingCommand = command;
+    renderCycleActions();
+    await sendSupervisionCommand(user.id,command);
+    pendingCommand = null; details.clear();
+    sending = false; await refresh(); notice('Cambio guardado.','success'); return true;
+  } catch (error) {
+    pendingCommand = error.pending || readCommand(user.id);
+    notice(error.message + (pendingCommand ? ' Resultado incierto: reintenta el cambio pendiente con el mismo ID.' : ''), 'error', true);
+    renderCycleActions(); return false;
+  } finally { sending = false; if (cycle) renderCycleActions(); }
+}
+function scheduleRefresh() {
+  clearTimeout(timer); if (document.hidden) return;
+  timer = setTimeout(async () => { await refresh({quiet:true}); scheduleRefresh(); }, 20000);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else { refresh({quiet:true}); scheduleRefresh(); } });
+window.addEventListener('pagehide', () => { if (user) snapshot(); clearTimeout(timer); });
+window.addEventListener('pageshow', event => { if (event.persisted && user) { refresh({quiet:true}); scheduleRefresh(); } });
+window.addEventListener('scroll', () => { if (user && !restoring) { clearTimeout(window.supervisionScrollTimer); window.supervisionScrollTimer = setTimeout(snapshot, 150); } }, {passive:true});
+
+try {
+  const data = await authenticated('/api/admin/supervision/cycles'); user = data.user;
+  if (history.state?.supervision?.userId === user.id) restore(history.state.supervision.value);
+  else { try { restore(JSON.parse(sessionStorage.getItem(storageKey()) || 'null')); } catch {} }
+  if (!data.cycles.some(c => c.id === state.cycleId)) state.cycleId = data.cycles[0]?.id || '';
+  if (user.role !== 'admin' && state.mode === 'events') state.mode = 'areas';
+  pendingCommand = readCommand(user.id);
+  identityBar(user,async () => { await refresh({quiet:true}); return pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado'; });
+  if (!state.cycleId) { root.textContent = 'No hay inventarios disponibles.'; root.setAttribute('aria-busy','false'); }
+  else { restoring = true; renderShell(data.cycles); await refresh({authors:true}); restoring = false; scheduleRefresh(); }
+} catch (error) { root.textContent = 'Panel de supervisión no disponible.'; root.setAttribute('aria-busy','false'); notice(error.message); }

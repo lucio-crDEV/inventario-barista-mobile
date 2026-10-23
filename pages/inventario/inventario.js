@@ -1,10 +1,12 @@
+import { createSummaryState, renderSummaryView } from "./summary-view.js";
+import { showNotice, transitionItem } from "/shared/notices.js";
 import { SharedInventory } from "/shared/inventory.js";
 import { loading, reveal } from "/shared/loading.js";
 import { homeScope, canonicalScope, scopeURL } from "/shared/navigation.js";
 const initialContent = document.querySelector('#app-content');
 const finishLoading = loading(initialContent);
 let shared;
-try { shared = await SharedInventory.create(); }
+try { shared = await SharedInventory.create(new URLSearchParams(location.search).get("inventory")); }
 catch (error) {
     finishLoading();
     const content = initialContent;
@@ -50,23 +52,18 @@ const headerBackButton =
     );
 
 
-const confirmModal =
-    document.querySelector("#confirm-modal");
-
-
-const cancelNewSessionButton =
-    document.querySelector("#cancel-new-session");
-
-
-const confirmNewSessionButton =
-    document.querySelector("#confirm-new-session");
+const summaryState = createSummaryState();
+let returnToSummary = false;
+let navigatingItem = false;
 
 
 const params = new URLSearchParams(window.location.search);
+const summaryEntry = params.get("summary") === "1";
+const fromSupervision = summaryEntry && params.get("from") === "supervision";
 const requestedScope = [params.get("area"),params.get("sector"),params.get("zone")].filter(Boolean).join(":");
 const entryScope = homeScope(shared.data.scopes);
 const canonical = canonicalScope(requestedScope, shared.data.scopes);
-if (canonical && canonical !== requestedScope) {
+if (!summaryEntry && canonical && canonical !== requestedScope) {
     location.replace(scopeURL(canonical));
     await new Promise(() => {});
 }
@@ -99,8 +96,8 @@ function getCountCategory(item) {
 const activeItems = items
     .filter(item => item.active
         && item.areaId === selectedArea?.id
-        && (selectedArea?.id !== "servicio" || item.sectorId === selectedSector?.id)
-        && (selectedSector?.id !== "garzones" || item.zoneId === selectedZone?.id))
+        && (selectedArea?.id !== "servicio" || (summaryEntry && !selectedSector) || item.sectorId === selectedSector?.id)
+        && (selectedSector?.id !== "garzones" || (summaryEntry && !selectedZone) || item.zoneId === selectedZone?.id))
     .sort((a, b) => a.order - b.order);
 
 
@@ -110,8 +107,21 @@ let sessionNeedsSave = false;
 
 
 let session = createSession();
+if (summaryEntry) session.view = "summary";
+const summaryContextKey = `inventory-summary-context:${shared.user.id}:${shared.cycleId}:${scopeKey}`;
+try {
+    const context = JSON.parse(sessionStorage.getItem(summaryContextKey) || 'null');
+    sessionStorage.removeItem(summaryContextKey);
+    if (context && ['pending', 'partial', 'counted'].includes(context.status)) {
+        summaryState.status = context.status;
+        summaryState.open = new Set(context.open || []);
+        summaryState.pages = new Map(context.pages || []);
+        summaryState.scroll = Number(context.scroll) || 0;
+        summaryState.animated = true;
+        session.view = 'summary';
+    }
+} catch { /* UI context is optional; authoritative data and drafts remain separate. */ }
 session.id = shared.cycleId;
-session.responsible = shared.user.name;
 session.counts = Object.fromEntries(shared.data.counts.map(x => [x.itemId,x]));
 shared.onRecord = (record, itemId) => {
     // A delayed sync page must not replace a newer accepted response in memory.
@@ -123,16 +133,20 @@ shared.onRecord = (record, itemId) => {
 };
 shared.onRender = () => render();
 shared.onPermissions = () => {
-    // Rebuild from a fresh server projection, retaining only identity-bound drafts.
+    // Rebuild the authorized projection; preserve summary presentation separately from data.
+    if (session.view === 'summary') {
+        try { sessionStorage.setItem(summaryContextKey, JSON.stringify({
+            status: summaryState.status, open: [...summaryState.open],
+            pages: [...summaryState.pages], scroll: window.scrollY
+        })); } catch { /* A storage limit must not block permission revalidation. */ }
+    }
     location.reload();
 };
 
 
 let feedbackMessage = "";
 let feedbackTone = "counted";
-let feedbackDismissTimer;
-let feedbackRemoveTimer;
-let newSessionReturnFocus = null;
+
 
 
 // ============================================================
@@ -157,8 +171,6 @@ function createSession() {
         scopeKey,
 
         view: defaultView,
-
-        responsible: "",
 
         counts: {}
     };
@@ -622,19 +634,15 @@ async function saveCurrentAs(status, { outOfStock = false } = {}) {
     }
 
 
-    if (!(await shared.save(item, quantity, status, note, outOfStock))) return;
+    if (navigatingItem || !(await shared.save(item, quantity, status, note, outOfStock))) return;
 
-    feedbackMessage =
-        outOfStock
-            ? "Sin stock guardado."
-            : status === "counted"
-            ? "Conteo guardado."
-            : "Avance guardado.";
+    const message = outOfStock ? "Sin stock guardado." : status === "counted" ? "Conteo guardado." : "Avance guardado.";
+    showToast(message, feedbackToneForCount(status, outOfStock));
+    feedbackMessage = "";
+    navigatingItem = true;
+    try { await transitionItem(goToNextItem); }
+    finally { navigatingItem = false; }
 
-    feedbackTone = feedbackToneForCount(status, outOfStock);
-
-
-    goToNextItem();
 }
 
 
@@ -764,7 +772,7 @@ function goToNextItem() {
     }
 
 
-    if (isGarzonZone) {
+    if (isGarzonZone || returnToSummary) {
         openSummary();
     } else {
         openCategories();
@@ -846,84 +854,12 @@ function openSummary() {
 
 
 // ============================================================
-// NUEVO INVENTARIO
+// NAVEGACIÓN DEL CONTEO
 // ============================================================
 
-function openNewSessionConfirmation() {
-    return; // Ciclos compartidos se administrarán en 3B.
-
-
-    newSessionReturnFocus = document.activeElement;
-
-    confirmModal.hidden =
-        false;
-
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-
-    cancelNewSessionButton.focus();
-}
-
-
-function closeNewSessionConfirmation(restoreFocus = true) {
-
-    confirmModal.hidden =
-        true;
-
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-    if (restoreFocus && newSessionReturnFocus?.isConnected) {
-        newSessionReturnFocus.focus();
-    }
-    newSessionReturnFocus = null;
-}
-
-
-function startNewSession() {
-
-    closeNewSessionConfirmation(false);
-
-
-    try {
-
-        localStorage.removeItem(
-            STORAGE_KEY
-        );
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo limpiar la sesión anterior:",
-            error
-        );
-
-        storageWarning = true;
-    }
-
-
-    session =
-        createSession();
-
-
-    saveSession();
-
-
-    feedbackMessage = "";
-    feedbackTone = "counted";
-
-
-    render();
-}
-
-
 function getNavigationItems(item) {
-    return isGarzonZone ? activeItems : getCategoryItems(getCountCategory(item));
+    const candidates = isGarzonZone ? activeItems : getCategoryItems(getCountCategory(item));
+    return summaryEntry ? candidates.filter(candidate => candidate.locationId === item.locationId) : candidates;
 }
 
 
@@ -1002,11 +938,11 @@ function render() {
             ? `Garzones · ${selectedZone.name}`
             : selectedSector?.name || selectedArea?.name || "Inventario";
     }
-    headerBackButton.hidden = !selectedArea || (scopeKey === entryScope && session.view === "categories");
+    headerBackButton.hidden = !fromSupervision && (!selectedArea || (scopeKey === entryScope && session.view === "categories"));
 
-    const choosingScope = !selectedArea ||
+    const choosingScope = !summaryEntry && (!selectedArea ||
         (selectedArea.id === "servicio" && !selectedSector) ||
-        (selectedSector?.id === "garzones" && !selectedZone);
+        (selectedSector?.id === "garzones" && !selectedZone));
     const showSearch = !choosingScope && activeItems.length > 0 &&
         session.view === "categories";
     document.querySelector("#header-open-item-drawer").hidden = !showSearch;
@@ -1016,7 +952,9 @@ function render() {
     document.querySelector("#progress-bar-container").hidden = choosingScope || isSummary;
     progressText.hidden = choosingScope || isSummary;
 
-    if (!selectedArea) {
+    if (summaryEntry && selectedArea && session.view === "summary") {
+        renderSummary();
+    } else if (!selectedArea) {
         renderScopeChooser("Selecciona un área", areas
             .filter(area => area.active)
             .sort((a, b) => a.order - b.order)
@@ -1024,25 +962,23 @@ function render() {
                 name: area.name,
                 url: `?area=${encodeURIComponent(area.id)}`
             })));
-    } else if (selectedArea.id === "servicio" && !selectedSector) {
+    } else if (!summaryEntry && selectedArea.id === "servicio" && !selectedSector) {
         renderScopeChooser("", serviceSectors.map(sector => ({
             name: sector.name,
             url: `?area=servicio&sector=${encodeURIComponent(sector.id)}`
         })));
-    } else if (selectedSector?.id === "garzones" && !selectedZone) {
+    } else if (!summaryEntry && selectedSector?.id === "garzones" && !selectedZone) {
         renderScopeChooser("Zonas", garzonZones.map(zone => ({
             name: zone.name,
             url: `?area=servicio&sector=garzones&zone=${encodeURIComponent(zone.id)}`,
             items: items.filter(item => item.active && item.areaId === "servicio"
                 && item.sectorId === "garzones" && item.zoneId === zone.id)
         })));
+    } else if (session.view === "summary") {
+        renderSummary();
     } else if (activeItems.length === 0) {
 
         renderEmptyState();
-
-    } else if (session.view === "summary") {
-
-        renderSummary();
 
     } else if (session.view === "categories" && !isGarzonZone) {
 
@@ -1852,943 +1788,16 @@ function closeItemDrawer(restoreFocus = true) {
 // ============================================================
 
 function renderSummary() {
-
-    const stats =
-        getStats();
-
-    const completionPercent =
-        stats.total ? Math.round(stats.counted / stats.total * 100) : 0;
-
-
-    const isComplete =
-        stats.pending === 0 &&
-        stats.partial === 0;
-
-
-    const title =
-        isComplete
-            ? "Inventario completo"
-            : "Resumen del inventario";
-
-    const pendingItems =
-        getItemsByStatus(
-            "pending"
-        );
-
-
-    const partialItems =
-        getItemsByStatus(
-            "partial"
-        );
-
-
-    const countedItems =
-        getItemsByStatus(
-            "counted"
-        );
-
-
-    appContent.innerHTML = `
-
-    <section class="summary-view">
-
-
-      <div class="summary-header">
-
-        <div class="summary-title-row">
-
-          <div>
-
-            <h2>
-              ${title}
-            </h2>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="summary-overview" aria-label="${completionPercent}% del inventario contabilizado">
-        <div class="summary-overview-ring" aria-hidden="true">
-          <svg viewBox="0 0 76 76" focusable="false">
-            <circle cx="38" cy="38" r="34" />
-            <circle class="summary-ring-value" cx="38" cy="38" r="34" pathLength="100" stroke-dasharray="${completionPercent} 100" />
-          </svg>
-          <span>${completionPercent}%</span>
-        </div>
-        <div class="summary-overview-copy">
-          <strong>Avance del área</strong>
-          <span>${stats.counted} de ${stats.total} ítems contabilizados</span>
-          <span class="summary-overview-track" aria-hidden="true"><span style="width: ${completionPercent}%"></span></span>
-        </div>
-      </div>
-
-
-      <div class="stats-grid">
-
-
-        <button
-          class="stat-card stat-pending"
-          type="button"
-          data-summary-section="pending"
-          aria-controls="summary-pending"
-          aria-expanded="false"
-        >
-
-          <strong>
-            ${stats.pending}
-          </strong>
-
-
-          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🔴</span>Pendientes</span>
-
-        </button>
-
-
-        <button
-          class="stat-card stat-partial"
-          type="button"
-          data-summary-section="partial"
-          aria-controls="summary-partial"
-          aria-expanded="false"
-        >
-
-          <strong>
-            ${stats.partial}
-          </strong>
-
-
-          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟡</span>Avance</span>
-
-        </button>
-
-
-        <button
-          class="stat-card stat-counted"
-          type="button"
-          data-summary-section="counted"
-          aria-controls="summary-counted"
-          aria-expanded="false"
-        >
-
-          <strong>
-            ${stats.counted}
-          </strong>
-
-
-          <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟢</span>Contados</span>
-
-        </button>
-
-
-      </div>
-
-
-      <section class="accordion-list">
-
-
-        <details
-          id="summary-pending"
-          class="accordion"
-        >
-
-          <summary>
-
-            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🔴</span>Pendientes</span>
-
-
-            <span class="section-count">
-              ${pendingItems.length}
-            </span>
-
-          </summary>
-
-
-          <div class="accordion-content">
-
-            ${renderSummaryRows(
-        pendingItems
-    )
-        }
-
-          </div>
-
-        </details>
-
-
-        <details
-          id="summary-partial"
-          class="accordion"
-        >
-
-          <summary>
-
-            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟡</span>Avance</span>
-
-
-            <span class="section-count">
-              ${partialItems.length}
-            </span>
-
-          </summary>
-
-
-          <div class="accordion-content">
-
-            ${renderSummaryRows(
-            partialItems
-        )
-        }
-
-          </div>
-
-        </details>
-
-
-        <details
-          id="summary-counted"
-          class="accordion"
-        >
-
-          <summary>
-
-            <span class="summary-label"><span class="summary-label-icon" aria-hidden="true">🟢</span>Contados</span>
-
-
-            <span class="section-count">
-              ${countedItems.length}
-            </span>
-
-          </summary>
-
-
-          <div class="accordion-content">
-
-            ${renderSummaryRows(
-            countedItems
-        )
-        }
-
-          </div>
-
-        </details>
-
-
-      </section>
-
-
-      <section class="responsible-section">
-
-        <div class="section-heading field">
-
-          <label for="responsible">
-            Nombre de quien realiza y envía el inventario.
-          </label>
-
-
-          <input
-            id="responsible" readonly
-            type="text"
-            autocomplete="name"
-            maxlength="80"
-            placeholder="Nombre"
-            value="${escapeHtml(
-            session.responsible || ""
-        )}"
-          >
-
-        </div>
-
-      </section>
-
-
-      <div class="summary-actions">
-
-
-        <button
-          id="copy-summary"
-          class="button button-primary"
-          type="button"
-          ${session.responsible.trim() ? "" : "disabled"}
-        >
-          Copiar resumen
-        </button>
-
-
-        <button
-          id="share-summary"
-          class="button button-secondary"
-          type="button"
-          ${session.responsible.trim() ? "" : "disabled"}
-        >
-          Enviar
-        </button>
-
-
-        <button
-          id="summary-back-to-categories"
-          class="button button-ghost"
-          type="button"
-        >
-          ${isGarzonZone ? "Volver a los ítems" : "Ver categorías"}
-        </button>
-
-
-        <button
-          id="new-session" disabled title="La gestión de ciclos compartidos corresponde a administración (3B)"
-          class="button button-ghost"
-          type="button"
-        >
-          Nuevo inventario · disponible en etapa 3B
-        </button>
-
-
-      </div>
-
-
-      <p
-        id="summary-feedback"
-        class="feedback"
-        aria-live="polite"
-      ></p>
-
-
-    </section>
-  `;
-
-
-    setupSummaryEvents();
+    renderSummaryView(appContent, {
+        items: activeItems, getCount, category: getCountCategory,
+        location: item => shared.locationName(item), state: summaryState,
+        onItem: index => { returnToSummary = true; openItem(index); }
+    });
 }
 
+function scheduleFeedbackDismissal() {}
 
-// ============================================================
-// DATOS DEL RESUMEN
-// ============================================================
-
-function getItemsByStatus(
-    status
-) {
-
-    return activeItems.filter(
-        item =>
-            getCount(
-                item.id
-            ).status === status
-    );
-}
-
-
-function renderSummaryRows(
-    summaryItems
-) {
-
-    if (
-        summaryItems.length === 0
-    ) {
-
-        return `
-      <p class="summary-empty">
-        Ninguno
-      </p>
-    `;
-    }
-
-
-    return summaryItems
-        .map(item => {
-
-            const count =
-                getCount(
-                    item.id
-                );
-
-
-            let secondaryText =
-                "";
-
-
-            if (
-                count.status ===
-                "counted"
-            ) {
-
-                secondaryText =
-                    `${formatQuantity(
-                        count.quantity
-                    )} ${escapeHtml(
-                        item.unit
-                    )}${isOutOfStockCount(count) ? " · Sin stock" : ""}`;
-
-            } else if (
-                count.status ===
-                "partial"
-            ) {
-
-                secondaryText =
-                    `${formatQuantity(
-                        count.quantity
-                    )} ${escapeHtml(
-                        item.unit
-                    )} · avance`;
-
-            } else {
-
-                secondaryText =
-                    "Sin conteo";
-            }
-
-
-            return `
-        <button
-          class="summary-item-button${isOutOfStockCount(count) ? " is-out-of-stock" : ""}"
-          type="button"
-          data-item-index="${activeItems.indexOf(
-                item
-            )}"
-        >
-
-          <span class="summary-item-main">
-
-            <strong>
-
-              ${getStatusIcon(
-                count.status,
-                isOutOfStockCount(count)
-            )}
-
-              ${escapeHtml(
-                item.name
-            )}
-
-            </strong>
-
-
-            <small>
-
-              ${escapeHtml(
-                getCountCategory(item)
-            )}
-
-              ·
-
-              ${escapeHtml(
-                getAreaName(item.areaId)
-            )}
-
-            </small>
-
-          </span>
-
-
-          <span class="summary-item-value">
-
-            ${escapeHtml(
-                secondaryText
-            )}
-
-
-            <span
-              class="summary-arrow"
-              aria-hidden="true"
-            >
-              →
-            </span>
-
-          </span>
-
-
-        </button>
-      `;
-        })
-        .join("");
-}
-
-
-// ============================================================
-// EVENTOS DEL RESUMEN
-// ============================================================
-
-function setupSummaryEvents() {
-
-    document
-        .querySelectorAll(
-            ".stat-card[data-summary-section]"
-        )
-        .forEach(
-            card => {
-
-                const section =
-                    document.getElementById(
-                        card.getAttribute(
-                            "aria-controls"
-                        )
-                    );
-
-
-                if (!section) {
-
-                    return;
-                }
-
-
-                card.addEventListener(
-                    "click",
-                    () => {
-
-                        section.open =
-                            !section.open;
-
-
-                        card.setAttribute(
-                            "aria-expanded",
-                            String(
-                                section.open
-                            )
-                        );
-                    }
-                );
-
-
-                section.addEventListener(
-                    "toggle",
-                    () => {
-
-                        card.setAttribute(
-                            "aria-expanded",
-                            String(
-                                section.open
-                            )
-                        );
-                    }
-                );
-
-            }
-        );
-
-
-    document
-        .querySelector(
-            "#summary-back-to-categories"
-        )
-        .addEventListener(
-            "click",
-            openCategories
-        );
-
-
-    document
-        .querySelectorAll(
-            ".summary-item-button"
-        )
-        .forEach(
-            button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        const index =
-                            Number(
-                                button.dataset.itemIndex
-                            );
-
-
-                        openItem(index);
-                    }
-                );
-
-            }
-        );
-
-
-    const responsibleInput =
-        document.querySelector(
-            "#responsible"
-        );
-
-
-    responsibleInput.addEventListener(
-        "input",
-        event => {
-
-            session.responsible =
-                event.target.value;
-
-
-            saveSession();
-
-
-            syncSummaryActionState();
-        }
-    );
-
-
-    responsibleInput.addEventListener(
-        "blur",
-        event => {
-
-            session.responsible =
-                event.target.value.trim();
-
-
-            saveSession();
-
-
-            syncSummaryActionState();
-        }
-    );
-
-
-    document
-        .querySelector(
-            "#copy-summary"
-        )
-        .addEventListener(
-            "click",
-            copySummary
-        );
-
-
-    document
-        .querySelector(
-            "#share-summary"
-        )
-        .addEventListener(
-            "click",
-            shareSummary
-        );
-
-
-    document
-        .querySelector(
-            "#new-session"
-        )
-        .addEventListener(
-            "click",
-            openNewSessionConfirmation
-        );
-}
-
-
-function syncSummaryActionState() {
-
-    const hasResponsible =
-        session.responsible
-            .trim()
-            .length > 0;
-
-
-    const copyButton =
-        document.querySelector(
-            "#copy-summary"
-        );
-
-
-    const shareButton =
-        document.querySelector(
-            "#share-summary"
-        );
-
-
-    if (copyButton) {
-
-        copyButton.disabled =
-            !hasResponsible;
-    }
-
-
-    if (shareButton) {
-
-        shareButton.disabled =
-            !hasResponsible;
-    }
-}
-
-
-// ============================================================
-// TEXTO DEL RESUMEN
-// ============================================================
-
-function generateSummaryText() {
-
-    const stats =
-        getStats();
-
-
-    const date =
-        new Date(
-            session.date
-        ).toLocaleDateString(
-            "es-CL"
-        );
-
-
-    const responsible =
-        session.responsible.trim();
-
-
-    const lines = [
-
-        "INVENTARIO",
-
-        `Fecha: ${date}`,
-
-        `Responsable: ${responsible}`,
-
-        "",
-
-        `Pendientes: ${stats.pending}`,
-
-        `Avances: ${stats.partial}`,
-
-        `Contados: ${stats.counted}`,
-
-        `Progreso: ${stats.processed}/${stats.total}`,
-
-        "",
-
-        "DETALLE"
-    ];
-
-
-    for (
-        const item of activeItems
-    ) {
-
-        const count =
-            getCount(
-                item.id
-            );
-
-
-        let line =
-            `- ${item.name}: `;
-
-
-        switch (
-        count.status
-        ) {
-
-            case "counted":
-
-                line +=
-                    `${formatQuantity(
-                        count.quantity
-                    )} ${item.unit}${isOutOfStockCount(count) ? " (SIN STOCK)" : ""}`;
-
-                break;
-
-
-            case "partial":
-
-                line +=
-                    `${formatQuantity(
-                        count.quantity
-                    )} ${item.unit} (PARCIAL)`;
-
-                break;
-
-
-            case "pending":
-
-            default:
-
-                line +=
-                    "PENDIENTE";
-
-                break;
-        }
-
-
-        if (count.note) {
-
-            line +=
-                ` — ${count.note}`;
-        }
-
-
-        lines.push(line);
-    }
-
-
-    return lines.join(
-        "\n"
-    );
-}
-
-
-// ============================================================
-// COPIAR / COMPARTIR
-// ============================================================
-
-async function copySummary() {
-
-    if (
-        !session.responsible.trim()
-    ) {
-
-        showSummaryFeedback(
-            "Ingresa el nombre del responsable antes de copiar."
-        );
-
-
-        return;
-    }
-
-
-    const text =
-        generateSummaryText();
-
-
-    try {
-
-        await navigator.clipboard.writeText(
-            text
-        );
-
-
-        showSummaryFeedback(
-            "Resumen copiado."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo copiar:",
-            error
-        );
-
-
-        showSummaryFeedback(
-            "No se pudo copiar automáticamente."
-        );
-    }
-}
-
-
-async function shareSummary() {
-
-    if (
-        !session.responsible.trim()
-    ) {
-
-        showSummaryFeedback(
-            "Ingresa el nombre del responsable antes de compartir."
-        );
-
-
-        return;
-    }
-
-
-    if (!navigator.share) {
-
-        showSummaryFeedback(
-            "La opción de compartir no está disponible en este dispositivo."
-        );
-
-
-        return;
-    }
-
-
-    const text =
-        generateSummaryText();
-
-
-    try {
-
-        await navigator.share({
-
-            title:
-                "Inventario",
-
-            text
-        });
-
-
-        showSummaryFeedback(
-            "Resumen compartido."
-        );
-
-    } catch (error) {
-
-        if (
-            error.name !==
-            "AbortError"
-        ) {
-
-            console.error(
-                "No se pudo compartir:",
-                error
-            );
-
-
-            showSummaryFeedback(
-                "No se pudo compartir el resumen."
-            );
-        }
-    }
-}
-
-
-function showSummaryFeedback(
-    message
-) {
-
-    const feedback =
-        document.querySelector(
-            "#summary-feedback"
-        );
-
-
-    if (!feedback) {
-
-        return;
-    }
-
-
-    feedback.textContent =
-        message;
-}
-
-
-function scheduleFeedbackDismissal() {
-    clearTimeout(feedbackDismissTimer);
-    clearTimeout(feedbackRemoveTimer);
-    const toast = appContent.querySelector(".feedback-toast");
-    if (toast) {
-        toast.classList.remove("is-leaving");
-        feedbackDismissTimer = setTimeout(() => {
-            if (!toast.isConnected) return;
-            if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-                toast.remove();
-                return;
-            }
-            toast.classList.add("is-leaving");
-            feedbackRemoveTimer = setTimeout(() => toast.remove(), 360);
-        }, 4000);
-    }
-}
-
-
-function showToast(message, tone = "counted") {
-    let feedback = appContent.querySelector(".feedback-toast");
-    if (!feedback) {
-        feedback = document.createElement("p");
-        appContent.prepend(feedback);
-    }
-    feedback.className = `feedback feedback-toast feedback-toast-${tone}`;
-    feedback.setAttribute("role", tone === "error" ? "alert" : "status");
-    feedback.textContent = message;
-    feedback.style.animation = "none";
-    feedback.offsetHeight;
-    feedback.style.removeProperty("animation");
-    scheduleFeedbackDismissal();
-}
-
+function showToast(message, tone = "counted") { showNotice(message, tone); }
 
 function showFeedback(message) {
     if (appContent.querySelector(".count-view")) showToast(message, "error");
@@ -2812,11 +1821,7 @@ function renderEmptyState() {
 
       <p>
 
-        Agrega productos activos en
-
-        <code>
-          data/inventario/items/
-        </code>.
+        Los productos inactivos se gestionan desde el Panel de supervisión.
 
       </p>
 
@@ -2835,6 +1840,8 @@ function setupModalEvents() {
     headerBackButton.addEventListener(
         "click",
         () => {
+            if (session.view === "summary" && fromSupervision) { history.back(); return; }
+            if (session.view === "count" && returnToSummary) { returnToSummary=false; openSummary(); return; }
 
             switch (session.view) {
 
@@ -2873,43 +1880,12 @@ function setupModalEvents() {
         }
     );
 
-    cancelNewSessionButton
-        .addEventListener(
-            "click",
-            closeNewSessionConfirmation
-        );
-
-
-    confirmNewSessionButton
-        .addEventListener(
-            "click",
-            startNewSession
-        );
-
-
-    confirmModal.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target ===
-                confirmModal
-            ) {
-
-                closeNewSessionConfirmation();
-            }
-        }
-    );
-
-
     document.addEventListener("keydown", event => {
         const drawer = document.querySelector("#item-drawer.is-open");
 
         if (event.key === "Escape") {
             if (drawer) {
                 closeItemDrawer();
-            } else if (!confirmModal.hidden) {
-                closeNewSessionConfirmation();
             }
         }
 
@@ -2928,15 +1904,7 @@ function setupModalEvents() {
             }
         }
 
-        if (event.key === "Tab" && !confirmModal.hidden) {
-            if (event.shiftKey && document.activeElement === cancelNewSessionButton) {
-                event.preventDefault();
-                confirmNewSessionButton.focus();
-            } else if (!event.shiftKey && document.activeElement === confirmNewSessionButton) {
-                event.preventDefault();
-                cancelNewSessionButton.focus();
-            }
-        }
+
     });
 }
 
