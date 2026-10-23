@@ -1,0 +1,67 @@
+{
+  "observedAt": "2026-10-23T20:02:53.765411+00:00",
+  "authorization": "Usuario: haz todo lo demás; el usuario realizará únicamente el push SSH.",
+  "functionalCommitPrepared": "bcae367",
+  "currentProductionCommit": "e1c8a06",
+  "project": "inventario-login",
+  "productionBranch": "inventory-v3",
+  "database": "inventario-login-v3",
+  "cycle": "piloto-v3-servicio",
+  "migrationApplied": "0007_operation_ux.sql",
+  "previousMigration0006Unchanged": true,
+  "pendingMigrations": [],
+  "preflight": {
+    "ready": true,
+    "schemaContract": "operation-ux-0007",
+    "telemetryRequired": false
+  },
+  "effectiveProduction": {
+    "environment": "production",
+    "origin": "https://inventario-login.pages.dev",
+    "cycle": "piloto-v3-servicio",
+    "databaseMatches": true
+  },
+  "backups": {
+    "before": ".backups/pre-ux-0007-20261023",
+    "after": ".backups/post-ux-0007-20261023",
+    "private": true,
+    "ignoredByGit": true,
+    "bothChecksumsVerified": true,
+    "bothRestoredPrivately": true,
+    "integrity": "ok",
+    "foreignKeyViolations": 0
+  },
+  "preservation": {
+    "method": "SHA256 de filas canónicas ordenadas; proyección de columnas anteriores al comparar supervision_commands. Sin registros privados en este informe.",
+    "allElevenPreservedTablesUnchanged": true,
+    "tables": [
+      "users",
+      "grants",
+      "catalog_items",
+      "cycles",
+      "cycle_scope_states",
+      "cycle_item_states",
+      "counts",
+      "operations",
+      "history",
+      "supervision_commands",
+      "admin_audit"
+    ],
+    "newActivityEvents": 0
+  },
+  "publicChecksAfterMigration": {
+    "total": 16,
+    "passed": true,
+    "authenticated": false,
+    "mutatingRequests": 0
+  },
+  "pushPerformed": false,
+  "newCodeDeployed": false,
+  "pendingAfterUserPush": [
+    "Confirmar Pages ProductionSuccess con el commit enviado",
+    "Comprobar rutas y recorrido autenticado de la nueva versión",
+    "Prueba física Android/iOS de teclado y gestos"
+  ],
+  "prePushCompatibility": "Evitar cambios de actividad/estado hasta que esté desplegada la nueva versión: el código anterior consulta la proyección histórica de actividad.",
+  "initialReadRetry": "La primera consulta de listado devolvió Cloudflare7403; consultas posteriores, respaldo, migración y comprobaciones terminaron correctamente."
+}

@@ -1,8 +1,10 @@
 # Publicar la revisión UX 0007
 
-Guía manual para el propietario. Ninguno de estos comandos remotos se ejecutó en esta entrega. El commit queda local, sin push/despliegue. Trabajar en `inventory-v3` desde `/Users/lucio/workspace/inventario_brioche`.
+**Preparación remota completada el 23-10-2026, después del commit bcae367, con autorización expresa del usuario.** Respaldo privado anterior y posterior verificados y restaurados; migración 0007 aplicada; ningún pendiente; preflight ready:true / operation-ux-0007. Las once tablas de datos preservadas coinciden exactamente por hash y pasan integridad/FK. Las 16 comprobaciones públicas posteriores pasan.
 
-La app nueva exige 0007. El usuario informa 0006 ya preparada en su entorno; comprobarlo con el listado en lugar de repetir inicializaciones. No cambiar DB, variables, catálogo ni ciclo. No aplicar 0005, fixtures, bootstrap, cuentas demo ni crear otro ciclo.
+Production sigue sirviendo e1c8a06. El usuario hará únicamente el push SSH de inventory-v3. No repetir migración, bootstrap, fixtures, altas ni creación de ciclos. [Evidencia de esta preparación](preparacion-remota-ux-0007-2026-10-23.json).
+
+Hasta completar el nuevo despliegue, evitar cambios de actividad/estado: el código anterior consulta la proyección histórica. La aceptación de la versión nueva y el recorrido físico solo pueden verificarse después del push. La guía siguiente queda como referencia del procedimiento ya realizado.
 
 ## Antes del push
 

@@ -67,6 +67,12 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 4. Protege cambios del usuario. No reemplaces archivos con cambios previos sin entenderlos.
 5. Si el alcance o una decisión de producto no está claro, continúa las comprobaciones independientes y pregunta solo cuando la respuesta cambie sustancialmente el resultado.
 
+## Coste de delegación — decisión del usuario, 23-10-2026
+
+No lanzar subagentes con una configuración costosa heredada (GPT-6.1 Sol / Ultra). Ajustar siempre modelo y esfuerzo a la tarea: modelo económico y razonamiento bajo para lecturas, comprobaciones y trabajos acotados; mayor capacidad solo cuando la complejidad lo justifique. No usar Ultra por defecto ni multiplicar agentes de alto coste. Resolver directamente las tareas simples y limitar el número de delegaciones.
+
+Cuando el padre tenga configuración costosa, iniciar el subagente con contexto mínimo y una tarea autosuficiente para poder seleccionar explícitamente modelo y razonamiento económicos. No heredar todo el historial si impide ese ajuste. Esta regla persiste para futuras tareas del proyecto.
+
 ## Implementación
 
 - **KISS obligatorio:** usa la solución nativa más simple que resuelva el recorrido; no añadas dependencias, carruseles o infraestructura para animaciones y pequeños ajustes.

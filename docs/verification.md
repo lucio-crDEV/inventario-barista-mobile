@@ -1,5 +1,11 @@
 # Verificación — inventory-v3
 
+## Preparación remota autorizada — 23-10-2026
+
+Posterior al commit funcional bcae367: respaldo privado antes/después restaurado y con checksum verificado; 0007 aplicada sobre 0006; preflight remoto ready:true / operation-ux-0007; sin migraciones pendientes. Comparación local privada de filas canónicas: once tablas de datos preservadas sin cambios, integridad correcta y cero violaciones de claves foráneas. Las 16 comprobaciones anónimas posteriores pasan. Configuración efectiva Production y rama inventory-v3 verificadas. [Informe nuevo](preparacion-remota-ux-0007-2026-10-23.json).
+
+No hubo push ni despliegue del código nuevo; el deploy actual sigue en e1c8a06. El usuario realizará el push por SSH. La comprobación del nuevo deployment y el recorrido autenticado/físico dependen de ese paso. Los resultados locales e informes anteriores se conservan fechados como históricos.
+
 ## Revisión UX/operación 0007 — comprobación local 23-10-2026
 
 **49 pruebas Node, 7 Python y 24 etapas aisladas aprobadas.** Las etapas incluyen build Pages, preparación nueva, preflight positivo/negativo, integración, extended, usuarios/Servicio, 15 clientes concurrentes, sync/backoff, navegadores de usuarios/supervisión/resumen, carga lenta/refresh, administración, conflictos entre personas, vistas, migración poblada, respaldo/restauración, paquete público y Pages HTTPS. La etapa de vistas se repitió aparte después de actualizar sus expectativas al alta con acceso obligatorio y al foco del menú; los demás resultados finales no se sustituyen por los de un intento fallido. Además pasaron las suites de navegador simuladas de cuentas y diseño de supervisión.

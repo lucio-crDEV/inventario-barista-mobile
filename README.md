@@ -1,5 +1,7 @@
 # inventory-v3
 
+Preparación remota 23-10-2026 completada: 0007 aplicada, respaldo/restauración privada y preflight verificados, sin migraciones pendientes. Solo falta el push SSH del usuario; el código nuevo aún no está publicado. [Estado y evidencia](docs/preparacion-remota-ux-0007-2026-10-23.json).
+
 Regla de oro obligatoria: el Excel original es de solo lectura; la salida conserva estructura, filas, referencias, unidades, fórmulas y formatos y únicamente actualiza las celdas de conteo autorizadas. Las adaptaciones a otras plantillas son trabajo futuro sujeto a aprobación expresa. [Decisiones vigentes e implementación](docs/decisiones-ux-y-operacion-2026-10-23.md).
 
 Revisión UX local 23-10-2026: **Panel de supervisión**, resumen por categorías, historial adaptado por rol, menú/perfil y **Gestionar usuarios y accesos** compactos. Cierre para revisión → Finalizar y enviar; solo Administrador reabre finalizados. Motivo obligatorio solo al reabrir. Activo/Inactivo persiste por área con fechas; altas con accesos y claves temporales asistidas. Requiere **0007_operation_ux.sql después de 0006 antes de publicar**; 0005 no se aplica. [Contrato](docs/etapa-3b.md), [verificación](docs/verification.md) y [pasos para publicar](docs/publicar-revision-ux-0007.md). Sin push, despliegue ni mutaciones remotas en esta entrega. Root, métricas técnicas y Excel siguen pendientes.
