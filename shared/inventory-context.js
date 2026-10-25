@@ -3,7 +3,7 @@ import { cycleLabel, cycleTypeNames } from './cycles.js';
 import { recommendation, relativeInventoryDate, localDay } from './inventory-calendar.js';
 import { showNotice } from './notices.js';
 import { openInventoryPicker, inventoryStatus, closeAccountMenu } from './inventory-picker.js';
-let identity = '', mounting;
+let identity = '', mounting, pendingMount=false;
 const pendingKey = user => `inventory-cycle-pending:${user.id}`;
 function readPending(user) { try { return JSON.parse(sessionStorage.getItem(pendingKey(user)) || 'null'); } catch { return null; } }
 function retainPending(user,command) { sessionStorage.setItem(pendingKey(user),JSON.stringify(command)); }
@@ -13,9 +13,10 @@ function styles() {
   const link = document.createElement('link'); link.rel='stylesheet'; link.href='/shared/inventory-context.css'; link.dataset.inventoryContext=''; document.head.append(link);
 }
 export function mountInventoryContext(user) {
-  if (user.mustChange || identity === user.id) return mounting;
+  if (user.mustChange || identity===user.id && (pendingMount || document.querySelector('.inventory-context-bar'))) return mounting;
   identity=user.id;
-  mounting=mount(user).catch(()=>{ identity=''; });
+  pendingMount=true;
+  mounting=mount(user).catch(()=>{ identity=''; }).finally(()=>{pendingMount=false;});
   return mounting;
 }
 async function mount(user) {
@@ -27,16 +28,22 @@ async function mount(user) {
   if (!header) return;
   const management = location.pathname.includes('/admin/supervision');
   const host = document.createElement('section'); host.className='inventory-context-bar'; host.setAttribute('aria-label','Inventario seleccionado');
-  if (!management) {
-    host.innerHTML=`<button type="button" class="inventory-selector" data-select aria-haspopup="dialog"><span class="inventory-selection"><small>Inventario seleccionado</small><span class="inventory-selection-value"><strong>${current ? esc(cycleLabel(current)) : 'Seleccionar inventario'}</strong>${inventoryStatus(current)}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>${user.role==='admin'?'<button type="button" class="inventory-create-action" data-new><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Crear inventario</span></button>':''}`;
-    host.querySelector('[data-select]').onclick=()=>openInventoryPicker(data.cycles,current);
-    host.querySelector('[data-new]')?.addEventListener('click',()=>{closeAccountMenu();inventoryDialog(user,data.cycles);});
-    if (location.pathname.startsWith('/pages/inventario/')) {
-      host.classList.add('in-account-menu');
-      document.querySelector('#settings-drawer .sync-controls')?.after(host);
-    } else header.after(host);
-  }
-  if (current) for (const link of document.querySelectorAll('a[href*="/pages/inventario/"]')) {
+  host.innerHTML=`<button type="button" class="inventory-selector" data-select aria-haspopup="dialog"><span class="inventory-selection"><small>Inventario seleccionado</small><span class="inventory-selection-value"><strong>${current ? esc(cycleLabel(current)) : 'Seleccionar inventario'}</strong>${inventoryStatus(current)}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>${user.role==='admin'?'<button type="button" class="inventory-create-action" data-new><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Crear inventario</span></button>':''}`;
+  host.querySelector('[data-select]').onclick=()=>openInventoryPicker(data.cycles,current,{includePrepared:management});
+  host.querySelector('[data-new]')?.addEventListener('click',()=>{closeAccountMenu();inventoryDialog(user,data.cycles);});
+  if (!['/','/index.html'].includes(location.pathname)) {
+    host.classList.add('in-account-menu');
+    document.querySelector('#settings-drawer .sync-controls')?.after(host);
+  } else header.after(host);
+  document.addEventListener('inventory:cycle-updated',event=>{
+    if(!host.isConnected || !current || event.detail?.id!==current.id)return;
+    Object.assign(current,event.detail);
+    host.querySelector('.inventory-selection-value').innerHTML=`<strong>${esc(cycleLabel(current))}</strong>${inventoryStatus(current)}`;
+  });
+  const home=document.querySelector('[data-go-home]');
+  if(home){const url=new URL('/',location.origin);if(current && current.lifecycle!=='prepared')url.searchParams.set('inventory',current.id);home.href=url.pathname+url.search;}
+  if (current) for (const link of document.querySelectorAll('a[href*="/pages/inventario/"],.settings-action[href],.identity-profile,.header-back-button[href]')) {
+    if(link.matches('[data-go-home]'))continue;
     const url = new URL(link.href); if (!url.searchParams.has('inventory')) {url.searchParams.set('inventory',current.id);link.href=url;}
   }
   if (user.role !== 'admin' || location.pathname !== '/') return;

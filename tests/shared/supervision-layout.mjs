@@ -72,7 +72,7 @@ try {
   await expect(page.locator('dialog [name=reason]')).toHaveValue('Borrador conservado');
   await page.getByRole('button',{name:'Cancelar',exact:true}).click();
   await page.getByRole('tab',{name:'Historial',exact:true}).click();
-  await page.getByRole('button',{name:'Correcciones',exact:true}).click();
+  await selectFilter(page,'#history-category','correction');
   await expect(page.locator('.supervision-history-item')).toHaveCount(1);
   assert.ok(requests.some(url => url.includes('category=correction')));
   await page.locator('.supervision-history-item > summary').click();
@@ -87,7 +87,7 @@ try {
   }
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('tab',{name:'Productos',exact:true}).click();
-  await page.locator('#scope').selectOption('servicio:barra');
+  await selectFilter(page,'#scope','servicio:barra');
   await expect(page.locator('#scope-summary')).toBeVisible();
   await page.locator('#search').fill('Azúcar');
   await expect(page.locator('.supervision-product')).toHaveCount(1);
@@ -140,3 +140,5 @@ try {
   assert.deepEqual(errors,[]);
   console.log('Supervision browser checks passed: compact navigation, grouped history, filters, permissions, draft preservation, responsive themes and idempotent uncertain retry.');
 } finally {await browser.close();await new Promise(resolve => server.close(resolve));}
+
+async function selectFilter(page, selector, value) { if(!(await page.locator(selector).isVisible()))await page.locator("#toggle-filters").click();await page.locator(selector).selectOption(value); }

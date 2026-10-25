@@ -15,9 +15,6 @@ html[data-theme="dark"] .inventory-status.is-active::before {background:#41d2a2;
 .in-account-menu .inventory-create-action {max-width:none;justify-content:flex-start;font-size:14px;}
 .inventory-history-dialog {position:relative;width:min(480px,calc(100% - 28px));max-height:calc(100dvh - 28px);box-sizing:border-box;padding:20px;border-radius:16px;box-shadow:none;overflow-y:auto;overscroll-behavior:contain;}
 .inventory-history-dialog h2 {padding-right:44px;font-size:20px;margin:0 0 16px;}
-.inventory-history-tools {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;}
-.inventory-history-tools :is(input,select) {width:100%;min-height:44px;min-width:0;padding:10px;border:0;border-radius:10px;background:var(--ui-field);color:var(--ui-text);font:inherit;font-size:16px;}
-.inventory-history-tools select {max-width:150px;}
 .inventory-history-count {margin:12px 0 8px;color:var(--ui-muted);font-size:12px;}
 .inventory-history-list section h3 {margin:16px 0 6px;font-size:12px;font-weight:600;color:var(--ui-muted);text-transform:capitalize;}
 .inventory-history-dialog .inventory-history-entry {display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:60px;padding:10px 12px;border:0;border-radius:10px;background:transparent;color:var(--ui-text);font:inherit;text-align:left;box-shadow:none;cursor:pointer;}
@@ -55,3 +52,25 @@ html[data-theme="dark"] .inventory-status.is-active::before {background:#41d2a2;
 .inventory-type-options input:disabled + span {opacity:.6;}
 .inventory-opening-date {margin:0;font-size:20px;font-weight:700;color:var(--ui-text);}
 .inventory-cycle-dialog .inventory-link-action[data-cancel] {background:transparent!important;color:var(--ui-muted);border:0;box-shadow:none;}
+
+.inventory-history-close svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+.inventory-date-tools {display:flex;gap:8px;align-items:center;}
+.inventory-history-dialog .inventory-date-tools button {display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 12px;border:0;border-radius:10px;background:var(--ui-field);color:var(--ui-accent);font:inherit;font-size:14px;box-shadow:none;}
+.inventory-date-tools [data-date-open] {flex:1;text-align:left;}
+.inventory-date-tools svg,.inventory-calendar-heading svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.inventory-calendar {padding:10px;margin-top:8px;border-radius:12px;background:var(--ui-field);}
+.inventory-history-dialog .inventory-calendar button {border:0;box-shadow:none;background:transparent;color:var(--ui-text);font:inherit;font-size:14px;padding:4px;border-radius:8px;min-width:0;min-height:44px;cursor:pointer;}
+.inventory-calendar-heading {display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:4px;}
+.inventory-calendar-heading button {display:grid;place-items:center;text-transform:capitalize;}
+.inventory-weekdays,.inventory-day-grid {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center;}
+.inventory-weekdays {padding-block:8px 4px;font-size:11px;color:var(--ui-muted);}
+.inventory-day-grid button {position:relative;}
+.inventory-day-grid button span {position:absolute;bottom:0;left:0;right:0;font-size:10px;color:var(--ui-accent);}
+.inventory-history-dialog .inventory-day-grid button:not(:disabled) {font-weight:650;background:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-solid));}
+.inventory-history-dialog .inventory-day-grid button[aria-pressed=true] {background:color-mix(in srgb,var(--ui-accent) 22%,var(--ui-solid));}
+.inventory-calendar button:disabled {opacity:.3;cursor:default;}
+.inventory-month-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:8px;}
+.inventory-month-grid button {text-transform:capitalize;}
+.inventory-history-dialog [hidden] {display:none!important;}
+
+.inventory-calendar-heading [data-period] {text-transform:none;}

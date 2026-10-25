@@ -22,8 +22,8 @@ async function contextFor(client) {
   const context = await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   await context.addCookies([{name:'inventory_session_local',value:client.cookie.split('=')[1],url:origin}]);
   const page = await context.newPage();page.on('pageerror',error => errors.push(error.message));
-  await page.goto(origin+'/pages/admin/supervision.html');
-  await expect(page.locator('#cycle')).toBeVisible();await page.locator('#cycle').selectOption(cycleId);
+  await page.goto(origin+'/pages/admin/supervision.html?inventory='+cycleId);
+  await expect(page.locator('#context-name')).toBeVisible();
   await expect(page.locator('.supervision-area-list > a.supervision-area-row, .supervision-area-list > details > summary.supervision-area-row')).toHaveCount(client.user.role === 'admin' ? 2 : 1);
   await expect(page.locator('details[data-scope="servicio"] > .supervision-children .supervision-area-row')).toHaveCount(1);
   await expect(page.locator('details[data-scope="servicio"]')).toContainText('Barra');
@@ -31,7 +31,7 @@ async function contextFor(client) {
 }
 async function openFirst(page) {
   await page.getByRole('tab',{name:'Productos',exact:true}).click();
-  await page.locator('#scope').selectOption('servicio:barra');
+  await selectFilter(page,'#scope','servicio:barra');
   await page.locator('#search').fill(first.name);await page.waitForTimeout(350);
   await expect(page.locator('.supervision-product')).toHaveCount(1);
   if (!(await page.locator('.supervision-product').evaluate(el => el.open))) await page.locator('.supervision-product > summary').click();
@@ -77,23 +77,23 @@ try {
   assert.equal(db.prepare('SELECT voided FROM counts WHERE cycle_id=? AND item_id=?').get(cycleId,first.id).voided,1);
   checks.push('Anular con respuesta perdida conserva ID y reintento explícito no duplica comandos ni historial');
   await page.getByRole('tab',{name:'Historial',exact:true}).click();
-  await page.getByRole('button',{name:'Correcciones',exact:true}).click();
+  await selectFilter(page,'#history-category','correction');
   await expect(page.locator('.supervision-history-item')).toHaveCount(1);
   await page.locator('.supervision-history-item > summary').click();
   await expect(page.locator('.supervision-movement')).toHaveCount(2);
   await expect(page.locator('#results')).toContainText('Anulación');
-  await page.getByRole('button',{name:'Anulaciones',exact:true}).click();
+  await selectFilter(page,'#history-category','annul');
   await expect(page.locator('.supervision-history-item')).toHaveCount(1);
   checks.push('Historial agrupa por producto/ubicación, filtra por pertenencia y conserva la secuencia completa');
   await openFirst(page);
   await page.getByRole('switch').uncheck();await expect(page.locator('.inventory-notice')).toHaveText('Cambio guardado.');
-  await page.locator('#status').selectOption('excluded');await expect(page.locator('.supervision-product')).toHaveCount(1);
+  await selectFilter(page,'#status','excluded');await expect(page.locator('.supervision-product')).toHaveCount(1);
   assert.equal(db.prepare('SELECT active FROM item_activity WHERE item_id=?').get(first.id).active,0);
   const otherCycle = cycleId+'-other';db.prepare("INSERT INTO cycles(id,name,catalog_version,state) VALUES(?,'Comprobación persistencia',?,'open')").run(otherCycle,catalog);
   assert.equal(db.prepare('SELECT active FROM supervision_items WHERE cycle_id=? AND id=?').get(otherCycle,first.id).active,0);
   if (!(await page.locator('.supervision-product').evaluate(el => el.open))) await page.locator('.supervision-product > summary').click();
   await page.getByRole('switch').check();await expect(page.locator('.supervision-product')).toHaveCount(0);
-  await page.locator('#status').selectOption('');await expect(page.locator('.supervision-product')).toHaveCount(1);
+  await selectFilter(page,'#status','');await expect(page.locator('.supervision-product')).toHaveCount(1);
   await page.locator('.supervision-product > summary').click();
   assert.deepEqual(db.prepare('SELECT active FROM item_activity_events WHERE item_id=? ORDER BY seq').all(first.id).map(row => row.active),[0,1]);
   checks.push('Activo/Inactivo funciona sin modal/motivo, persiste entre ciclos y conserva desactivación/reactivación');
@@ -142,3 +142,5 @@ try {
   writeFileSync('test-results/supervision/checks.json',JSON.stringify({checks,errors},null,2));
   console.log(JSON.stringify({checks,errors},null,2));
 } finally {db.close();await browser.close();}
+
+async function selectFilter(page, selector, value) { if(!(await page.locator(selector).isVisible()))await page.locator("#toggle-filters").click();await page.locator(selector).selectOption(value); }

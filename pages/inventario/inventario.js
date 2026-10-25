@@ -963,8 +963,7 @@ function render() {
     const choosingScope = !summaryEntry && (!selectedArea ||
         (selectedArea.id === "servicio" && !selectedSector) ||
         (selectedSector?.id === "garzones" && !selectedZone));
-    const showSearch = !choosingScope && activeItems.length > 0 &&
-        session.view === "categories";
+    const showSearch = !choosingScope && activeItems.length > 0 && session.view !== 'summary';
     document.querySelector("#header-open-item-drawer").hidden = !showSearch;
     document.querySelector(".app-title-row").classList.toggle("has-search", showSearch);
     const isSummary = !choosingScope && session.view === "summary";

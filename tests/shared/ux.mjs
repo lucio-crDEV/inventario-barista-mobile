@@ -264,7 +264,8 @@ try {
   await captureLoading(boss.p, "skeleton-admin");
   await releaseAdmin();
   await expect(boss.p.locator("#user-search")).toBeVisible();
-  await expect(boss.p.locator(".inventory-context-bar")).toBeVisible();
+  await expect(boss.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(1);
+  await expect(boss.p.locator("main > .inventory-context-bar")).toHaveCount(0);
   requests.admin = stop();
   assert.deepEqual(requests.admin, ["/api/admin/users", "/api/cycles"]);
   await expect(boss.p.locator("#users")).toHaveAttribute("aria-busy", "false");

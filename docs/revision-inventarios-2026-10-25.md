@@ -73,3 +73,20 @@ El subrayado provenía de la regla global :focus-visible que incluía cualquier 
 También se retiraron el borde cian y la línea lateral del ítem seleccionado: se conserva únicamente el fondo suave. El selector antiguo .is-active no correspondía al estado real .is-current; se eliminó esa regla sobrante. Esta corrección de CSS está preparada localmente para el siguiente push/despliegue; producción d4c50da todavía contiene el estilo anterior.
 
 Comprobación: mobile-ux aprobado con foco explícito de panel/ítem/menú, búsqueda/teclado, 320/390/654 y temas claro/oscuro; ausencia de subrayado en toda la cadena de ancestros, borde transparente y ausencia de línea lateral en el seleccionado, foco de teclado visible en el control. cycle-ui aprobado con el tipo semanal enfocado sin subrayado y recorridos de selección/creación conservados. No se modifican API, permisos, conteos ni esquema D1.
+
+## Navegación y filtros — revisión posterior a 58c1017
+
+Se atienden los ocho comentarios de navegador del usuario:
+
+1. Selector y Crear inventario solo en el contenido de Inicio raíz/index.html; todas las vistas interiores los montan en el menú derecho, incluidos Cuenta, Usuarios y Supervisión. La identidad puede volver a renderizarse sin perder el selector. En Supervisión, la tarjeta principal conserva fecha/estado/acciones y omite el selector duplicado. El inventario en URL prevalece sobre una selección anterior restaurada. Sus cambios de estado actualizan también la etiqueta del menú.
+2. Inicio en el menú, a través de la navegación autorizada que ya decide por rol y ámbitos disponibles. Conserva la selección válida incluso con clic rápido antes de cargar el menú. Desde un inventario preparado, vuelve al inventario de trabajo predeterminado; una cuenta sin inventarios regresa a su Inicio sin fijar un ID ajeno.
+3. Historial de Supervisión deja visibles búsqueda y Filtros. Área/Movimiento/Ubicación/Autor se agrupan en un panel de dos columnas. Resumen de filtros aplicados con retirada individual y Limpiar; Listo cierra el panel. Se conservan búsqueda, contexto, movimientos completos, paginación, permisos y CAS. Vacío «Sin movimientos» y total en productos, sin «ítems cargados».
+4. El selector abre un calendario de fechas disponibles: días sin inventarios deshabilitados, múltiples inventarios del mismo día conservados en el listado. Solo usa metadatos autorizados; no asigna fechas supuestas a inventarios antiguos sin fecha, que siguen accesibles en la lista sin filtrar.
+5. Se retira el selector de año separado y la búsqueda de texto. Mes/año se navegan dentro del calendario, con salto entre años/meses disponibles. Ver todos elimina el filtro. Escape cierra primero el calendario; cancelar el cambio conserva el filtro.
+6. Cierre por X SVG con nombre accesible y área táctil de 44 px.
+7. Usuarios/Perfil/Supervisión comprobados sin selector en el contenido principal.
+8. Lupa en categorías y conteo; enfoca la búsqueda del listado. La apertura automática normal del listado conserva foco en panel y evita abrir el teclado.
+
+No se modifican API, permisos, esquema D1, referencias Excel ni datos productivos. Implementación nativa sin dependencias nuevas. Esta revisión está preparada localmente para push/despliegue.
+
+Verificación de esta revisión: 74 unitarias aprobadas; cycle-ui (calendario/mes/año/preparados/retorno), 4 grupos de navegación por rol, 7 de Supervisión con D1 real aislada, supervision-layout, 8 grupos de UX y mobile-ux aprobados. Build Pages y paquete público sin archivos internos aprobados. Revisión visual en navegador adjunto del calendario y del Historial cerrado/abierto. Las pruebas intensivas se separaron por sesión para no superar el límite por identidad; la UX general se repitió con fixtures limpios después de las pruebas que crean ciclos. No se tocaron límites de producción. Evidencia en [verificación de navegación y calendario](navigation-calendar-verification-2026-10-25.json).

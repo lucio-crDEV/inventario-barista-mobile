@@ -58,30 +58,40 @@ try{
  }
  // Worker can select history but cannot create. Lead sees only Service hierarchy.
  user={...user,id:'context-worker',role:'worker'};await page.goto(origin+'/');await expect(page.locator('.inventory-context-bar')).toBeVisible();await expect(page.locator('[data-new]')).toHaveCount(0);await page.locator('[data-select]').click();await expect(page.locator('[data-cycle]')).toHaveCount(2);await expect(page.locator('[data-cycle=current] .inventory-status')).toHaveText('Activo');await page.locator('[data-history-close]').click();
- user={...user,id:'context-lead',role:'service_lead'};await page.goto(origin+'/pages/admin/supervision.html');await expect(page.locator('#cycle option')).toHaveCount(2);await expect(page.locator('#create-inventory')).toHaveCount(0);
+ user={...user,id:'context-lead',role:'service_lead'};await page.goto(origin+'/pages/admin/supervision.html');await expect(page.locator('#context-name')).toBeVisible();await expect(page.locator('main > .inventory-context-bar')).toHaveCount(0);await expect(page.locator('#create-inventory')).toHaveCount(0);
  const service=page.locator('details[data-scope="servicio"]');await expect(service).toBeVisible();await service.locator(':scope > summary').click();const waiters=page.locator('details[data-scope="servicio:garzones"]');await waiters.locator(':scope > summary').click();
  for(const name of ['Salón','Terraza','Zona Privada'])await expect(waiters.getByRole('link',{name:new RegExp(name)})).toBeVisible();
  assert.equal(await page.locator('#scope option').allTextContents().then(v=>v.some(x=>x.includes('Cocina'))),false);
  await expect(page.locator('#cycle-actions')).not.toContainText('Inventario Global');
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('inventory-supervision-view:context-lead')||'{}').openScopes||[])).toContain('servicio:garzones');
  await page.reload();await expect(page.locator('details[data-scope="servicio"]')).toHaveAttribute('open','');await expect(page.locator('details[data-scope="servicio:garzones"]')).toHaveAttribute('open','');
  await page.getByRole('tab',{name:'Productos',exact:true}).click();
- await page.locator('#scope').selectOption('servicio:garzones:salon');
+ await page.locator('#toggle-filters').click();await page.locator('#scope').selectOption('servicio:garzones:salon');
  await page.getByRole('tab',{name:'Áreas',exact:true}).click();
  await expect(page.locator('details[data-scope="servicio"]')).toBeVisible();
  assert.equal(scopeQueries.at(-1),'');
- await page.locator('#cycle').selectOption('history');await expect(page.locator('#cycle-actions')).toContainText('Finalizado');await expect(page.locator('[data-transition="open"]')).toHaveCount(0);
+ await page.locator('[data-settings-toggle]').click();await page.locator('[data-select]').click();await page.locator('[data-cycle=history]').click();await page.locator('dialog [data-go]').click();await expect(page.locator('#cycle-actions')).toContainText('Finalizado');await expect(page.locator('[data-transition="open"]')).toHaveCount(0);
 
 
  // A long history remains browsable without mounting hundreds of rows or focusing search.
  cycles.push(...Array.from({length:180},(_,i)=>({id:'old-'+i,name:'Archivo '+i,type:'weekly',period:`${2023+Math.floor(i/60)}-${String(1+Math.floor(i%60/5)).padStart(2,'0')}-${String(1+i%5).padStart(2,'0')}`,state:'closed',lifecycle:'active'})));
  user={...user,id:'history-worker',role:'worker'};await page.goto(origin+'/');await page.locator('[data-select]').click();
  await expect(page.locator('[data-cycle]')).toHaveCount(24);assert.equal(await page.evaluate(()=>document.activeElement.tagName),'H2');
- await page.getByLabel('Año',{exact:true}).selectOption('2024');await expect(page.locator('[data-history-count]')).toHaveText('60 inventarios');
+ await expect(page.locator('dialog select')).toHaveCount(0);await expect(page.locator('[data-history-close] svg')).toHaveCount(1);
+ await page.getByRole('button',{name:'Elegir fecha',exact:true}).click();
+ await expect(page.locator('[data-date="2026-10-24"]')).toBeDisabled();await expect(page.locator('[data-date]:not(:disabled)')).toHaveCount(2);
+ await page.locator('[data-date="2026-10-18"]').click();await expect(page.locator('[data-history-count]')).toHaveText('1 inventario');await page.locator('[data-date-clear]').click();
  await page.getByRole('button',{name:'Cargar más',exact:true}).click();await expect(page.locator('[data-cycle]')).toHaveCount(48);
- await page.getByLabel('Buscar inventario',{exact:true}).fill('01/01/2024');await expect(page.locator('[data-cycle]')).toHaveCount(1);
- await page.getByLabel('Buscar inventario',{exact:true}).fill('sin coincidencias');await expect(page.locator('[data-history-list]')).toContainText('No hay inventarios');
- await page.getByLabel('Buscar inventario',{exact:true}).fill('');
- for(const width of [320,390,654]){await page.setViewportSize({width,height:804});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
- await page.locator('[data-cycle]').first().click();await expect(page.getByRole('heading',{name:'Cambiar inventario',exact:true})).toBeVisible();await page.locator('dialog [data-cancel]').click();await expect(page.getByRole('heading',{name:'Seleccionar inventario',exact:true})).toBeVisible();await page.locator('[data-history-close]').click();
+ await page.getByRole('button',{name:'Elegir fecha',exact:true}).click();await page.getByRole('button',{name:'Elegir mes y año',exact:true}).click();
+ await page.getByRole('button',{name:'Año anterior',exact:true}).click();await page.getByRole('button',{name:'Año anterior',exact:true}).click();await page.locator('[data-month="2024-01"]').click();
+ await page.locator('[data-date="2024-01-01"]').click();await expect(page.locator('[data-cycle]')).toHaveCount(1);
+ await page.locator('[data-date-open]').click();for(const width of [320,390,654]){await page.setViewportSize({width,height:804});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
+ await page.keyboard.press('Escape');await expect(page.locator('.inventory-calendar')).toBeHidden();await expect(page.getByRole('heading',{name:'Seleccionar inventario',exact:true})).toBeVisible();
+ await page.locator('[data-cycle]').first().click();await expect(page.getByRole('heading',{name:'Cambiar inventario',exact:true})).toBeVisible();await page.locator('dialog [data-cancel]').click();await expect(page.locator('[data-date-open]')).toContainText('01/01/2024');await page.locator('[data-history-close]').click();
+
+ // Administrative prepared inventories are manageable, but Inicio returns to work inventory.
+ cycles.push({id:'prepared',name:'Preparado',period:'2026-10-26',type:'weekly',state:'open',lifecycle:'prepared',revision:1});
+ user={...user,id:'prepared-admin',role:'admin'};await page.goto(origin+'/pages/admin/supervision.html?inventory=prepared');await expect(page.locator('#context-name')).toHaveText('Preparado · 26/10/2026');
+ await page.locator('[data-settings-toggle]').click();await expect(page.locator('.inventory-status')).toHaveText('Preparado');await page.getByRole('link',{name:'Inicio',exact:true}).click();await expect(page).toHaveURL(origin+'/');await expect(page.locator('main > .inventory-context-bar')).toContainText('Actual');
  console.log('PASS cycle UI: daily dismissal across reload/navigation/login; submit warnings/reset/confirmation counts; exact uncertain recovery; worker history/no-create; lead Service/Garzones hierarchy.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

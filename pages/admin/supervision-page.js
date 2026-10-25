@@ -1,3 +1,4 @@
+import { cycleLabel } from '/shared/cycles.js';
 import { inventoryDialog } from '/shared/inventory-context.js';
 import { authenticated, identityBar, escapeHtml as esc, dialog, setSync } from '/shared/client.js';
 import { readCommand, submitCommand as sendSupervisionCommand } from '/shared/supervision-command.js';
@@ -55,31 +56,55 @@ function ring(group) {
 }
 function skeleton() { return '<div class="skeleton-stack" aria-hidden="true"><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-line"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span></div></div>'; }
 function renderShell(cycles) {
-  root.innerHTML = `<section class="supervision-context" aria-label="Inventario seleccionado"><label class="supervision-cycle-label">Inventario<select id="cycle">${cycles.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label><p id="cycle-state" class="supervision-updated" role="status"></p><div id="cycle-actions"></div><div id="inventory-management"></div></section><div class="supervision-tabs" role="tablist" aria-label="Vistas de supervisión">${[['areas','Áreas'],['items','Productos'],['history','Historial']].map(([id,title]) => `<button type="button" id="tab-${id}" role="tab" data-mode="${id}" aria-controls="supervision-panel" aria-selected="false">${title}</button>`).join('')}</div><section id="supervision-panel" role="tabpanel"><div class="supervision-tools"><label id="scope-filter">Área<select id="scope"><option value="">${user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas'}</option></select></label><label id="status-filter">Estado<select id="status"><option value="">Todos los productos</option>${['pending','partial','counted','excluded'].map(id => `<option value="${id}">${stateNames[id]}</option>`).join('')}</select></label></div><a id="scope-summary" class="supervision-scope-summary" hidden></a><div id="list-tools"><label class="supervision-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" maxlength="100" placeholder="Buscar producto" aria-label="Buscar producto"></label><div id="history-filters"><div class="supervision-pills" aria-label="Tipo de movimientos">${[['','Todos'],['count','Conteos'],['correction','Correcciones'],['annul','Anulaciones']].map(([id,title]) => `<button type="button" data-category="${id}" aria-pressed="false">${title}</button>`).join('')}</div><details class="supervision-extra-filters"><summary>Ubicación y autor</summary><div class="supervision-tools"><label>Ubicación<select id="history-location"><option value="">Todas las ubicaciones</option></select></label><label>Autor<select id="history-author"><option value="">Todos</option></select></label></div></details></div></div><div class="supervision-list-heading"><h2 id="result-title">Avance por área</h2><span id="result-count"></span></div><section id="results" aria-label="Resultados de supervisión"></section><div class="supervision-list-footer"><button type="button" class="button button-secondary" id="more" hidden>Cargar más</button><button type="button" class="supervision-text-action" id="clear-filters" hidden>Limpiar filtros</button></div></section>${user.role === 'admin' ? '<button class="supervision-text-action supervision-admin-events" type="button" id="admin-events">Actividad administrativa</button>' : ''}`;
-  $('#cycle').value = state.cycleId;
+  root.innerHTML = `<section class="supervision-context" aria-label="Estado del inventario">
+  <div class="supervision-context-heading"><strong id="context-name"></strong><span id="cycle-state" class="supervision-updated" role="status"></span></div>
+  <div id="cycle-actions"></div><div id="inventory-management"></div>
+</section>
+<div class="supervision-tabs" role="tablist" aria-label="Vistas de supervisión">${[['areas','Áreas'],['items','Productos'],['history','Historial']].map(([id,title]) => `<button type="button" id="tab-${id}" role="tab" data-mode="${id}" aria-controls="supervision-panel" aria-selected="false">${title}</button>`).join('')}</div>
+<section id="supervision-panel" role="tabpanel">
+  <div id="list-tools">
+    <div class="supervision-query-row">
+      <label class="supervision-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" maxlength="100" placeholder="Buscar producto" aria-label="Buscar producto"></label>
+      <button type="button" id="toggle-filters" aria-expanded="false" aria-controls="supervision-filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filtros</span><small id="filter-count" hidden></small></button>
+    </div>
+    <div class="supervision-filter-summary"><div id="active-filters"></div><button type="button" class="supervision-text-action" id="clear-filters" hidden>Limpiar</button></div>
+  </div>
+  <section id="supervision-filters" aria-label="Filtros de resultados" hidden>
+    <div class="supervision-tools"><label id="scope-filter">Área<select id="scope"><option value="">${user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas'}</option></select></label><label id="status-filter">Estado<select id="status"><option value="">Todos los productos</option>${['pending','partial','counted','excluded'].map(id => `<option value="${id}">${stateNames[id]}</option>`).join('')}</select></label></div>
+    <div id="history-filters" class="supervision-tools"><label>Movimiento<select id="history-category">${[['','Todos'],['count','Conteos'],['correction','Correcciones'],['annul','Anulaciones']].map(([id,title]) => `<option value="${id}">${title}</option>`).join('')}</select></label><label>Ubicación<select id="history-location"><option value="">Todas</option></select></label><label>Autor<select id="history-author"><option value="">Todos</option></select></label></div>
+    <button type="button" class="supervision-text-action" id="apply-filters">Listo</button>
+  </section>
+  <a id="scope-summary" class="supervision-scope-summary" hidden></a>
+  <div class="supervision-list-heading"><h2 id="result-title">Avance por área</h2><span id="result-count"></span></div>
+  <section id="results" aria-label="Resultados de supervisión"></section>
+  <div class="supervision-list-footer"><button type="button" class="button button-secondary" id="more" hidden>Cargar más</button></div>
+</section>
+${user.role === 'admin' ? '<button class="supervision-text-action supervision-admin-events" type="button" id="admin-events">Actividad administrativa</button>' : ''}
+`;
   $('#status').value = state.status; $('#search').value = state.search;
-  $('#cycle').onchange = async event => { state.cycleId = event.target.value; state.scope = ''; resetList(); details.clear(); await refresh({ reset: true, authors: true }); };
   $('#scope').onchange = async event => { state.scope = event.target.value; resetList(); await refresh({ reset: true }); };
   $('#status').onchange = event => { state.status = event.target.value; changeFilters(); };
   $('#search').oninput = event => { state.search = event.target.value; clearTimeout(searchTimer); searchTimer = setTimeout(changeFilters, 250); };
-  for (const [selector, field] of [['#history-location','location'],['#history-author','author']]) $(selector).onchange = event => { state[field] = event.target.value; changeFilters(); };
+  for (const [selector, field] of [['#history-category','category'],['#history-location','location'],['#history-author','author']]) $(selector).onchange = event => { state[field] = event.target.value; changeFilters(); };
   for (const button of root.querySelectorAll('[data-mode]')) button.onclick = () => setMode(button.dataset.mode);
-  for (const button of root.querySelectorAll('[data-category]')) button.onclick = () => { state.category = button.dataset.category; changeFilters(); };
+  $('#history-category').value=state.category;
+  $('#toggle-filters').onclick=()=>{const panel=$('#supervision-filters');panel.hidden=!panel.hidden;$('#toggle-filters').setAttribute('aria-expanded',String(!panel.hidden));};
+  $('#apply-filters').onclick=()=>{ $('#supervision-filters').hidden=true;$('#toggle-filters').setAttribute('aria-expanded','false');$('#toggle-filters').focus({preventScroll:true}); };
+  $('#active-filters').onclick=event=>{const button=event.target.closest('[data-clear-filter]');if(!button)return;const field=button.dataset.clearFilter;state[field]='';$(filterFields[field]).value='';changeFilters();};
   root.querySelector('.supervision-tabs').onkeydown = event => {
     if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
     const tabs = [...root.querySelectorAll('[role="tab"]')], at = tabs.indexOf(document.activeElement); if (at < 0) return;
     event.preventDefault(); const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (at + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
     tabs[next].click(); tabs[next].focus();
   };
-  $('#clear-filters').onclick = () => { Object.assign(state, {status:'',search:'',category:'',author:'',location:''}); $('#status').value = ''; $('#search').value = ''; $('#history-author').value = ''; $('#history-location').value = ''; changeFilters(); };
+  $('#clear-filters').onclick = () => { Object.assign(state, {scope:'',status:'',search:'',category:'',author:'',location:''}); $('#scope').value=''; $('#history-category').value=''; $('#status').value = ''; $('#search').value = ''; $('#history-author').value = ''; $('#history-location').value = ''; changeFilters(); };
   $('#more').onclick = () => loadMore();
   if ($('#admin-events')) $('#admin-events').onclick = () => setMode(state.mode === 'events' ? 'areas' : 'events');
   updateMode();
 }
 function renderManagement(cycles) {
   const el = $('#inventory-management'); if (!el || user.role !== 'admin') return;
-  el.innerHTML = '<button type="button" class="supervision-text-action" id="create-inventory">Crear inventario</button><button type="button" class="supervision-text-action" id="manage-inventory">Opciones del inventario</button>';
-  $('#create-inventory').onclick = () => inventoryDialog(user, cycles);
+  el.innerHTML = '<button type="button" class="supervision-text-action" id="manage-inventory">Opciones del inventario</button>';
   $('#manage-inventory').onclick = () => inventoryDialog(user, cycles, cycle || cycles.find(c=>c.id === state.cycleId));
 }
 function updateMode() {
@@ -88,14 +113,23 @@ function updateMode() {
   $('#scope-filter').hidden = ['areas','events'].includes(state.mode);
   $('#status-filter').hidden = state.mode !== 'items'; $('#list-tools').hidden = !['items','history'].includes(state.mode);
   $('#history-filters').hidden = state.mode !== 'history';
-  for (const button of root.querySelectorAll('[data-category]')) button.setAttribute('aria-pressed', String(button.dataset.category === state.category));
-  $('#result-title').textContent = { areas:'Avance por área',items:'Productos',history:'Productos con movimientos',events:'Actividad administrativa' }[state.mode];
+  renderFilterSummary();
+  $('#result-title').textContent = { areas:'Avance por área',items:'Productos',history:'Movimientos',events:'Actividad administrativa' }[state.mode];
   $('#admin-events')?.setAttribute('aria-pressed', String(state.mode === 'events'));
-  $('#clear-filters').hidden = ![state.status,state.search,state.category,state.author,state.location].some(Boolean) || state.mode === 'areas';
+  if (!['items','history'].includes(state.mode)) $('#supervision-filters').hidden=true;
+  $('#toggle-filters').setAttribute('aria-expanded',String(!$('#supervision-filters').hidden));
+}
+const filterFields={scope:'#scope',status:'#status',category:'#history-category',location:'#history-location',author:'#history-author'};
+function renderFilterSummary() {
+  const fields=state.mode==='history'?['scope','category','location','author']:state.mode==='items'?['scope','status']:[];
+  const active=fields.filter(field=>state[field]);
+  $('#active-filters').innerHTML=active.map(field=>`<button type="button" data-clear-filter="${field}" aria-label="Quitar filtro ${esc($(filterFields[field]).selectedOptions[0]?.textContent || state[field])}">${esc($(filterFields[field]).selectedOptions[0]?.textContent || state[field])}<span aria-hidden="true">×</span></button>`).join('');
+  $('#filter-count').hidden=!active.length;$('#filter-count').textContent=String(active.length);
+  $('#clear-filters').hidden=!active.length && !state.search;
 }
 function resetList() { state.pageCount = 1; state.openProducts = []; state.openHistory = []; cursor = null; }
 async function changeFilters() { resetList(); details.clear(); updateMode(); await refresh({ reset: true }); }
-async function setMode(next) { if (state.mode === next) return; snapshot(); state.mode = next; if (next === 'areas') state.scope = ''; resetList(); updateMode(); await refresh({ reset: true }); }
+async function setMode(next) { if (state.mode === next) return; snapshot(); state.mode = next; $('#supervision-filters').hidden=true; if (next === 'areas') state.scope = ''; resetList(); updateMode(); await refresh({ reset: true }); }
 function renderScopes() {
   for (const id of ['#scope','#history-location']) {
     const el = $(id), value = id === '#scope' ? state.scope : state.location;
@@ -117,7 +151,9 @@ async function refresh({ reset = false, quiet = false, authors = false } = {}) {
     if (ticket !== generation) return;
     if (data.user.id !== user.id || data.user.role !== user.role) { location.reload(); return; }
     user = data.user; cycle = data.cycle; scopes = data.scopes; groups = data.groups; scopeGroups = data.scopeGroups || [];
+    document.dispatchEvent(new CustomEvent('inventory:cycle-updated',{detail:cycle}));
     renderScopes();
+    $('#context-name').textContent=cycleLabel(cycle);
     $('#cycle-state').textContent = `Actualizado ${dateTime(data.updatedAt)}`;
     renderCycleActions(); renderScopeSummary();
     if (authors) {
@@ -255,8 +291,8 @@ function historySummary(item) {
   return [[counts.counts,'conteos'],[counts.corrections,'correcciones'],[counts.annulments,'anulaciones']].filter(([n]) => n).map(([n,label]) => `${n} ${label}`).join(' · ');
 }
 function renderHistory() {
-  $('#result-count').textContent = `${historyItems.length} ítems cargados`;
-  $('#results').innerHTML = historyItems.length ? `<div class="supervision-rows">${historyItems.map(item => `<details class="supervision-history-item" data-history="${esc(key(item))}" ${state.openHistory.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.product)}</strong><small>${esc(locationName(item.locationId))}</small><small>${esc(historySummary(item))}</small></span><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary><div class="supervision-history-detail">${details.has(key(item)) ? chronology(details.get(key(item)).rows, item.unit) + moreHistoryMarkup(details.get(key(item)).cursor) : skeleton()}</div></details>`).join('')}</div>` : '<p class="supervision-empty">Sin movimientos para estos filtros.</p>';
+  $('#result-count').textContent = `${historyItems.length} ${historyItems.length===1?'producto':'productos'}`;
+  $('#results').innerHTML = historyItems.length ? `<div class="supervision-rows">${historyItems.map(item => `<details class="supervision-history-item" data-history="${esc(key(item))}" ${state.openHistory.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.product)}</strong><small>${esc(locationName(item.locationId))}</small><small>${esc(historySummary(item))}</small></span><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary><div class="supervision-history-detail">${details.has(key(item)) ? chronology(details.get(key(item)).rows, item.unit) + moreHistoryMarkup(details.get(key(item)).cursor) : skeleton()}</div></details>`).join('')}</div>` : '<p class="supervision-empty">Sin movimientos.</p>';
   for (const card of root.querySelectorAll('details[data-history]')) {
     const item = historyItems.find(i => key(i) === card.dataset.history);
     card.ontoggle = () => { snapshot(); if (card.open && !details.has(key(item))) loadHistory(item, card.querySelector('.supervision-history-detail')); };
@@ -366,10 +402,13 @@ try {
   const data = await authenticated('/api/admin/supervision/cycles'); user = data.user;
   if (history.state?.supervision?.userId === user.id) restore(history.state.supervision.value);
   else { try { restore(JSON.parse(sessionStorage.getItem(storageKey()) || 'null')); } catch {} }
+  const requested=new URLSearchParams(location.search).get('inventory');
+  if(data.cycles.some(c=>c.id===requested) && requested!==state.cycleId){state.cycleId=requested;state.scope='';resetList();}
   if (!data.cycles.some(c => c.id === state.cycleId)) state.cycleId = data.defaultCycleId || data.cycles[0]?.id || '';
   if (user.role !== 'admin' && state.mode === 'events') state.mode = 'areas';
+  if(state.cycleId){const url=new URL(location.href);url.searchParams.set('inventory',state.cycleId);history.replaceState(history.state,'',url);}
   pendingCommand = readCommand(user.id);
   identityBar(user,async () => { await refresh({quiet:true}); return pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado'; });
-  if (!state.cycleId) { root.innerHTML = '<p class="supervision-empty">No hay inventarios disponibles.</p>' + (user.role === 'admin' ? '<button class="button button-primary" id="create-inventory">Crear inventario</button>' : ''); root.setAttribute('aria-busy','false'); if ($('#create-inventory')) $('#create-inventory').onclick = () => inventoryDialog(user, data.cycles); }
+  if (!state.cycleId) { root.innerHTML = '<p class="supervision-empty">No hay inventarios disponibles.</p>'; root.setAttribute('aria-busy','false'); }
   else { restoring = true; renderShell(data.cycles); renderManagement(data.cycles); await refresh({authors:true}); restoring = false; scheduleRefresh(); }
 } catch (error) { root.textContent = 'Panel de supervisión no disponible.'; root.setAttribute('aria-busy','false'); notice(error.message); }

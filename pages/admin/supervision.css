@@ -119,3 +119,26 @@ html[data-theme="dark"] #supervision { --supervision-counted:#60d9bd;--supervisi
 #inventory-management {display:flex;gap:16px;flex-wrap:wrap;}
 #supervision .supervision-tabs button[aria-selected=true],#supervision .supervision-pills button[aria-pressed=true] {border-color:transparent;}
 #supervision .supervision-switch input:focus-visible + span {outline:0;filter:brightness(1.15);}
+
+/* One search row; secondary filters open together and remain visible as chips. */
+.supervision-context-heading {display:flex;align-items:baseline;justify-content:space-between;gap:4px 12px;flex-wrap:wrap;margin-bottom:8px;}
+.supervision-context-heading > strong {font-size:14px;}
+#supervision .supervision-context-heading .supervision-updated {margin:0;font-size:11px;}
+.supervision-query-row {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;}
+#supervision .supervision-query-row .supervision-search {margin:0;}
+#supervision #toggle-filters {display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;padding:8px 10px;border:0;border-radius:10px;background:var(--supervision-soft);color:var(--ui-accent);font-size:12px;}
+#toggle-filters svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+#filter-count {font-size:11px;font-weight:700;}
+#supervision-filters {padding:12px;margin:8px 0;border-radius:12px;background:var(--supervision-soft);}
+#supervision-filters .supervision-tools {margin-bottom:8px;}
+#supervision-filters #apply-filters {display:block;margin-left:auto;min-width:60px;}
+.supervision-filter-summary {display:flex;align-items:flex-start;justify-content:space-between;gap:4px;}
+#active-filters {display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;}
+#supervision #active-filters button {display:inline-flex;align-items:center;gap:8px;max-width:100%;min-height:44px;padding:6px 10px;border:0;border-radius:9px;background:transparent;color:var(--ui-muted);font-size:12px;text-align:left;overflow-wrap:anywhere;}
+#active-filters button span {font-size:18px;flex-shrink:0;}
+#supervision .supervision-tabs button[aria-selected=true] {border-color:transparent;}
+#supervision .supervision-empty {padding:14px;margin:0;border:0;background:var(--supervision-soft);font-size:14px;}
+
+#supervision-filters {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+#supervision-filters .supervision-tools {display:contents;}
+#supervision-filters #apply-filters {grid-column:1/-1;justify-self:end;margin:0;}

@@ -25,6 +25,7 @@ try {
   await expect(page.locator('.item-drawer-group[open]')).toHaveCount(1);
   await page.locator('.item-drawer-group[open] .item-drawer-link').first().click();
   await expect(drawer).not.toHaveClass(/is-open/);
+  await expect(page.locator('#header-open-item-drawer')).toBeVisible();await page.locator('#header-open-item-drawer').click();assert.equal(await page.evaluate(()=>document.activeElement.id),'item-drawer-search');await page.locator('#close-item-drawer').click();
   await page.locator('#quantity').fill('1.25'); await page.locator('#note').fill('Borrador de navegación');
   await page.reload();
   await expect(drawer).toHaveClass(/is-open/);
@@ -62,6 +63,9 @@ try {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({ path: `test-results/inventory-navigation/home-${width}-${theme}.png` });
   }
+  for(const path of ['/pages/admin/','/pages/cuenta/?profile=1','/pages/admin/supervision.html']){
+    await page.goto(origin+path);await expect(page.locator('#settings-drawer .inventory-context-bar')).toHaveCount(1);await expect(page.locator('main > .inventory-context-bar')).toHaveCount(0);
+  }
   const response = await context.request.get(origin + '/api/bootstrap?area=servicio&sector=garzones');
   const data = await response.json();
   const zone = data.scopes.find(scope => scope.parent === 'servicio:garzones');
@@ -70,6 +74,16 @@ try {
   await expect(drawer).toHaveClass(/is-open/);
   assert.equal(await page.evaluate(() => document.activeElement.className), 'item-drawer-panel');
   checks.push('Inicio compacto en 320/390/654 y ambos temas; Garzones abre directamente el listado de su zona');
+
+  for(const username of ['admin-prueba','jefa-servicio','cocina','sin-areas']){
+    const session=await browser.newContext({viewport:{width:390,height:844}});
+    const signed=await session.request.post(origin+'/api/login',{headers:{Origin:origin},data:{username,password}});assert.equal(signed.status(),200);
+    const info=await (await session.request.get(origin+'/api/navigation?cycle=prueba-compartida')).json();
+    const tab=await session.newPage();await tab.goto(origin+'/pages/cuenta/?profile=1&inventory=prueba-compartida');await tab.locator('[data-settings-toggle]').click();await tab.getByRole('link',{name:'Inicio',exact:true}).click();
+    const {homeURL}=await import('../../shared/navigation.js');const destination=new URL(homeURL(info.scopes),origin);if(info.cycleId)destination.searchParams.set('inventory','prueba-compartida');await expect(tab).toHaveURL(destination.href);
+    await session.close();
+  }
+  checks.push('Selector solo en Inicio y en menú para usuarios/perfil/supervisión; Inicio respeta permisos de administrador, jefa, trabajador de un área y cuenta sin áreas; lupa disponible en conteo');
   assert.deepEqual(errors, []);
   await writeFile('test-results/inventory-navigation/report.json', JSON.stringify({ checks, errors }, null, 2));
   console.log('PASS inventory navigation: ' + checks.length + ' groups; no page errors.');
