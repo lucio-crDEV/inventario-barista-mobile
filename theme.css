@@ -969,9 +969,9 @@ html[data-theme="dark"] .item-drawer-panel { box-shadow: 0 12px 35px rgb(0 0 0 /
 .item-drawer-link, html[data-theme="dark"] .item-drawer-link { background: rgb(255 255 255 / 24%); }
 html[data-theme="dark"] .item-drawer-link { background: rgb(255 255 255 / 5%); }
 .item-drawer-link.is-current, html[data-theme="dark"] .item-drawer-link.is-current {
-  border-color: var(--ui-accent);
+  border-color: transparent;
   background: var(--ui-nav-active);
-  box-shadow: inset 2px 0 var(--ui-accent);
+  box-shadow: none;
 }
 .item-drawer-search, html[data-theme="dark"] #item-drawer-search { background: rgb(255 255 255 / 30%); }
 html[data-theme="dark"] #item-drawer-search { background: rgb(255 255 255 / 6%); }

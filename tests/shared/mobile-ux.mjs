@@ -41,6 +41,27 @@ try {
  await page.route('**/api/bootstrap*',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({user,scopes,items:[item],counts:[],cycle:{id:'test-mobile',state:'open',revision:1},cursor:0})}));
  await page.goto(origin+'/pages/inventario/?area=cocina');
  await page.locator('.category-card').first().click();
+
+ // Programmatic panel focus must never decorate all descendant labels.
+ const panel=page.locator('.item-drawer-panel'),current=page.locator('.item-drawer-link.is-current');
+ await expect(panel).toBeVisible();
+ await page.keyboard.press('Tab');await panel.focus();
+ for(const theme of ['light','dark'])for(const width of [320,390,654]){
+  await page.evaluate(value=>document.documentElement.dataset.theme=value,theme);await page.setViewportSize({width,height:844});await panel.focus();
+  assert.equal(await panel.evaluate(el=>el.matches(':focus-visible')),true);
+  const underlined=await page.locator('.item-drawer-name').first().evaluate(el=>{const found=[];for(let node=el;node;node=node.parentElement)if(getComputedStyle(node).textDecorationLine.includes('underline'))found.push(node.className||node.tagName);return found;});
+  assert.deepEqual(underlined,[]);
+  await expect(current).toHaveCSS('border-color','rgba(0, 0, 0, 0)');await expect(current).toHaveCSS('box-shadow','none');
+  const normal=await current.evaluate(el=>getComputedStyle(el).filter);await current.focus();
+  assert.notEqual(await current.evaluate(el=>getComputedStyle(el).filter),normal);
+  await expect(current).toHaveCSS('text-decoration-line','none');await expect(current).toHaveCSS('outline-style','none');
+  await panel.focus();await page.screenshot({path:`test-results/mobile-ux/focus-list-${width}-${theme}.png`});
+ }
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>document.documentElement.dataset.theme='light');await current.click();
+ await page.locator('[data-settings-toggle]').click();await page.keyboard.press('Tab');await page.locator('.settings-panel').focus();
+ await expect(page.locator('.settings-panel')).toHaveCSS('text-decoration-line','none');
+ await page.locator('.identity-profile').focus();await expect(page.locator('.identity-profile')).toHaveCSS('text-decoration-line','none');
+ await page.locator('.settings-close').click();
  await expect(page.locator('#quantity')).toBeVisible();
  assert.equal(await page.locator('.item-card').getByText('Sin conteo vigente.',{exact:false}).count(),0);
  const badge=await page.locator('.item-header .status-badge').boundingBox();
@@ -71,13 +92,13 @@ try {
  await expect(page).toHaveURL(/inventory=history/);await expect(page.locator('.category-card')).toBeVisible();assert.equal(requestedCycle,'history');
  await page.goto(origin+'/pages/inventario/?area=servicio&inventory=history&from=supervision&summary=0');
  await expect(page).toHaveURL(/sector=barra/);assert.equal(new URL(page.url()).searchParams.get('inventory'),'history');assert.equal(new URL(page.url()).searchParams.get('from'),'supervision');assert.equal(new URL(page.url()).searchParams.get('summary'),'0');
- await page.locator('.category-card').first().click();
+ await page.locator('.category-card').first().click();await page.locator('.item-drawer-link.is-current').click();
  for(const selector of ['#quantity','#note','#save-counted','#save-partial','#save-out-of-stock'])await expect(page.locator(selector)).toBeDisabled();
  await expect(page.locator('#record-history')).toBeEnabled();
  const retained=await page.evaluate(()=>localStorage.getItem('inventory-drafts-v1:mobile-test:history'));
  await page.locator('#quantity').evaluate(field=>{field.value='99';field.dispatchEvent(new Event('input',{bubbles:true}));});
  assert.equal(await page.evaluate(()=>localStorage.getItem('inventory-drafts-v1:mobile-test:history')),retained);
- readState='open';await page.reload();await page.locator('.category-card').first().click();await expect(page.locator('#quantity')).toBeEditable();await expect(page.locator('#save-counted')).toBeEnabled();
+ readState='open';await page.reload();await page.locator('.item-drawer-link.is-current').click();await expect(page.locator('#quantity')).toBeEditable();await expect(page.locator('#save-counted')).toBeEnabled();
  assert.deepEqual(errors,[]);
- console.log('PASS mobile UX: login error placement/persistence, dialog heading focus, 16px fields, top persistent errors and transient successes; compact count header, action order and simulated keyboard dock.');
+ console.log('PASS mobile UX: focus without inherited underlines or selected borders across320/390/654 and both themes, login error placement/persistence, dialog heading focus, 16px fields, top persistent errors and transient successes; compact count header, action order and simulated keyboard dock.');
 } finally {await browser.close();await new Promise(r=>server.close(r));}

@@ -51,7 +51,7 @@ html[data-theme="dark"] .inventory-status.is-active::before {background:#41d2a2;
 .inventory-type-options input {position:absolute;opacity:0;width:1px;height:1px;min-height:0;padding:0;margin:0;pointer-events:none;}
 .inventory-type-options span {display:flex;align-items:center;justify-content:center;min-height:44px;width:100%;padding:8px 4px;border-radius:10px;background:var(--ui-surface);color:var(--ui-muted);font-size:14px;font-weight:600;}
 .inventory-type-options input:checked + span {background:color-mix(in srgb,var(--ui-accent) 15%,var(--ui-surface));color:var(--ui-accent);}
-.inventory-type-options input:focus-visible + span {text-decoration:underline;text-underline-offset:4px;}
+.inventory-type-options input:focus-visible + span {background:color-mix(in srgb,var(--ui-accent) 24%,var(--ui-surface));color:var(--ui-accent);}
 .inventory-type-options input:disabled + span {opacity:.6;}
 .inventory-opening-date {margin:0;font-size:20px;font-weight:700;color:var(--ui-text);}
 .inventory-cycle-dialog .inventory-link-action[data-cancel] {background:transparent!important;color:var(--ui-muted);border:0;box-shadow:none;}

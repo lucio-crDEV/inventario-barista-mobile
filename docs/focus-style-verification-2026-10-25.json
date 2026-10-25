@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-25",
+  "productionBase": "d4c50da",
+  "state": "local correction awaiting push/deployment",
+  "cause": "global focus-visible text decoration on tabindex panel propagated to all descendants",
+  "changes": [
+    "removed focus text underlining across app and inventory types",
+    "restricted keyboard visual feedback to controls, using background/luminance",
+    "selected item keeps background without accent border or inset line"
+  ],
+  "browserSuites": {
+    "mobile-ux": "passed",
+    "cycle-ui": "passed"
+  },
+  "viewports": [
+    320,
+    390,
+    654
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "keyboardFocusVisible": true,
+  "panelDescendantsUnderlined": false,
+  "selectedItemBorder": "transparent",
+  "selectedItemBoxShadow": "none",
+  "dataOrPermissionChanges": false
+}

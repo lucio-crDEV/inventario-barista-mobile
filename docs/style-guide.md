@@ -4,7 +4,7 @@
 
 Las decisiones de [inventarios y móvil](revision-inventarios-2026-10-25.md) prevalecen sobre descripciones históricas. Avisos que requieren acción persisten cerca del encabezado o al inicio del formulario; confirmaciones breves usan el aviso flotante superior. Nunca ubicar notificaciones al final de la página. Mensajes de sincronización breves y sin detalles técnicos.
 
-No añadir bordes/anillos al foco táctil o selección; mantener indicación de teclado mediante fondo y subrayado. Campos editables de al menos 16 px, diálogos con foco inicial en título o Cancelar, sin abrir teclado por defecto. Estado del producto a la derecha de categoría/ubicación; retirar explicación de cero pendiente. Acciones Sin stock / Avance / Listo cerca del campo y, con teclado, en barra compacta sobre el espacio visible, sin duplicar controles ni perder borradores.
+No añadir bordes/anillos al foco táctil o selección; mantener indicación de teclado mediante cambios suaves de fondo o luminosidad en el control enfocado, sin subrayar texto. Campos editables de al menos 16 px, diálogos con foco inicial en título o Cancelar, sin abrir teclado por defecto. Estado del producto a la derecha de categoría/ubicación; retirar explicación de cero pendiente. Acciones Sin stock / Avance / Listo cerca del campo y, con teclado, en barra compacta sobre el espacio visible, sin duplicar controles ni perder borradores.
 
 Supervisión muestra Servicio y Garzones en ramas desplegables con anillos y cifras reales, respetando permisos; la pestaña Áreas no necesita selector adicional de Área. Recomendación de inventario ámbar suave con X y colapso de 180 ms (inmediato con movimiento reducido), descartable durante el día por administrador.
 
