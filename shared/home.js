@@ -5,11 +5,15 @@ const nav = document.querySelector("nav"),
   placeholder = document.querySelector("#home-loading");
 const finishLoading = loading(placeholder);
 try {
-  const data = await authenticated("/api/navigation");
+  const selectedInventory = new URLSearchParams(location.search).get("inventory");
+  const data = await authenticated("/api/navigation" + (selectedInventory ? "?cycle=" + encodeURIComponent(selectedInventory) : ""));
   const user = data.user;
   const destination = homeURL(data.scopes);
   if (destination !== "/") {
-    location.replace(destination);
+    const target = new URL(destination, location.origin);
+    const selected = new URLSearchParams(location.search).get('inventory');
+    if (selected) target.searchParams.set('inventory', selected);
+    location.replace(target);
     await new Promise(() => {});
   }
   identityBar(user);
@@ -17,9 +21,8 @@ try {
     const id = new URL(link.href).searchParams.get("area");
     if (!data.scopes.some((x) => x.id === id)) link.remove();
   }
-  if (!data.scopes.length)
-    nav.innerHTML =
-      "<p>No tienes áreas asignadas. Contacta al administrador</p>";
+  if (!data.scopes.length) nav.innerHTML = "<p>No tienes áreas asignadas. Contacta al administrador</p>";
+  else if (data.cycleId === null) nav.innerHTML = "<p>No hay inventarios disponibles.</p>";
   finishLoading();
   placeholder.remove();
   nav.hidden = false;

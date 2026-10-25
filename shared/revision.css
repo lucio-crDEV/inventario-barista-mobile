@@ -22,13 +22,35 @@
 .history-minimal span {font-size:.8125rem;grid-column:1/-1;}
 .history-error {font-size:.8125rem;color:var(--ui-danger,#b74443);}
 body>.inventory-notice {position:fixed;z-index:1000;top:calc(var(--notice-top,0px) + max(12px,env(safe-area-inset-top)));bottom:auto;left:50%;display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:calc(100% - 24px);padding:8px 8px 8px 16px;margin:0;border:1px solid rgb(0 131 110 / 15%);border-radius:16px;box-shadow:none;background:#e4f5ee;color:#15513f;font:600 .875rem/1.4 system-ui;transform:translate(-50%,var(--notice-drag,0px));pointer-events:auto;touch-action:none;animation:notice-arrive .18s ease-out both;backdrop-filter:blur(12px);}
-body>.inventory-notice.feedback-toast-partial {background:#fff1d4;border-color:rgb(152 102 0 / 15%);color:#704a00;}
+body>.inventory-notice:is(.feedback-toast-partial,.feedback-toast-advance) {background:#fff1d4;border-color:rgb(152 102 0 / 15%);color:#704a00;}
 body>.inventory-notice.feedback-toast-error {background:#fce8e7;border-color:rgb(183 68 67 / 15%);color:#943431;}
 .inventory-notice>span {flex:1;min-width:0;overflow-wrap:anywhere;}
 .inventory-notice>button {min-width:44px;min-height:44px;flex:none;border:0;border-radius:10px;background:transparent;color:inherit;display:grid;place-items:center;}
 .inventory-notice svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
 html[data-theme=dark] body>.inventory-notice {background:#203f34;color:#b8f2dc;}
-html[data-theme=dark] body>.inventory-notice.feedback-toast-partial {background:#42361c;color:#ffe2a0;}
+html[data-theme=dark] body>.inventory-notice:is(.feedback-toast-partial,.feedback-toast-advance) {background:#42361c;color:#ffe2a0;}
 html[data-theme=dark] body>.inventory-notice.feedback-toast-error {background:#48282b;color:#ffc1bd;}
 @keyframes notice-arrive {from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
 @media(prefers-reduced-motion:reduce){body>.inventory-notice{animation:none;}}
+
+/* Touch focus keeps the normal border. Keyboard focus uses a quiet underline. */
+html body :is(button,a,input,textarea,select,summary,[tabindex]):focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+html body :is(input,textarea,select):focus { border-color: var(--ui-border) !important; }
+html body :is(button,a,input,textarea,select,summary,[tabindex]):focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  text-decoration: underline;
+  text-decoration-color: var(--ui-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+html body :is(input,textarea,select):focus-visible { background: color-mix(in srgb,var(--ui-accent) 9%,var(--ui-field)); }
+html body :is(.item-card,.category-card,.scope-card,.stat-card,.item-drawer-panel,.settings-panel,.shared-dialog,.account-card,.user-card,.button) { box-shadow: none !important; background-image: none !important; }
+.account .feedback-message { margin: 0 0 16px; }
+/* iOS must never zoom a text field when it receives focus. */
+html body :is(input:not([type=checkbox]):not([type=radio]),textarea,select) { font-size: 16px; }
+
+html body :is(.item-drawer-link.is-active,.account-tabs [aria-selected=true],.stat-card.is-selected) { border-color: var(--ui-border); box-shadow: none !important; }

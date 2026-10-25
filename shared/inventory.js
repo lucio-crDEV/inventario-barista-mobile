@@ -42,14 +42,18 @@ export class SharedInventory {
   }
   pendingState() {
     return Object.keys(this.drafts.all()).length
-      ? "Pendiente de enviar · borradores conservados"
+      ? "Cambios pendientes"
       : "Sincronizado";
   }
   draft(item) {
     return this.drafts.get(item.id);
   }
+  scopeState(item) {
+    return this.data.cycle?.scopeStates?.find(s => item.locationId === s.scope_id || item.locationId.startsWith(s.scope_id + ":"))?.state || this.data.cycle?.state;
+  }
   capture(item, quantity, note, status = "partial", outOfStock = false) {
     const old = this.draft(item);
+    if (this.scopeState(item) !== "open") return old;
     if (old?.operation) return old;
     const value = {
       quantity,
@@ -70,7 +74,7 @@ export class SharedInventory {
   }
   mount(item, count) {
     this.editVersion = count.version || 0;
-    const state=this.data.cycle?.scopeStates?.find(s=>item.locationId===s.scope_id||item.locationId.startsWith(s.scope_id+':'))?.state||this.data.cycle?.state;
+    const state=this.scopeState(item);
     if(state!=='open'){
       const banner=document.createElement('p');banner.className='pending-draft';banner.textContent='Inventario en revisión o cerrado. Se conservan tus borradores; los cambios se gestionan desde Supervisión.';
       document.querySelector('#quantity')?.closest('.field')?.before(banner);
@@ -81,7 +85,7 @@ export class SharedInventory {
     if (d) {
       q.value = d.quantity ?? "";
       n.value = d.note || "";
-      this.state("Pendiente de enviar · borrador recuperado");
+      this.state("Cambios pendientes");
     }
     for (const field of [q, n])
       field?.addEventListener("input", () =>
@@ -90,16 +94,17 @@ export class SharedInventory {
     const info = document.createElement("p");
     info.className = "pending-draft";
     info.textContent = count.version
-      ? `Último registro: ${count.authorName} · versión ${count.version}. ${count.note ? "Notas conservadas abajo." : ""}`
-      : "Sin conteo vigente. El cero solo se confirma al guardar.";
-    q?.closest(".field")?.before(info);
+      ? `Registrado por ${count.authorName}.`
+      : "";
+    if (info.textContent) q?.closest(".field")?.before(info);
     const controls = document.createElement("div");
     controls.innerHTML =
       '<button type="button" class="button button-ghost" id="record-history">Ver historial de este producto</button>' +
       (d?.operation
         ? '<button type="button" class="button button-secondary" id="retry-operation">Reintentar envío pendiente</button>'
         : "");
-    info.after(controls);
+    if (info.isConnected) info.after(controls);
+    else q?.closest(".field")?.before(controls);
     controls.querySelector("#record-history").onclick = () => openProductHistory(this,item);
     this.pendingUI(item);
     controls
@@ -120,8 +125,12 @@ export class SharedInventory {
   }
   pendingUI(item) {
     const pending = this.draft(item)?.operation;
-    for (const field of document.querySelectorAll("#quantity,#note"))
-      field.readOnly = !!pending;
+    const locked = this.scopeState(item) !== "open";
+    for (const field of document.querySelectorAll("#quantity,#note")) {
+      field.readOnly = !!pending || locked;
+      field.disabled = locked;
+    }
+    for (const button of document.querySelectorAll("#save-out-of-stock,#save-partial,#save-counted")) button.disabled = locked || !!pending;
     let retry = document.querySelector("#retry-operation");
     if (pending && !retry && !this.busy) {
       retry = document.createElement("button");
@@ -161,7 +170,7 @@ export class SharedInventory {
   }
   async save(item, quantity, status, note, outOfStock) {
     if (this.busy) return false;
-    const state=this.data.cycle?.scopeStates?.find(s=>item.locationId===s.scope_id||item.locationId.startsWith(s.scope_id+':'))?.state||this.data.cycle?.state;
+    const state=this.scopeState(item);
     if(state && state!=='open' && !this.draft(item)?.operation){this.state('Inventario en revisión o cerrado. Borrador conservado.');return false;}
     const old = this.draft(item);
     let d = old?.operation
@@ -238,12 +247,12 @@ export class SharedInventory {
             baseVersion: e.current?.version || 0,
           });
           this.state(
-            `Edición obsoleta · vigente ${e.current?.quantity ?? "sin conteo"} ${item.unit}, versión ${e.current?.version || 0}. Borrador conservado. Revisa y vuelve a guardar.`,
+            "El conteo cambió. Conservamos tu borrador; revisa el último registro antes de guardar.",
           );
         }
       } else if (e.status === 403) {
         this.modal?.close();
-        this.state("Acceso retirado · borrador aislado conservado");
+        this.state("Tu acceso cambió. Conservamos tus cambios pendientes.");
         await this.refreshPermissions();
       } else if (e.status && e.status < 500) {
         this.drafts.set(item.id, { ...d, operation: undefined });
@@ -262,7 +271,7 @@ export class SharedInventory {
     if (e.status === 401 || e.code === "IDENTITY_CHANGED") {
       this.modal?.close();
       loginRedirect();
-    } else this.state(`${e.message || "Sin conexión"} · borrador conservado`);
+    } else this.state(e.status ? e.message : "Sin conexión. Reintenta el envío.");
   }
   resolve(item, d, current) {
     this.modal?.close();
@@ -364,7 +373,7 @@ export class SharedInventory {
           // Keep drafts under the old identity; never replay them after a permission change.
           this.state(
             pending
-              ? "Tus accesos cambiaron. Hay borradores aislados conservados."
+              ? "Tus accesos cambiaron. Conservamos tus cambios pendientes."
               : "Tus accesos cambiaron.",
           );
           await this.refreshPermissions();

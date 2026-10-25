@@ -1,5 +1,7 @@
 # Verificación — inventory-v3
 
+Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009/0010; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
+
 ## Preparación remota autorizada — 23-10-2026
 
 Posterior al commit funcional bcae367: respaldo privado antes/después restaurado y con checksum verificado; 0007 aplicada sobre 0006; preflight remoto ready:true / operation-ux-0007; sin migraciones pendientes. Comparación local privada de filas canónicas: once tablas de datos preservadas sin cambios, integridad correcta y cero violaciones de claves foráneas. Las 16 comprobaciones anónimas posteriores pasan. Configuración efectiva Production y rama inventory-v3 verificadas. [Informe nuevo](preparacion-remota-ux-0007-2026-10-23.json).

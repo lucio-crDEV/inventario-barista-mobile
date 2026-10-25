@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-25",
+  "baseCommit": "b131172",
+  "environment": "local isolated tests; separate remote configuration validation",
+  "unitTests": {
+    "passed": 70,
+    "failed": 0
+  },
+  "pythonTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "workbookContract": {
+    "originalRows": 1151,
+    "vitrinaReferences": 41,
+    "differences": 0
+  },
+  "isolatedRun": {
+    "initialPassed": 22,
+    "stages": 24,
+    "finalPassedAcrossRunAndTargetedReruns": 24,
+    "results": [
+      {
+        "script": "scripts/build-pages.mjs",
+        "durationMs": 130,
+        "passed": true
+      },
+      {
+        "script": "scripts/prepare-tests.mjs",
+        "durationMs": 17215,
+        "passed": true
+      },
+      {
+        "script": "scripts/preflight.mjs",
+        "durationMs": 851,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/preflight-negative.mjs",
+        "durationMs": 1740,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/integration.mjs",
+        "durationMs": 11499,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/extended.mjs",
+        "durationMs": 4831,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/users-service.mjs",
+        "durationMs": 5138,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/load.mjs",
+        "durationMs": 7951,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/sync.mjs",
+        "durationMs": 1956,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/backoff.mjs",
+        "durationMs": 954,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/users-service-browser.mjs",
+        "passed": true,
+        "durationMs": 8353,
+        "rerun": true
+      },
+      {
+        "script": "tests/shared/security-live.mjs",
+        "durationMs": 2006,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/supervision-live.mjs",
+        "durationMs": 1300,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/supervision-browser.mjs",
+        "passed": true,
+        "durationMs": 6605,
+        "rerun": true
+      },
+      {
+        "script": "tests/shared/revision-browser.mjs",
+        "durationMs": 4863,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/ux.mjs",
+        "durationMs": 13707,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/refresh.mjs",
+        "durationMs": 7134,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/admin-layout.mjs",
+        "durationMs": 4026,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/browser.mjs",
+        "passed": true,
+        "durationMs": 28771,
+        "rerun": true
+      },
+      {
+        "script": "tests/shared/views.mjs",
+        "passed": true,
+        "durationMs": 12802,
+        "rerun": true
+      },
+      {
+        "script": "tests/shared/migration-service.mjs",
+        "durationMs": 6002,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/operations.mjs",
+        "durationMs": 14214,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/package-security.mjs",
+        "durationMs": 135,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/pages.mjs",
+        "durationMs": 1646,
+        "passed": true
+      }
+    ]
+  },
+  "additionalBrowserSuites": [
+    "mobile-ux",
+    "cycle-ui",
+    "supervision-layout",
+    "account-revision-browser"
+  ],
+  "lastChangeVerification": {
+    "directTypeChoicesAndAutomaticDate": "cycle-ui passed",
+    "actualActivationDay": "inventory-cycles unit10/10 passed",
+    "migration0010": "applied in demo and D1 production; complete preflight passed"
+  },
+  "load": {
+    "clients": 15,
+    "rounds": 10,
+    "totalRequests": 528,
+    "measuredRequests": 496,
+    "acceptedWrites": 151,
+    "deduplicatedRetries": 150,
+    "expectedConflicts": 14,
+    "unexpectedErrors": 0,
+    "localP50Ms": 75,
+    "localP95Ms": 121,
+    "localMaxMs": 4563
+  },
+  "backupRestore": {
+    "remoteSnapshotBefore0008": "verified checksum; restored in fresh local database",
+    "integrity": "ok",
+    "foreignKeyErrors": 0,
+    "restoredSessions": 0,
+    "preexistingTablesUnchangedAfter0008And0009": 20,
+    "snapshotBefore0010": "private verified export completed"
+  },
+  "remote": {
+    "migrationsApplied": [
+      "0008",
+      "0009",
+      "0010"
+    ],
+    "preflightReady": true,
+    "pagesMetricsEnabled": true,
+    "existingBindingsAndVariablesPreserved": true,
+    "r2Bucket": "inventario-backups",
+    "r2PublicDevUrlEnabled": false,
+    "r2CustomDomains": 0,
+    "backupWorker": "inventory-private-backup",
+    "backupWorkerVersion": "934bdff8-ee03-4096-a277-d7079e41c226",
+    "backupEnabled": false,
+    "missingBackupSecret": [
+      "CF_BACKUP_TOKEN"
+    ],
+    "appPushed": false,
+    "appDeployed": false
+  },
+  "limitations": [
+    "physical Android/iOS keyboard and assistive technology not tested",
+    "local timings do not certify Cloudflare CPU or sustained free tier capacity",
+    "metrics collection begins only when new app version deploys",
+    "first scheduled encrypted remote backup and restore require dedicated token; not certified yet"
+  ]
+}

@@ -1,5 +1,7 @@
 # Traspaso de Inventario Brioche a Hermes — 22-10-2026
 
+Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
+
 ## Etapa 3B — implementación local del 23-10-2026
 
 El usuario informó que b24403d funciona y autorizó desarrollar el resto de 3B. Tablero/historial operativo, rectificación/anulación auditada, activación por ciclo y revisión/cierre/reapertura implementados localmente. Jefa supervisa, rectifica y anula solo Servicio; también gestiona su estado propio (reabrir con motivo, revisión, cierre estricto). Administrador conserva alcance global y activación. No se amplían cuentas mixtas ni roles. Root, telemetría técnica, backups automáticos y Excel 4 siguen pendientes.

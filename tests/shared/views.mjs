@@ -236,7 +236,7 @@ try {
   await form.locator('[value="servicio:barra"]').check();
   await form.locator('[value="servicio:armado-linea-coperia"]').check();
   await form.getByRole("button", { name: "Guardar cuenta y accesos" }).click();
-  await expect(panel.locator("#message")).toContainText("Cambios guardados");
+  await expect(panel.locator(".inventory-notice")).toContainText("Cambios guardados");
   await expect(work).toHaveURL(/area=servicio&sector=barra$/, { timeout: 10000 });
   await work.goto(origin + "/pages/inventario/?area=servicio");
   await expect(work.locator(".scope-card")).toHaveCount(2);

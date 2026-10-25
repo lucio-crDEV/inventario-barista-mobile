@@ -78,8 +78,9 @@ try {
   await expect(K.page).toHaveURL(/area=cocina$/);
   await expect(K.page.locator("#page-title")).toContainText("Cocina");
   await expect(N.page.locator("nav")).toContainText(
-    "No tienes áreas asignadas. Contacta al administrador",
+    "No tienes áreas asignadas",
   );
+  await expect(N.page.locator("nav a")).toHaveCount(0);
   await M.page.goto(origin + "/pages/inventario/?area=servicio");
   await expect(M.page.locator(".scope-card")).toHaveCount(2);
   await expect(M.page.locator(".scope-card")).toContainText([
@@ -208,12 +209,13 @@ try {
   await form.locator('.scope-group[data-scope="servicio"] > summary').click();
   await form.locator('input[value="servicio:barra"]').uncheck();
   await form.getByRole("button", { name: "Guardar cuenta y accesos" }).click();
-  await expect(D.page.locator("#message")).toContainText("Cambios guardados");
+  await expect(D.page.locator(".inventory-notice")).toContainText("Cambios guardados");
   await B.page.waitForTimeout(5600);
   await expect(B.page.locator("#app-content")).toContainText(
     "No tienes áreas asignadas",
   );
-  await expect(B.page.locator("#sync-state")).toContainText("borradores");
+  await expect(B.page.locator("#sync-state")).toHaveAttribute("data-state", "pending");
+  await expect(B.page.locator("#sync-state")).toHaveText("Cambios pendientes");
   await expect(B.page.locator("dialog")).toHaveCount(0);
   assert.ok(
     await B.page.evaluate(() =>
@@ -261,7 +263,8 @@ try {
     } else await route.continue();
   });
   await A.page.locator("#save-counted").click();
-  await expect(A.page.locator("#sync-state")).toContainText("borrador");
+  await expect(A.page.locator("#sync-state")).toContainText("Sin conexión");
+  await expect(A.page.locator("#sync-state")).toHaveAttribute("data-state", "error");
   const accepted = await record(aAPI, other);
   assert.equal(accepted.quantity, 2);
   await A.page.locator("#retry-operation").click();

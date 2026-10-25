@@ -24,7 +24,9 @@ async function contextFor(client) {
   const page = await context.newPage();page.on('pageerror',error => errors.push(error.message));
   await page.goto(origin+'/pages/admin/supervision.html');
   await expect(page.locator('#cycle')).toBeVisible();await page.locator('#cycle').selectOption(cycleId);
-  await expect(page.locator('.supervision-area-row')).toHaveCount(client.user.role === 'admin' ? 2 : 1);
+  await expect(page.locator('.supervision-area-list > a.supervision-area-row, .supervision-area-list > details > summary.supervision-area-row')).toHaveCount(client.user.role === 'admin' ? 2 : 1);
+  await expect(page.locator('details[data-scope="servicio"] > .supervision-children .supervision-area-row')).toHaveCount(1);
+  await expect(page.locator('details[data-scope="servicio"]')).toContainText('Barra');
   return {page,context};
 }
 async function openFirst(page) {
@@ -84,7 +86,7 @@ try {
   await expect(page.locator('.supervision-history-item')).toHaveCount(1);
   checks.push('Historial agrupa por producto/ubicación, filtra por pertenencia y conserva la secuencia completa');
   await openFirst(page);
-  await page.getByRole('switch').uncheck();await expect(page.locator('#message')).toHaveText('Cambio guardado.');
+  await page.getByRole('switch').uncheck();await expect(page.locator('.inventory-notice')).toHaveText('Cambio guardado.');
   await page.locator('#status').selectOption('excluded');await expect(page.locator('.supervision-product')).toHaveCount(1);
   assert.equal(db.prepare('SELECT active FROM item_activity WHERE item_id=?').get(first.id).active,0);
   const otherCycle = cycleId+'-other';db.prepare("INSERT INTO cycles(id,name,catalog_version,state) VALUES(?,'Comprobación persistencia',?,'open')").run(otherCycle,catalog);
@@ -116,6 +118,9 @@ try {
   await lp.locator('[data-transition="open"][data-scope="servicio"]').click();
   await expect(lp.locator('dialog [name="reason"]')).toHaveAttribute('required','');
   await lp.getByRole('button',{name:'Revisar conteos',exact:true}).click();await lp.locator('dialog [data-confirm]').click();
+  await expect(lp.locator('dialog [data-confirm]')).toHaveText('Continuar de todas formas');
+  await expect(lp.locator('dialog [data-command-error]')).not.toBeEmpty();
+  await lp.locator('dialog [data-confirm]').click();
   await expect(lp.locator('dialog')).toHaveCount(0);await expect(lp.locator('[data-transition="review"]')).toBeVisible();
   await closeReview(lp);
   await lp.locator('[data-transition="closed"]').click();
@@ -127,6 +132,9 @@ try {
   await lc.close();
   await page.reload();await page.locator('[data-transition="open"][data-scope="servicio"]').click();
   await page.getByRole('button',{name:'Completar productos',exact:true}).click();await page.locator('dialog [data-confirm]').click();
+  await expect(page.locator('dialog [data-confirm]')).toHaveText('Continuar de todas formas');
+  await expect(page.locator('dialog [data-command-error]')).not.toBeEmpty();
+  await page.locator('dialog [data-confirm]').click();
   await expect(page.locator('dialog')).toHaveCount(0);
   assert.equal(db.prepare('SELECT state FROM cycle_scope_states WHERE cycle_id=? AND scope_id=\'servicio\'').get(cycleId).state,'open');
   checks.push('Jefa cierra/reabre revisión/finaliza solo Servicio; únicamente Administrador reabre finalizado con motivo');

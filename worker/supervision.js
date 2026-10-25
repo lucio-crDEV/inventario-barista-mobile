@@ -1,3 +1,4 @@
+import { cyclesEnabled, warningData } from './inventory-cycles.js';
 // Operational inventory supervision, separate from technical usage metrics.
 const actor = `WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id
  WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.deleted_at IS NULL AND u.must_change=0 AND u.role IN ('admin','service_lead')),
@@ -26,7 +27,8 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
     // Preserve the original fingerprint field order and optional legacy checkbox:
     // a retry accepted before migration must recover exactly its original result.
     const legacyKeys=['id','cycleId','expectedRevision','kind','itemId','locationId','expectedVersion','quantity','status','note','outOfStock','active','scope','state','reason','confirm','acknowledgeDrafts'];
-    const keys=[...legacyKeys,'expectedActivityRevision'];
+    const keys=[...legacyKeys,'expectedActivityRevision','confirmWarnings','confirmationRevision'];
+    if(('confirmWarnings' in b&&typeof b.confirmWarnings!=='boolean')||('confirmationRevision' in b&&(!Number.isSafeInteger(b.confirmationRevision)||b.confirmationRevision<1)))fail(400,'INVALID_COMMAND');
     if(Object.keys(b).some(k=>!keys.includes(k))||!/^[-a-zA-Z0-9]{16,80}$/.test(b.id||'')||typeof b.cycleId!=='string'||b.cycleId.length>150||!b.cycleId||!Number.isSafeInteger(b.expectedRevision)||b.expectedRevision<1||!['rectify','annul','activation','state'].includes(b.kind)||b.confirm!==true||('reason' in b && typeof b.reason!=='string')) fail(400,'INVALID_COMMAND','Revisa los datos del cambio.');
     if('expectedActivityRevision' in b && (!Number.isSafeInteger(b.expectedActivityRevision)||b.expectedActivityRevision<0))fail(400,'INVALID_COMMAND');
     const reason=(b.reason || '').trim();
@@ -39,11 +41,13 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
       if(b.kind==='activation'&&(typeof b.active!=='boolean'||('expectedActivityRevision' in b && (!Number.isSafeInteger(b.expectedActivityRevision)||b.expectedActivityRevision<0))))fail(400,'INVALID_COMMAND');
       if(b.kind==='rectify' && (typeof b.quantity!=='number'||!Number.isFinite(b.quantity)||b.quantity<0||b.quantity>1000000||Math.abs(b.quantity*1000-Math.round(b.quantity*1000))>1e-6||!['counted','partial'].includes(b.status)||typeof b.note!=='string'||b.note.length>1000||typeof b.outOfStock!=='boolean'||(b.outOfStock&&(b.quantity!==0||b.status!=='counted'))))fail(400,'INVALID_COUNT');
     }
-    const fingerprint=await digest(JSON.stringify(('expectedActivityRevision' in b?keys:legacyKeys).map(k=>b[k]??null)));
+    const fingerprint=await digest(JSON.stringify(('confirmWarnings' in b||'confirmationRevision' in b?keys:'expectedActivityRevision' in b?[...legacyKeys,'expectedActivityRevision']:legacyKeys).map(k=>b[k]??null)));
+    const modernCycles=await cyclesEnabled(db);
     try{
-      await db.prepare(`INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,q,status,note,out_of_stock,active,new_state,scope_id,reason,expected_activity_revision) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(b.id,fingerprint,u.id,hash,u.revision,b.cycleId,b.expectedRevision,b.kind,b.itemId||'',b.locationId||'',b.expectedVersion||0,b.kind==='rectify'?Math.round(b.quantity*1000):0,b.kind==='rectify'?b.status:'counted',b.kind==='rectify'?b.note:'',b.kind==='rectify'&&b.outOfStock?1:0,b.active===false?0:1,b.state||'',b.scope||'',reason,b.expectedActivityRevision??-1).run();
+      await db.prepare(`INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,q,status,note,out_of_stock,active,new_state,scope_id,reason,expected_activity_revision${modernCycles?',confirm_warnings,confirmation_revision':''}) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?${modernCycles?',?,?':''})`).bind(b.id,fingerprint,u.id,hash,u.revision,b.cycleId,b.expectedRevision,b.kind,b.itemId||'',b.locationId||'',b.expectedVersion||0,b.kind==='rectify'?Math.round(b.quantity*1000):0,b.kind==='rectify'?b.status:'counted',b.kind==='rectify'?b.note:'',b.kind==='rectify'&&b.outOfStock?1:0,b.active===false?0:1,b.state||'',b.scope||'',reason,b.expectedActivityRevision??-1,...(modernCycles?[b.confirmWarnings===true?1:0,b.confirmationRevision??-1]:[])).run();
     }catch(e){
-      const code=['FORBIDDEN','ADMIN_REOPEN_REQUIRED','REASON_REQUIRED','ID_REUSED','CYCLE_CHANGED','ACTIVITY_CHANGED','STALE','CYCLE_CLOSED','ITEM_INACTIVE','INVALID_TRANSITION','PENDING_ITEMS','INVALID_SCOPE'].find(c=>e.message.includes(c));
+      const code=['CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED','FORBIDDEN','ADMIN_REOPEN_REQUIRED','REASON_REQUIRED','ID_REUSED','CYCLE_CHANGED','ACTIVITY_CHANGED','STALE','CYCLE_CLOSED','ITEM_INACTIVE','INVALID_TRANSITION','PENDING_ITEMS','INVALID_SCOPE'].find(c=>e.message.includes(c));
+      if(code?.startsWith('CONFIRMATION_'))fail(409,code,'Revisa los avisos y confirma la reapertura.',await warningData(db,{kind:'activate',cycleId:b.cycleId}));
       if(code)fail(['FORBIDDEN','ADMIN_REOPEN_REQUIRED'].includes(code)?403:409,code,({ADMIN_REOPEN_REQUIRED:'Solo un Administrador puede reabrir un inventario finalizado.',PENDING_ITEMS:'Hay productos activos pendientes o en avance. Deben estar contados antes de finalizar.',CYCLE_CHANGED:'El inventario cambió. Actualiza y revisa antes de confirmar.',ACTIVITY_CHANGED:'La actividad del producto cambió. Actualiza antes de continuar.',STALE:'El producto cambió. Actualiza y revisa su versión.'})[code]||'No se pudo aplicar el cambio. Actualiza y revisa el estado del inventario.');
       throw e;
     }
@@ -77,7 +81,7 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
          sum(i.active=1 AND i.status='partial') partial, sum(i.active=1 AND i.status='pending') pending
          FROM ${inventory} i WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) ${within} GROUP BY areaId`).bind(hash,cycle,scope),
       ]);
-      return json({user:userDTO(u),cycle:{...cy,scopeStates:(await db.prepare(actor+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND cs.scope_id IN(SELECT scope_id FROM allowed)`).bind(hash,cycle).all()).results},scopes:data[0].results,groups:data[1].results,updatedAt:new Date().toISOString()});
+      return json({user:userDTO(u),cycle:{...cy,scopeStates:(await db.prepare(actor+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND cs.scope_id IN(SELECT scope_id FROM allowed)`).bind(hash,cycle).all()).results},scopes:data[0].results,groups:data[1].results,scopeGroups:(await db.prepare(actor+`SELECT sc.ancestor scopeId,sum(i.active) total,sum(i.active=0) excluded,sum(i.active=1 AND i.status='counted') counted,sum(i.active=1 AND i.status='partial') partial,sum(i.active=1 AND i.status='pending') pending FROM ${inventory} i JOIN scope_closure sc ON sc.descendant=i.location_id WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) AND sc.ancestor IN(SELECT scope_id FROM allowed) GROUP BY sc.ancestor`).bind(hash,cycle).all()).results,updatedAt:new Date().toISOString()});
     }
     const cursor=Number(q.get('cursor')||0);
     if (!Number.isSafeInteger(cursor)||cursor<0) fail(400,'INVALID_CURSOR');

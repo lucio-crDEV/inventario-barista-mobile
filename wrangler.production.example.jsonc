@@ -9,6 +9,7 @@
   },
   "vars": {
     "APP_ENV": "production",
+    "METRICS_ENABLED": "0", // Cambiar a 1 después de migración 0009.
     "APP_ORIGIN": "https://DOMINIO-REAL",
     "ACTIVE_CYCLE_ID": "CICLO-REAL",
   },

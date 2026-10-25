@@ -1,5 +1,13 @@
 # Guía de estilo UX/UI — inventory-v3
 
+## Revisión vigente — 25-10-2026
+
+Las decisiones de [inventarios y móvil](revision-inventarios-2026-10-25.md) prevalecen sobre descripciones históricas. Avisos que requieren acción persisten cerca del encabezado o al inicio del formulario; confirmaciones breves usan el aviso flotante superior. Nunca ubicar notificaciones al final de la página. Mensajes de sincronización breves y sin detalles técnicos.
+
+No añadir bordes/anillos al foco táctil o selección; mantener indicación de teclado mediante fondo y subrayado. Campos editables de al menos 16 px, diálogos con foco inicial en título o Cancelar, sin abrir teclado por defecto. Estado del producto a la derecha de categoría/ubicación; retirar explicación de cero pendiente. Acciones Sin stock / Avance / Listo cerca del campo y, con teclado, en barra compacta sobre el espacio visible, sin duplicar controles ni perder borradores.
+
+Supervisión muestra Servicio y Garzones en ramas desplegables con anillos y cifras reales, respetando permisos; la pestaña Áreas no necesita selector adicional de Área. Recomendación de inventario ámbar suave con X y colapso de 180 ms (inmediato con movimiento reducido), descartable durante el día por administrador.
+
 ## Revisión vigente — implementada localmente, 23-10-2026
 
 [Contrato completo](decisiones-ux-y-operacion-2026-10-23.md). Títulos página/área 20 px/700, sección 16 px/600, cuerpo 14 px, secundario 12 px y campos 16 px; controles de al menos 44 px. Los títulos largos envuelven. Tonos crema/carbón/cian sin sombras ni degradados; Supervisión tiene más intensidad que resumen/cuenta/usuarios.

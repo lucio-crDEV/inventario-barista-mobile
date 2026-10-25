@@ -125,7 +125,7 @@ try {
   await expect(page.locator('#retry-command')).toBeVisible();
   const sent = commands.at(-1); assert.equal(sent.kind,'annul'); assert.equal(sent.reason,'');
   uncertain = false;await page.locator('#retry-command').click();
-  await expect(page.locator('#message')).toHaveText('Cambio guardado.');
+  await expect(page.locator('.inventory-notice')).toHaveText('Cambio guardado.');
   assert.equal(commands.at(-1).id,sent.id,'uncertain retry preserves operation id');
   await context.close();
   const lead = await contextFor('service_lead');

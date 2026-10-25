@@ -1,5 +1,7 @@
 # Roadmap — inventory-v3
 
+Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
+
 ## Estado vigente — revisión UX local
 
 Revisión UX implementada localmente el 23-10-2026: Panel de supervisión y resumen compactos, historial por producto y rol, perfil/menú y Gestionar usuarios y accesos. Finalizar y enviar es interno; solo Administrador reabre finalizados. Motivo obligatorio solo para reabrir. Activo/Inactivo persiste por área con fechas/auditoría; el informe de varios meses queda futuro. Altas de trabajadores con accesos en la misma transacción y claves temporales autogeneradas/copiar/compartir tras éxito. Sin nuevos roles ni ampliación de cuentas mixtas.

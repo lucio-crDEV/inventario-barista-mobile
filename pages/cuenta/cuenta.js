@@ -1,3 +1,4 @@
+import { showNotice } from "/shared/notices.js";
 import { passwordField, bindPasswordFields } from "/shared/password-field.js";
 import { loading, reveal, pendingButton } from "/shared/loading.js";
 import { api, escapeHtml as esc, identityBar } from "/shared/client.js";
@@ -9,7 +10,8 @@ function notify(text) {
   message.hidden = false;
   message.textContent = text;
   message.dataset.tone = "error";
-  message.focus();
+  message.setAttribute("role", "alert");
+  message.scrollIntoView({ block: "nearest" });
 }
 const finishLoading = loading(content);
 let user,
@@ -41,7 +43,7 @@ if (unavailable) {
     try {
       const result = await api("/api/profile", { name: new FormData(form).get("name"), expectedRevision: user.revision });
       user = result.user; identityBar(user);
-      message.hidden = false; message.dataset.tone = "success"; message.textContent = "Nombre visible actualizado.";
+      showNotice("Nombre visible actualizado.");
     } catch (error) { notify(error.message); }
     finally { restore(); }
   };
@@ -81,4 +83,7 @@ if (unavailable) {
   };
 }
 
+const heading = content.querySelector(".account-heading");
+if (heading) heading.after(message);
+else content.before(message);
 reveal(content);

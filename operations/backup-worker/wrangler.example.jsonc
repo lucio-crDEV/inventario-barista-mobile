@@ -1,0 +1,23 @@
+{
+  "name": "inventory-private-backup",
+  "main": "index.js",
+  "compatibility_date": "2026-10-01",
+  "triggers": {
+    "crons": [
+      "17 5 * * *"
+    ]
+  },
+  "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "REEMPLAZAR",
+    "D1_DATABASE_ID": "REEMPLAZAR",
+    "BACKUP_ENABLED": "0"
+  },
+  "r2_buckets": [
+    {
+      "binding": "BACKUPS",
+      "bucket_name": "replace-private-bucket"
+    }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}

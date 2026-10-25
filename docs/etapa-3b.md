@@ -1,5 +1,7 @@
 # Etapa 3B — supervisión y administración del inventario
 
+Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
+
 Estado 23-10-2026: revisión UX/operación implementada localmente sobre e1c8a06, pendiente de publicación y aceptación operativa. [Decisiones confirmadas](decisiones-ux-y-operacion-2026-10-23.md), [verificación](verification.md), [publicación 0007](publicar-revision-ux-0007.md). No se ejecutaron push, despliegues, SQL ni altas remotas.
 
 ## Roles y estados

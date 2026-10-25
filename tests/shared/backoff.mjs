@@ -21,6 +21,9 @@ try {
     const data = await (await fetch("/api/bootstrap")).json();
     const inventory = new SharedInventory(data.user, data);
     window.testInventory = inventory;
+    window.testDraftItem = data.items[0];
+    inventory.capture(window.testDraftItem, "7,25", "Conservar durante espera");
+    window.testDraft = inventory.draft(window.testDraftItem);
     try { await inventory.sync(); } catch (e) { return { status: e.status, wait: inventory.retrySyncAt - Date.now() }; }
   });
   assert.equal(result.status, 429); assert.ok(result.wait >= 59000 && result.wait <= 60000);
@@ -29,6 +32,8 @@ try {
   await page.clock.fastForward(60001);
   await page.evaluate(() => window.testInventory.sync().catch(() => {}));
   assert.equal(reads, 2);
-  await expect(page.locator("#sync-state")).toContainText("borrador conservado");
+  await expect(page.locator("#sync-state")).toHaveText("Espera un minuto.");
+  await expect(page.locator("#sync-state")).toHaveAttribute("data-state", "error");
+  assert.deepEqual(await page.evaluate(() => window.testInventory.draft(window.testDraftItem)), await page.evaluate(() => window.testDraft));
   console.log("PASS browser honors Retry-After, does not poll during cooldown or claim synced after 429");
 } finally { await browser.close(); }

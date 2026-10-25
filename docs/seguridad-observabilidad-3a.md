@@ -1,5 +1,7 @@
 # Seguridad, observabilidad y recuperación — estado vigente 23-10-2026
 
+Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
+
 ## Extensión operativa 3B — 23-10-2026
 
 El [contrato 3B](etapa-3b.md) documenta tablero/historial de inventario, correcciones y estados. Es auditoría operativa autorizada por rol/ámbito, no métricas técnicas de uso. La persistencia de telemetría continúa desactivada, Root solo diseñado y 0005 no se aplica. Esta etapa añade **0006 operativa**, necesaria antes de publicar. Las instrucciones “este diff no requiere SQL” de la entrega b24403d que siguen son históricas respecto a 3B. No SQL remoto/deploy en esta sesión.

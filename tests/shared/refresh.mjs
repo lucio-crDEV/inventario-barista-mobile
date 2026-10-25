@@ -145,7 +145,7 @@ try {
   await expect(status).toHaveAttribute("data-state", "pending");
   await expect(button).not.toHaveAttribute("aria-busy", "true");
   await expect(button).toBeDisabled();
-  await expect(status).toContainText("Pendiente de enviar");
+  await expect(status).toHaveText("Cambios pendientes");
   await expect(page.locator("#quantity")).toHaveValue("3");
   await expect(page.locator("#note")).toHaveValue("Conservar este borrador");
   assert.deepEqual(await draftSnapshot(), draft);

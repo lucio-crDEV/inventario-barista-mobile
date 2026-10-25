@@ -1,3 +1,4 @@
+import { showNotice } from "/shared/notices.js";
 import { passwordField, bindPasswordFields } from "/shared/password-field.js";
 import { api, authenticated, identityBar, escapeHtml as esc, dialog } from "/shared/client.js";
 import { loading, reveal, pendingButton } from "/shared/loading.js";
@@ -123,7 +124,10 @@ function confirmation(title, text, label, danger = false) {
   });
 }
 function notify(text, tone = "error") {
-  message.hidden = false; message.dataset.tone = tone; message.textContent = text; message.focus();
+  if (tone === "success") { message.hidden = true; showNotice(text); return; }
+  message.hidden = false; message.dataset.tone = tone; message.textContent = text;
+  message.setAttribute("role", tone === "error" ? "alert" : "status");
+  message.scrollIntoView({ block: "nearest" });
 }
 function credentials(username, password) {
   // Only call after the API confirmed success. The text exists solely in this
@@ -146,7 +150,7 @@ function createAccount(scopes) {
   if (createPending) { notify("La creación sigue en curso. Espera la confirmación antes de intentarlo de nuevo.", "pending"); return; }
   const draft = createDraft || { username: "", name: "", role: "worker", grants: [], password: temporaryPassword(), step: 0 };
   createDraft = draft;
-  const el = dialog("Crear usuario", `<form id="create" novalidate><nav class="create-steps" aria-label="Pasos del alta">${["Cuenta", "Accesos", "Confirmar"].map((name, i) => `<span data-step-label="${i}">${i + 1}. ${name}</span>`).join("")}</nav><section data-create-step="0"><label>Usuario<input name="username" value="${esc(draft.username)}" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>Nombre visible<input name="name" value="${esc(draft.name)}" maxlength="80" required autocomplete="off"></label>${roleSelect(draft.role, actor.role)}</section><section data-create-step="1"><p class="field-hint" data-create-scope-hint></p>${assignments(draft, scopes)}</section><section data-create-step="2"><p class="create-confirmation"></p>${temporaryField()}<p class="field-hint">Se exigirá cambiarla al ingresar.</p></section><p class="create-feedback" role="status"></p><div class="dialog-actions"><button type="button" class="button-secondary" data-create-back>Atrás</button><button type="submit" data-create-next>Continuar</button></div></form>`);
+  const el = dialog("Crear usuario", `<form id="create" novalidate><nav class="create-steps" aria-label="Pasos del alta">${["Cuenta", "Accesos", "Confirmar"].map((name, i) => `<span data-step-label="${i}">${i + 1}. ${name}</span>`).join("")}</nav><p class="create-feedback" role="status"></p><section data-create-step="0"><label>Usuario<input name="username" value="${esc(draft.username)}" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>Nombre visible<input name="name" value="${esc(draft.name)}" maxlength="80" required autocomplete="off"></label>${roleSelect(draft.role, actor.role)}</section><section data-create-step="1"><p class="field-hint" data-create-scope-hint></p>${assignments(draft, scopes)}</section><section data-create-step="2"><p class="create-confirmation"></p>${temporaryField()}<p class="field-hint">Se exigirá cambiarla al ingresar.</p></section><div class="dialog-actions"><button type="button" class="button-secondary" data-create-back>Atrás</button><button type="submit" data-create-next>Continuar</button></div></form>`);
   el.classList.add("account-create");
   const form = el.querySelector("form"), next = form.querySelector("[data-create-next]"), back = form.querySelector("[data-create-back]"), feedback = form.querySelector(".create-feedback");
   form.elements.password.value = draft.password;

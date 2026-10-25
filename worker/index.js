@@ -7,8 +7,9 @@ import {
 import { supervisionRequest, historyDTO, workerHistoryDTO } from "./supervision.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
-import { routeName, allowRequest, logEvent } from "./telemetry.js";
+import { routeName, allowRequest, logEvent, recordMetric } from "./telemetry.js";
 import { readinessSQL, fastReadinessSQL } from "./readiness.js";
+import { cyclesEnabled, resolveCycle, inventoryCyclesRequest, cycleSchemaSQL } from "./inventory-cycles.js";
 const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
     status,
@@ -193,8 +194,7 @@ async function api(req, env, url, event) {
   if (
     !env.DB ||
     !env.APP_ORIGIN ||
-    !["local", "production"].includes(env.APP_ENV) ||
-    !env.ACTIVE_CYCLE_ID
+    !["local", "production"].includes(env.APP_ENV)
   )
     fail(503, "NOT_CONFIGURED", "Entorno sin configuración válida.");
   if (
@@ -204,11 +204,16 @@ async function api(req, env, url, event) {
       !["127.0.0.1", "localhost"].includes(url.hostname))
   )
     fail(503, "NOT_CONFIGURED");
+  let modernCycles, catalogVersion;
   try {
+  modernCycles = await cyclesEnabled(env.DB);
+  catalogVersion = modernCycles ? (env.ACTIVE_CATALOG_VERSION || (env.ACTIVE_CYCLE_ID ? (await env.DB.prepare('SELECT catalog_version FROM cycles WHERE id=?').bind(env.ACTIVE_CYCLE_ID).first())?.catalog_version : null) || (await env.DB.prepare("SELECT version FROM catalog_items WHERE version IN ('inventory-v3-2026-10-22','inventory-v2-2026-10-21') ORDER BY version DESC LIMIT 1").first())?.version) : null;
+    let readiness = ["/api/login", "/api/me", "/api/status", "/api/bootstrap"].includes(url.pathname) ? readinessSQL : fastReadinessSQL;
+    if (modernCycles) readiness = readiness.replace('FROM cycles c WHERE c.id=?', 'FROM (SELECT ? catalog_version) c WHERE 1=1') + cycleSchemaSQL;
     const ready = await env.DB.prepare(
-      ["/api/login", "/api/me", "/api/status", "/api/bootstrap"].includes(url.pathname) ? readinessSQL : fastReadinessSQL,
+      readiness,
     )
-      .bind(env.ACTIVE_CYCLE_ID)
+      .bind(modernCycles ? catalogVersion : (env.ACTIVE_CYCLE_ID || ""))
       .first();
     if (!ready)
       fail(
@@ -268,7 +273,8 @@ async function api(req, env, url, event) {
     if (!inserted.meta.changes)
       fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
     event.actor = u.id;
-    const navigation = await db.prepare(actorCTE + `SELECT sc.* FROM scopes sc WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=sc.id AND ci.location_id IN(SELECT id FROM allowed))`).bind(hash, env.ACTIVE_CYCLE_ID).all();
+    const loginCycle = await resolveCycle(db, hash, null, env.ACTIVE_CYCLE_ID);
+    const navigation = await db.prepare(actorCTE + `SELECT sc.* FROM scopes sc WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=sc.id AND ci.location_id IN(SELECT id FROM allowed))`).bind(hash, loginCycle || "").all();
     return json({ user: userDTO(u), homeUrl: homeURL(navigation.results) }, 200, { "Set-Cookie": cookie(env, raw) });
   }
   const { u, hash } = await auth(req, env);
@@ -321,23 +327,26 @@ async function api(req, env, url, event) {
     // Root and persistent metrics are deferred. No current role may read them.
     fail(403, "ROOT_NOT_ENABLED", "Las métricas técnicas están reservadas a Root, todavía no habilitado.");
   }
+  const selectedCycle = await resolveCycle(db, hash, url.searchParams.get("cycle"), env.ACTIVE_CYCLE_ID);
   if (p === "/api/navigation" && req.method === "GET") {
     const scopes = await db
       .prepare(
         actorCTE +
           `SELECT s.* FROM scopes s WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=s.id AND ci.location_id IN(SELECT id FROM allowed))`,
       )
-      .bind(hash, env.ACTIVE_CYCLE_ID)
+      .bind(hash, selectedCycle || "")
       .all();
-    return json({ user: userDTO(u), scopes: scopes.results });
+    return json({ user: userDTO(u), scopes: scopes.results, cycleId: selectedCycle });
   }
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
+  if (modernCycles && (p === '/api/cycles' || p === '/api/admin/cycles' || p === '/api/admin/cycles/command' || p === '/api/admin/supervision/cycles'))
+    return inventoryCyclesRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest},catalogVersion);
   if (p === "/api/admin/supervision" || p.startsWith("/api/admin/supervision/"))
     return supervisionRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest});
   if (p.startsWith("/api/admin/") || p === "/api/profile")
     return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event });
-  const cycle = url.searchParams.get("cycle") || env.ACTIVE_CYCLE_ID;
+  const cycle = selectedCycle || "";
   if (p === "/api/bootstrap" && req.method === "GET") {
     const data = await boot(db, hash, cycle);
     event.scope = [...new Set(data.items.map(x => x.areaId))].sort().join(",") || "none";
@@ -529,6 +538,7 @@ export default {
     const event = { requestId: crypto.randomUUID(), route: routeName(url.pathname), method: ["GET", "POST"].includes(req.method) ? req.method : "other", status: 500 };
     const finish = (res) => {
       event.status = res.status;
+      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith("/api/")) ctx?.waitUntil?.(recordMetric(env, { route: event.route, method: event.method, status: event.status, elapsedMs: Date.now() - started }));
       const response = secured(res);
       response.headers.set("X-Request-ID", event.requestId);
 
@@ -568,6 +578,7 @@ export default {
                 ? "Debe quedar un administrador activo."
                 : "No se pudo completar la operación.",
             ...(e.current !== undefined ? { current: e.current } : {}),
+            ...(e.warnings !== undefined ? { warnings: e.warnings, confirmationRevision: e.confirmationRevision } : {}),
           },
           e.status || (known ? 409 : 500),
           e.retryAfter ? { "Retry-After": String(e.retryAfter) } : {},

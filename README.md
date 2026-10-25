@@ -1,5 +1,7 @@
 # inventory-v3
 
+Actualización vigente 25-10-2026: [creación/activación de inventarios y UX móvil](docs/revision-inventarios-2026-10-25.md), [métricas agregadas y respaldo privado cada 90 días](docs/metrics-backup-2026-10-25.md). Requiere 0008/0009/0010 después de 0007. Esta actualización sustituye la pausa previa de telemetría; Root continúa pendiente. Ver esos documentos para pruebas nuevas, estado D1 y límites de publicación.
+
 Preparación remota 23-10-2026 completada: 0007 aplicada, respaldo/restauración privada y preflight verificados, sin migraciones pendientes. Solo falta el push SSH del usuario; el código nuevo aún no está publicado. [Estado y evidencia](docs/preparacion-remota-ux-0007-2026-10-23.json).
 
 Regla de oro obligatoria: el Excel original es de solo lectura; la salida conserva estructura, filas, referencias, unidades, fórmulas y formatos y únicamente actualiza las celdas de conteo autorizadas. Las adaptaciones a otras plantillas son trabajo futuro sujeto a aprobación expresa. [Decisiones vigentes e implementación](docs/decisiones-ux-y-operacion-2026-10-23.md).

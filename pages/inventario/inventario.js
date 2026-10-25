@@ -2,7 +2,7 @@ import { createSummaryState, renderSummaryView } from "./summary-view.js";
 import { showNotice, transitionItem } from "/shared/notices.js";
 import { SharedInventory } from "/shared/inventory.js";
 import { loading, reveal } from "/shared/loading.js";
-import { homeScope, canonicalScope, scopeURL } from "/shared/navigation.js";
+import { homeScope, canonicalScope, scopeURL, inventoryURL } from "/shared/navigation.js";
 const initialContent = document.querySelector('#app-content');
 const finishLoading = loading(initialContent);
 let shared;
@@ -64,7 +64,11 @@ const requestedScope = [params.get("area"),params.get("sector"),params.get("zone
 const entryScope = homeScope(shared.data.scopes);
 const canonical = canonicalScope(requestedScope, shared.data.scopes);
 if (!summaryEntry && canonical && canonical !== requestedScope) {
-    location.replace(scopeURL(canonical));
+    const target = new URL(scopeURL(canonical), location.origin);
+    for (const [key, value] of params) {
+        if (!["area", "sector", "zone"].includes(key)) target.searchParams.append(key, value);
+    }
+    location.replace(target);
     await new Promise(() => {});
 }
 const forbiddenScope = requestedScope && !shared.data.scopes.some(s => s.id === requestedScope);
@@ -1053,7 +1057,7 @@ function renderScopeChooser(title, options) {
                 ? ` · ${stats.partial} ${stats.partial === 1 ? "avance" : "avances"}`
                 : "";
             return `
-            <a class="category-card scope-card" href="${option.url}"
+            <a class="category-card scope-card" href="${escapeHtml(inventoryURL(option.url, shared.cycleId))}"
               ${stats ? `aria-label="${escapeHtml(option.name)}: ${stats.counted} de ${stats.total} contados${partialText}"` : ""}>
               <span class="category-card-title">${escapeHtml(option.name)}</span>
               ${stats ? `
@@ -1510,6 +1514,7 @@ function renderCurrentItem() {
             id="quantity"
             type="text"
             inputmode="decimal"
+            enterkeyhint="done"
             autocomplete="off"
             autocapitalize="off"
             spellcheck="false"
@@ -1556,7 +1561,7 @@ function renderCurrentItem() {
           class="button button-secondary"
           type="button"
         >
-          Guardar avance
+          Avance
         </button>
 
 
@@ -1604,6 +1609,7 @@ function renderCurrentItem() {
 
     setupCurrentItemEvents();
     shared.mount(item,count);
+    updateKeyboardActions();
 }
 
 
@@ -1611,6 +1617,7 @@ function renderCurrentItem() {
 // EVENTOS DEL CONTEO
 // ============================================================
 
+let countViewportHeight = window.innerHeight;
 let lastItemDrawerTrigger = null;
 
 function setupItemDrawerEvents() {
@@ -1848,7 +1855,7 @@ function setupModalEvents() {
                 case "count":
 
                     if (isGarzonZone) {
-                        window.location.href = "?area=servicio&sector=garzones";
+                        window.location.href = inventoryURL("?area=servicio&sector=garzones", shared.cycleId);
                     } else {
                         openCategories();
                     }
@@ -1867,11 +1874,11 @@ function setupModalEvents() {
 
                 default:
                     if (selectedZone) {
-                        window.location.href = "?area=servicio&sector=garzones";
+                        window.location.href = inventoryURL("?area=servicio&sector=garzones", shared.cycleId);
                     } else if (selectedSector) {
-                        window.location.href = "?area=servicio";
+                        window.location.href = inventoryURL("?area=servicio", shared.cycleId);
                     } else {
-                        window.location.href = "../../";
+                        window.location.href = inventoryURL("../../", shared.cycleId);
                     }
                     break;
 
@@ -1925,4 +1932,35 @@ if (sessionNeedsSave) {
 render();
 shared.poll();
 
-if (Object.keys(shared.drafts.all()).length) shared.state('Pendiente de enviar · borradores recuperados; los de ámbitos retirados permanecen aislados.');
+if (Object.keys(shared.drafts.all()).length) shared.state('Cambios pendientes');
+
+// Keep the three count actions inside the visible area while a mobile keyboard is open.
+// The same controls remain mounted, so tapping them never discards the current draft.
+function updateKeyboardActions() {
+    const actions = document.querySelector('.count-actions');
+    if (!actions) return;
+    const viewport = window.visualViewport;
+    const editing = document.activeElement?.matches('#quantity, #note');
+    if (!editing) countViewportHeight = window.innerHeight;
+    const keyboard = viewport && editing && Math.max(countViewportHeight, window.innerHeight) - viewport.height > 100 && viewport.scale <= 1.05;
+    actions.classList.toggle('above-keyboard', Boolean(keyboard));
+    const view = actions.closest('.count-view');
+    if (keyboard) view.style.setProperty('--keyboard-space', `${Math.max(countViewportHeight,window.innerHeight) - viewport.height + actions.offsetHeight + 24}px`);
+    else view.style.removeProperty('--keyboard-space');
+    if (keyboard) actions.style.top = `${Math.max(viewport.offsetTop, viewport.offsetTop + viewport.height - actions.offsetHeight - 8)}px`;
+    else actions.style.removeProperty('top');
+    if (keyboard) {
+        const field = document.activeElement;
+        const overlap = field.getBoundingClientRect().bottom - actions.getBoundingClientRect().top + 12;
+        if (overlap > 0) window.scrollBy({ top: overlap, behavior: 'instant' });
+    }
+}
+window.visualViewport?.addEventListener('resize', updateKeyboardActions);
+window.visualViewport?.addEventListener('scroll', updateKeyboardActions);
+document.addEventListener('focusin', updateKeyboardActions);
+document.addEventListener('focusout', () => requestAnimationFrame(updateKeyboardActions));
+document.addEventListener('pointerdown', event => {
+    // Keep the dock in place between touch-down and click; the accepted save
+    // controls subsequent navigation and keyboard dismissal.
+    if (event.target.closest('.count-actions.above-keyboard button')) event.preventDefault();
+});

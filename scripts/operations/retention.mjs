@@ -1,4 +1,6 @@
-// Telemetry retention is undecided; do not query or prune activity tables.
+// Legacy activity tables stay untouched. New usage_daily aggregates (0009)
+// expire after 90 days in the opt-in telemetry writer; this auth-only command
+// remains usable against databases without 0009.
 // Keep all inventory, accounts, audit, history and operation results indefinitely
 // until a separate archival policy is explicitly agreed. Never prune dedup IDs.
 export const retentionPolicy = { daysAfterExpiry: 2, maxRowsPerTable: 1000 };

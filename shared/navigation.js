@@ -25,3 +25,9 @@ export function canonicalScope(id, scopes) {
   }
   return id;
 }
+// Pin work to the visible cycle when changing area, sector, zone or returning Home.
+export function inventoryURL(path, cycleId) {
+  const url = new URL(path, 'http://inventory.local/pages/inventario/');
+  if (cycleId) url.searchParams.set('inventory', cycleId);
+  return url.pathname + url.search + url.hash;
+}

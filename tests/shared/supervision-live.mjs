@@ -40,7 +40,9 @@ for(const x of [i,k])db.prepare('UPDATE item_activity SET active=1,inactive_sinc
 for(const x of [i,k])assert.equal((await post(admin,command('rectify',x,{quantity:0,status:'counted',note:'Cero confirmado en ensayo',outOfStock:true}))).status,200);
 assert.equal((await post(admin,command('state',null,{scope:'',state:'closed',acknowledgeDrafts:true}))).status,200);
 assert.equal((await post(lead,command('state',null,{scope:'servicio',state:'open'}))).status,403);
-assert.equal((await post(admin,command('state',null,{scope:'servicio',state:'open'}))).status,200);
+const reopen=command('state',null,{scope:'servicio',state:'open'});
+const reopenWarning=await post(admin,reopen);assert.equal(reopenWarning.status,409);assert.equal(reopenWarning.data.code,'CONFIRMATION_REQUIRED');assert.ok(reopenWarning.data.warnings.some(w=>w.code==='OTHER_ACTIVE'));
+assert.equal((await post(admin,{...reopen,confirmWarnings:true,confirmationRevision:reopenWarning.data.confirmationRevision})).status,200);
 assert.equal((await worker.request('/api/bootstrap?cycle='+cycleId)).data.cycle.scopeStates.find(s=>s.scope_id==='servicio').state,'open');
 assert.equal((await admin.request('/api/count',operation(k,2,{cycleId,expectedVersion:ver(k),action:'overwrite'}))).data.code,'CYCLE_CLOSED');
 assert.equal((await worker.request('/api/count',operation(i,2,{cycleId,expectedVersion:ver(i),action:'overwrite'}))).status,200);

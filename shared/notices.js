@@ -2,6 +2,8 @@ let timer, current, viewportCleanup;
 const closeIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
 export function dismissNotice(){clearTimeout(timer);viewportCleanup?.();viewportCleanup=null;current?.remove();current=null;}
 export function showNotice(message,tone='counted'){
+  const persistent = tone === 'error';
+  const scheduleDismiss = () => { if (!persistent) timer=setTimeout(dismissNotice,4000); };
   dismissNotice();
   const el=document.createElement('div');current=el;
   el.className=`feedback-toast inventory-notice feedback-toast-${tone}`;
@@ -16,9 +18,9 @@ export function showNotice(message,tone='counted'){
   let start=null;
   el.addEventListener('pointerdown',event=>{if(event.target.closest('button'))return;start={x:event.clientX,y:event.clientY};clearTimeout(timer);el.setPointerCapture(event.pointerId);});
   el.addEventListener('pointermove',event=>{if(!start)return;const y=Math.min(0,event.clientY-start.y);el.style.setProperty('--notice-drag',`${y}px`);el.style.opacity=String(Math.max(.2,1-Math.abs(y)/100));});
-  const end=event=>{if(!start)return;const dismiss=event.clientY-start.y < -28;start=null;if(dismiss)dismissNotice();else{el.style.removeProperty('--notice-drag');el.style.removeProperty('opacity');timer=setTimeout(dismissNotice,4000);}};
-  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{start=null;el.style.removeProperty('--notice-drag');el.style.removeProperty('opacity');timer=setTimeout(dismissNotice,4000);});
-  timer=setTimeout(dismissNotice,4000);
+  const end=event=>{if(!start)return;const dismiss=event.clientY-start.y < -28;start=null;if(dismiss)dismissNotice();else{el.style.removeProperty('--notice-drag');el.style.removeProperty('opacity');scheduleDismiss();}};
+  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>{start=null;el.style.removeProperty('--notice-drag');el.style.removeProperty('opacity');scheduleDismiss();});
+  scheduleDismiss();
 }
 
 export async function transitionItem(change){

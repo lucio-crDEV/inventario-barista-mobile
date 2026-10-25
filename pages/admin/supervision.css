@@ -109,3 +109,13 @@ html[data-theme="dark"] #supervision { --supervision-counted:#60d9bd;--supervisi
 .supervision-scope-summary .supervision-ring { width:40px;height:40px;flex-shrink:0; }.supervision-scope-summary .supervision-ring > span { font-size:10px; }
 .supervision-scope-summary strong,.supervision-scope-summary small { display:block; }.supervision-scope-summary strong { font-size:14px; }.supervision-scope-summary small { font-size:12px;color:var(--ui-muted);margin-top:3px; }
 .supervision-scope-link { color:var(--ui-accent);font-size:12px;margin-left:auto;max-width:75px; }
+/* Service expands in place; every authorized child uses the same live indicators. */
+.supervision-area-branch > summary {list-style:none;cursor:pointer;}
+.supervision-area-branch > summary::-webkit-details-marker {display:none;}
+.supervision-area-branch + *,.supervision-area-list > * + .supervision-area-branch {border-top:1px solid var(--ui-border);}
+.supervision-area-branch[open] > summary > .supervision-chevron {transform:rotate(90deg);}
+.supervision-children {padding-inline-start:12px;background:var(--supervision-soft);}
+.supervision-children .supervision-area-row {padding:12px;gap:10px;}
+#inventory-management {display:flex;gap:16px;flex-wrap:wrap;}
+#supervision .supervision-tabs button[aria-selected=true],#supervision .supervision-pills button[aria-pressed=true] {border-color:transparent;}
+#supervision .supervision-switch input:focus-visible + span {outline:0;filter:brightness(1.15);}

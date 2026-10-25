@@ -128,7 +128,8 @@ try {
       boot = await user.boot();
     assert.equal(nav.status, 200);
     assert.deepEqual(nav.data.scopes, boot.scopes);
-    assert.deepEqual(Object.keys(nav.data).sort(), ["scopes", "user"]);
+    assert.equal(nav.data.cycleId, boot.cycle?.id || null);
+    assert.deepEqual(Object.keys(nav.data).sort(), ["cycleId", "scopes", "user"]);
   }
   await updateUser(admin, "multiple", { grants: ["servicio:barra"] });
   const multi = new Client();
@@ -220,14 +221,15 @@ try {
   await captureLoading(home.p, "skeleton-inicio");
   await releaseHome();
   await expect(home.p.locator("nav a")).toHaveCount(5);
+  await expect(home.p.locator(".inventory-context-bar")).toBeVisible();
   requests.home = stop();
-  assert.deepEqual(requests.home, ["/api/navigation"]);
+  assert.deepEqual(requests.home, ["/api/navigation", "/api/cycles"]);
   const nav = await a.request("/api/navigation"),
     boot = await a.boot();
   requests.navigationBytes = Buffer.byteLength(JSON.stringify(nav.data));
   requests.previousHomeBootstrapBytes = Buffer.byteLength(JSON.stringify(boot));
   checks.push(
-    "Inicio usa una petición ligera, conserva áreas ocultas hasta autorización y no descarga el catálogo",
+    "Inicio usa navegación ligera y contexto de inventario, conserva áreas ocultas hasta autorización y no descarga el catálogo",
   );
 
   stop = measure(worker.p);
@@ -245,10 +247,11 @@ try {
   await captureLoading(worker.p, "skeleton-inventario");
   await releaseInventory();
   await expect(worker.p.locator(".category-card").first()).toBeVisible();
+  await expect(worker.p.locator(".inventory-context-bar")).toBeVisible();
   requests.inventory = stop();
-  assert.deepEqual(requests.inventory, ["/api/bootstrap"]);
+  assert.deepEqual(requests.inventory, ["/api/bootstrap", "/api/cycles"]);
   checks.push(
-    "Inventario carga con una petición, sin progreso ficticio y sin esperar una animación para permitir uso",
+    "Inventario carga catálogo y contexto, sin progreso ficticio y sin esperar una animación para permitir uso",
   );
 
   const boss = await context("admin-prueba");
@@ -260,11 +263,12 @@ try {
   await captureLoading(boss.p, "skeleton-admin");
   await releaseAdmin();
   await expect(boss.p.locator("#user-search")).toBeVisible();
+  await expect(boss.p.locator(".inventory-context-bar")).toBeVisible();
   requests.admin = stop();
-  assert.deepEqual(requests.admin, ["/api/admin/users"]);
+  assert.deepEqual(requests.admin, ["/api/admin/users", "/api/cycles"]);
   await expect(boss.p.locator("#users")).toHaveAttribute("aria-busy", "false");
   checks.push(
-    "Administración obtiene identidad y cuentas en una petición y retira su skeleton al terminar",
+    "Administración obtiene identidad/cuentas y contexto de inventario, y retira su skeleton al terminar",
   );
 
   const x = boot.items.filter(i=>i.active)[50],

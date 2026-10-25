@@ -1,3 +1,4 @@
+import { mountInventoryContext } from "./inventory-context.js";
 import { settingsAccount } from "./settings.js";
 import { refreshLimit } from "./refresh-limit.js";
 import { roleNames, managesUsers } from "./roles.js";
@@ -158,16 +159,26 @@ export function identityBar(user, refresh) {
   bar.querySelector("#logout").onclick = () =>
     logout().catch((e) => alert(e.message));
   sessionStorage.setItem("inventory-user", user.id);
+  mountInventoryContext(user);
   return bar;
 }
 export function setSync(text, state) {
   const el = document.querySelector("#sync-state");
-  if (el) {
-    el.textContent = text;
-    el.dataset.state = state || (text.startsWith("Sincronizado")
-      ? "synced"
-      : /pendiente|borrador recuperado/i.test(text) ? "pending" : "error");
-  }
+  if (!el) return;
+  const value = String(text || "");
+  const resolved = state || (/^Sincronizado/i.test(value) ? "synced" : /guardando|actualizando/i.test(value) ? "syncing" : /^(?:Pendiente de enviar|Cambios pendientes)/i.test(value) ? "pending" : "error");
+  el.dataset.state = resolved;
+  let feedback = document.querySelector('#sync-feedback');
+  if (resolved === 'error') {
+    if (!feedback) {
+      feedback = document.createElement('p'); feedback.id = 'sync-feedback';
+      feedback.className = 'feedback-message'; feedback.dataset.tone = 'error';
+      feedback.setAttribute('role', 'alert');
+      document.querySelector('main > header, main .app-header, .home-header')?.after(feedback);
+    }
+    feedback.textContent = value.replace(/ · borrador(?:es)? conservado(?:s)?[.]?$/i, '');
+  } else feedback?.remove();
+  el.textContent = resolved === "synced" ? "Sincronizado" : resolved === "pending" ? "Cambios pendientes" : resolved === "syncing" ? (/guardando/i.test(value) ? "Guardando…" : "Actualizando…") : value.replace(/ · borrador(?:es)? (?:aislado(?:s)? )?conservado(?:s)?[.]?$/i, "");
 }
 export function draftsFor(userId, cycleId, storage = localStorage) {
   const key = `inventory-drafts-v1:${userId}:${cycleId}`;
@@ -199,6 +210,13 @@ export function dialog(title, content) {
   el.innerHTML = `<h2 id="${titleId}">${escapeHtml(title)}</h2>${content}`;
   document.body.append(el);
   const previous = document.activeElement;
+  // A dialog opens for review; tapping a field is what opens the mobile keyboard.
+  // Explicit safety defaults such as Cancelar retain their autofocus.
+  if (!el.querySelector("[autofocus]")) {
+    const heading = el.querySelector("h2");
+    heading.tabIndex = -1;
+    heading.setAttribute("autofocus", "");
+  }
   el.showModal();
   el.addEventListener("keydown", (event) => {
     if (event.key !== "Tab") return;
@@ -239,7 +257,7 @@ export function dialog(title, content) {
   el.addEventListener("pointercancel", () => { backdropPointer = null; });
   el.addEventListener("close", () => {
     el.remove();
-    if (previous?.isConnected) previous.focus();
+    if (previous?.isConnected) previous.focus({ preventScroll: true });
   });
   return el;
 }

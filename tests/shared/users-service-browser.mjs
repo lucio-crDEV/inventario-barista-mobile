@@ -26,7 +26,7 @@ try {
   await expect(lead.page.locator("#header-back-to-categories")).toBeHidden();
   await expect(lead.page.locator(".scope-card")).toHaveCount(5);
   await expect(lead.page.locator(".scope-card")).toContainText(["Garzones","Mercadito","Barra","Línea / Armado","Copería"]);
-  assert.deepEqual(lead.requests.filter(p=>p!=="/api/me"),["/api/login","/api/bootstrap"]);
+  assert.deepEqual(lead.requests.filter(p=>p!=="/api/me"),["/api/login","/api/bootstrap","/api/cycles"]);
   await lead.page.locator('[data-settings-toggle]').click();
   await expect(lead.page.locator(".identity-person")).toContainText("Jefa de servicio");
   await lead.page.getByRole("link",{name:"Gestionar usuarios y accesos",exact:true}).click();
@@ -50,7 +50,7 @@ try {
   await form.locator('.scope-group[data-scope="servicio"] > summary').click();
   await form.locator('[value="servicio:barra"]').check();await form.locator('[value="servicio:coperia"]').check();
   await form.getByRole("button",{name:"Guardar cuenta y accesos"}).click();
-  await expect(lead.page.locator("#message")).toContainText("Cambios guardados");
+  await expect(lead.page.locator(".inventory-notice")).toContainText("Cambios guardados");
   checks.push("Crear conserva nombre inicial; editar cambia username y ámbitos de Servicio, sin editor administrativo del nombre visible");
 
   await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
@@ -77,7 +77,7 @@ try {
   await lead.page.reload();await lead.page.locator("#user-search").fill(name);await lead.page.locator(".user-card:visible > .user-details > summary").click();
   await lead.page.locator(`.user-card[data-id="${createdId}"]`).getByRole("tab", {name:"Seguridad", exact:true}).click();
   await lead.page.locator(`[data-delete="${createdId}"]`).click();await lead.page.locator("#confirm-delete").click();
-  await expect(lead.page.locator("#message")).toContainText("Usuario eliminado");
+  await expect(lead.page.locator(".inventory-notice")).toContainText("Usuario eliminado");
   assert.ok(!(await users()).some(u=>u.id===createdId));
   checks.push("Diálogo irreversible en ambos temas: Cancelar/foco/Escape; versión cambiada impide borrar, nueva confirmación elimina");
 
@@ -88,7 +88,7 @@ try {
   await expect(worker.page.locator('[name=username]')).toHaveCount(0);
   const oldName=(await (await worker.context.request.get(origin+"/api/me")).json()).user.name;
   await worker.page.locator('[name=name]').fill("Mi nombre visible UI");await worker.page.getByRole("button",{name:"Guardar nombre visible"}).click();
-  await expect(worker.page.locator("#message")).toContainText("Nombre visible actualizado");
+  await expect(worker.page.locator(".inventory-notice")).toContainText("Nombre visible actualizado");
   await expect(worker.page.locator(".identity-person")).toContainText("Mi nombre visible UI");
   const current=(await (await worker.context.request.get(origin+"/api/me")).json()).user;
   assert.equal(current.username,"ana");

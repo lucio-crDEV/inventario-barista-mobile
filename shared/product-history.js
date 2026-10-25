@@ -24,7 +24,7 @@ export async function openProductHistory(inventory,item){
       const record=current.record,scopeState=snapshot.cycle.scopeStates?.find(s=>item.locationId===s.scope_id||item.locationId.startsWith(s.scope_id+':'))?.state||snapshot.cycle.state;
       const button=el.querySelector('[data-annul]');button.hidden=!record||record.status==='pending'||scopeState==='closed';
       button.onclick=()=>confirmAnnul(inventory,item,snapshot.cycle.revision,record,()=>{button.hidden=true;history=[];load();});
-    }catch(error){if(el.open){const info=document.createElement('p');info.className='history-error';info.textContent='No se pudieron comprobar las acciones disponibles. '+error.message;body.append(info);}}
+    }catch(error){if(el.open){const info=document.createElement('p');info.className='history-error';info.textContent='No se pudieron comprobar las acciones disponibles. '+error.message;body.prepend(info);}}
   }
 }
 
@@ -32,6 +32,7 @@ function confirmAnnul(inventory,item,revision,record,refresh){
   let saved=readCommand(inventory.user.id);
   if(saved&&(saved.kind!=='annul'||saved.cycleId!==inventory.cycleId||saved.itemId!==item.id||saved.locationId!==item.locationId)){const notice=dialog('Cambio pendiente','<p>Resuelve el cambio pendiente en el Panel de supervisión antes de anular otro producto.</p><button type="button">Cerrar</button>');notice.querySelector('button').onclick=()=>notice.close();return;}
   const el=dialog('Anular conteo',`<p>${esc(item.name)} · ${esc(inventory.locationName(item))}</p><p>Este producto pasará de ${record.status==='partial'?'avance':'contado'} a pendiente.</p><label>Motivo (opcional)<textarea name="reason" maxlength="500" placeholder="Por ejemplo: producto contado por error"></textarea></label><p data-result role="status"></p><div class="dialog-actions"><button type="button" data-cancel>Cancelar</button><button type="button" data-confirm class="button-danger">${saved?'Reintentar anulación pendiente':'Anular conteo'}</button></div>`);
+  el.querySelector('h2').after(el.querySelector('[data-result]'));
   const reason=el.querySelector('textarea');reason.readOnly=!!saved;if(saved)reason.value=saved.reason||'';
   el.querySelector('[data-cancel]').onclick=()=>el.close();
   el.querySelector('[data-confirm]').onclick=async()=>{

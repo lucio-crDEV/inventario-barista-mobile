@@ -1,5 +1,11 @@
 # AGENTS.md — inventory-v3
 
+## Actualización autorizada — 25-10-2026
+
+El usuario autorizó implementar creación/activación solo por Administrador, selección automática del inventario, jerarquía de Servicio y correcciones UX móvil. Métricas agregadas vuelven a estar autorizadas con 0009 y `METRICS_ENABLED=1`; Root sigue sin implementar. Respaldos privados cifrados cada 90 días se preparan con Worker separado y R2 Standard, pendientes de habilitación/secretos del usuario. Esta decisión sustituye la pausa de telemetría del 23-10, sin autorizar telemetría personal ni borrar inventarios por antigüedad. 0008, 0009 y 0010 se aplican después de 0007; nunca 0005.
+
+Contrato vigente y estado de publicación en [revisión del 25-10](docs/revision-inventarios-2026-10-25.md) y [métricas y respaldos](docs/metrics-backup-2026-10-25.md). Mantener el foco accesible de teclado mediante fondo/subrayado; los toques no añaden bordes de selección.
+
 ## Decisiones de revisión y regla de oro — obligatorias, 23-10-2026
 
 Lee [las decisiones vigentes y su implementación local](docs/decisiones-ux-y-operacion-2026-10-23.md). Cierre para revisión y finalización son distintos; solo Administrador reabre finalizados, con motivo. Reabrir es el único motivo obligatorio. Activo/Inactivo persiste por área con historial, sin borrar conteos. Se conservan los tres roles actuales. Esta versión requiere 0007 después de 0006; no confundir implementación local con despliegue.
@@ -67,7 +73,11 @@ El módulo de Pedido está separado del módulo de Inventario. No asumir que sus
 4. Protege cambios del usuario. No reemplaces archivos con cambios previos sin entenderlos.
 5. Si el alcance o una decisión de producto no está claro, continúa las comprobaciones independientes y pregunta solo cuando la respuesta cambie sustancialmente el resultado.
 
-## Coste de delegación — decisión del usuario, 23-10-2026
+## Coste de delegación — decisión actualizada del usuario, 25-10-2026
+
+El objetivo prioritario es ahorrar tokens totales, no solo tiempo: delegar únicamente si el ahorro esperado supera el coste de arrancar el agente, transferir contexto, coordinarlo y revisar su respuesta. Si consume más tokens que resolverlo directamente, no delegar. Ajustar modelo/esfuerzo a cada tarea; no elegir Medio para todo ni repetir lecturas o pruebas sin motivo nuevo. Esta preferencia vale para todos los trabajos con el usuario.
+
+### Regla conservada del 23-10-2026
 
 No lanzar subagentes con una configuración costosa heredada (GPT-6.1 Sol / Ultra). Ajustar siempre modelo y esfuerzo a la tarea: modelo económico y razonamiento bajo para lecturas, comprobaciones y trabajos acotados; mayor capacidad solo cuando la complejidad lo justifique. No usar Ultra por defecto ni multiplicar agentes de alto coste. Resolver directamente las tareas simples y limitar el número de delegaciones.
 
