@@ -2,7 +2,7 @@
 
 ## Actualización autorizada — 25-10-2026
 
-El usuario autorizó implementar creación/activación solo por Administrador, selección automática del inventario, jerarquía de Servicio y correcciones UX móvil. Métricas agregadas vuelven a estar autorizadas con 0009 y `METRICS_ENABLED=1`; Root sigue sin implementar. Respaldos privados cifrados cada 90 días se preparan con Worker separado y R2 Standard, pendientes de habilitación/secretos del usuario. Esta decisión sustituye la pausa de telemetría del 23-10, sin autorizar telemetría personal ni borrar inventarios por antigüedad. 0008, 0009 y 0010 se aplican después de 0007; nunca 0005.
+El usuario autorizó implementar creación/activación solo por Administrador, selección automática del inventario, jerarquía de Servicio y correcciones UX móvil. Métricas agregadas vuelven a estar autorizadas con 0009 y `METRICS_ENABLED=1`; Root sigue sin implementar. Respaldos privados cifrados cada 90 días operativos con Worker separado y R2 privado; primera copia real recuperada y verificada el 25-10-2026. Esta decisión sustituye la pausa de telemetría del 23-10, sin autorizar telemetría personal ni borrar inventarios por antigüedad. 0008, 0009 y 0010 se aplican después de 0007; nunca 0005.
 
 Contrato vigente y estado de publicación en [revisión del 25-10](docs/revision-inventarios-2026-10-25.md) y [métricas y respaldos](docs/metrics-backup-2026-10-25.md). Mantener el foco accesible de teclado mediante fondo/subrayado; los toques no añaden bordes de selección.
 

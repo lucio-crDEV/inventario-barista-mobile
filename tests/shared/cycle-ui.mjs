@@ -46,7 +46,7 @@ try{
  await page.goto(origin+'/pages/cuenta/?profile=1');await expect(page.getByRole('heading',{name:'Mi perfil'})).toBeVisible();await page.goto(origin+'/');await expect(page.locator('.inventory-context-bar')).toBeVisible();await expect(recommendation).toHaveCount(0);
  signedIn=false;await page.goto(origin+'/pages/cuenta/');await page.getByLabel('Usuario',{exact:true}).fill('admin');await page.locator('input[name=password]').fill('prueba');await page.getByRole('button',{name:'Ingresar',exact:true}).click();await expect(page.locator('.inventory-context-bar')).toBeVisible();await expect(recommendation).toHaveCount(0);
  // The warning appears after a real submit and must be re-earned after editing.
- await page.locator('[data-new]').click();await page.locator('dialog [type=submit]').click();await expect(page.locator('[data-warnings]')).toBeVisible();assert.equal(commands.length,1);assert.ok(!commands[0].confirmWarnings);
+ await page.locator('[data-new]').click();await page.locator('dialog [type=submit]').click();await expect(page.locator('[data-warnings]')).toBeVisible();assert.equal(await page.locator('[data-warnings]').evaluate(el=>el.nextElementSibling.className),'inventory-submit-row');assert.equal(commands.length,1);assert.ok(!commands[0].confirmWarnings);
  await expect(page.locator('dialog select')).toHaveCount(0);await expect(page.locator('dialog input[name=name]')).toHaveCount(0);await expect(page.locator('.inventory-opening-date')).toHaveText('25/10/2026');await page.getByText('Fin de mes',{exact:true}).click();await expect(page.locator('[data-warnings]')).toBeHidden();await expect(page.locator('dialog [type=submit]')).toHaveText('Crear inventario');
  await page.locator('dialog [type=submit]').click();assert.equal(commands.length,2);assert.equal(commands[1].name,'25/10/2026');assert.equal(commands[1].type,'month_end');assert.equal(commands[1].confirmWarnings,false);
  mode='success';await page.locator('dialog [type=submit]').click();await expect(page.locator('dialog')).toHaveCount(0);assert.equal(commands.length,3);assert.equal(commands[2].confirmWarnings,true);assert.equal(commands[2].confirmationRevision,'revision-1');assert.equal(commands[2].id,commands[1].id);
@@ -57,7 +57,7 @@ try{
   mode='uncertain';uncertainStatus=status;await page.locator('[data-new]').click();await page.locator('dialog [type=submit]').click();await expect(page.locator('dialog [type=submit]')).toHaveText('Reintentar confirmación');await expect(page.locator('dialog input[name=type]').first()).toBeDisabled();const pending=commands.at(-1);await page.locator('dialog [type=submit]').click();await expect(page.locator('dialog')).toHaveCount(0);assert.deepEqual(commands.at(-1),pending);
  }
  // Worker can select history but cannot create. Lead sees only Service hierarchy.
- user={...user,id:'context-worker',role:'worker'};await page.goto(origin+'/');await expect(page.locator('.inventory-context-bar')).toBeVisible();await expect(page.locator('[data-new]')).toHaveCount(0);await expect(page.locator('.inventory-context-bar select option')).toHaveCount(2);
+ user={...user,id:'context-worker',role:'worker'};await page.goto(origin+'/');await expect(page.locator('.inventory-context-bar')).toBeVisible();await expect(page.locator('[data-new]')).toHaveCount(0);await page.locator('[data-select]').click();await expect(page.locator('[data-cycle]')).toHaveCount(2);await expect(page.locator('[data-cycle=current] .inventory-status')).toHaveText('Activo');await page.locator('[data-history-close]').click();
  user={...user,id:'context-lead',role:'service_lead'};await page.goto(origin+'/pages/admin/supervision.html');await expect(page.locator('#cycle option')).toHaveCount(2);await expect(page.locator('#create-inventory')).toHaveCount(0);
  const service=page.locator('details[data-scope="servicio"]');await expect(service).toBeVisible();await service.locator(':scope > summary').click();const waiters=page.locator('details[data-scope="servicio:garzones"]');await waiters.locator(':scope > summary').click();
  for(const name of ['Salón','Terraza','Zona Privada'])await expect(waiters.getByRole('link',{name:new RegExp(name)})).toBeVisible();
@@ -71,5 +71,17 @@ try{
  assert.equal(scopeQueries.at(-1),'');
  await page.locator('#cycle').selectOption('history');await expect(page.locator('#cycle-actions')).toContainText('Finalizado');await expect(page.locator('[data-transition="open"]')).toHaveCount(0);
 
+
+ // A long history remains browsable without mounting hundreds of rows or focusing search.
+ cycles.push(...Array.from({length:180},(_,i)=>({id:'old-'+i,name:'Archivo '+i,type:'weekly',period:`${2023+Math.floor(i/60)}-${String(1+Math.floor(i%60/5)).padStart(2,'0')}-${String(1+i%5).padStart(2,'0')}`,state:'closed',lifecycle:'active'})));
+ user={...user,id:'history-worker',role:'worker'};await page.goto(origin+'/');await page.locator('[data-select]').click();
+ await expect(page.locator('[data-cycle]')).toHaveCount(24);assert.equal(await page.evaluate(()=>document.activeElement.tagName),'H2');
+ await page.getByLabel('Año',{exact:true}).selectOption('2024');await expect(page.locator('[data-history-count]')).toHaveText('60 inventarios');
+ await page.getByRole('button',{name:'Cargar más',exact:true}).click();await expect(page.locator('[data-cycle]')).toHaveCount(48);
+ await page.getByLabel('Buscar inventario',{exact:true}).fill('01/01/2024');await expect(page.locator('[data-cycle]')).toHaveCount(1);
+ await page.getByLabel('Buscar inventario',{exact:true}).fill('sin coincidencias');await expect(page.locator('[data-history-list]')).toContainText('No hay inventarios');
+ await page.getByLabel('Buscar inventario',{exact:true}).fill('');
+ for(const width of [320,390,654]){await page.setViewportSize({width,height:804});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
+ await page.locator('[data-cycle]').first().click();await expect(page.getByRole('heading',{name:'Cambiar inventario',exact:true})).toBeVisible();await page.locator('dialog [data-cancel]').click();await expect(page.getByRole('heading',{name:'Seleccionar inventario',exact:true})).toBeVisible();await page.locator('[data-history-close]').click();
  console.log('PASS cycle UI: daily dismissal across reload/navigation/login; submit warnings/reset/confirmation counts; exact uncertain recovery; worker history/no-create; lead Service/Garzones hierarchy.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

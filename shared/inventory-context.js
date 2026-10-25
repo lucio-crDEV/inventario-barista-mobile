@@ -2,6 +2,7 @@ import { api, dialog, escapeHtml as esc } from './client.js';
 import { cycleLabel, cycleTypeNames } from './cycles.js';
 import { recommendation, relativeInventoryDate, localDay } from './inventory-calendar.js';
 import { showNotice } from './notices.js';
+import { openInventoryPicker, inventoryStatus, closeAccountMenu } from './inventory-picker.js';
 let identity = '', mounting;
 const pendingKey = user => `inventory-cycle-pending:${user.id}`;
 function readPending(user) { try { return JSON.parse(sessionStorage.getItem(pendingKey(user)) || 'null'); } catch { return null; } }
@@ -25,19 +26,15 @@ async function mount(user) {
   const header = document.querySelector('main > .app-header, main > .home-header, main > .view-header');
   if (!header) return;
   const management = location.pathname.includes('/admin/supervision');
-  const host = document.createElement('section'); host.className='inventory-context-bar'; host.setAttribute('aria-label','Inventario de trabajo');
+  const host = document.createElement('section'); host.className='inventory-context-bar'; host.setAttribute('aria-label','Inventario seleccionado');
   if (!management) {
-    host.innerHTML=`<label>Inventario de trabajo<select aria-label="Inventario de trabajo">${data.cycles.filter(c=>c.lifecycle!=='prepared').map(c=>`<option value="${esc(c.id)}">${esc(cycleLabel(c))}${c.state==='closed'?' · Finalizado':c.state==='review'?' · En revisión':''}</option>`).join('')}</select></label>${!current ? '<span>No hay inventarios activos ni finalizados.</span>' : ''}${user.role==='admin'?'<button type="button" class="inventory-link-action" data-new>Crear inventario</button>':''}`;
-    const select=host.querySelector('select'); select.value=current?.id || ''; select.hidden=!select.options.length;
-    select.onchange=()=>{
-      const next=select.value;
-      const el=dialog('Cambiar inventario','<p>Los cambios pendientes se conservarán en el inventario actual.</p><div class="inventory-dialog-actions"><button type="button" data-cancel autofocus>Cancelar</button><button type="button" data-go>Cambiar inventario</button></div>');
-      el.querySelector('[data-cancel]').onclick=()=>el.close();
-      el.addEventListener('close',()=>{select.value=current?.id || '';},{once:true});
-      el.querySelector('[data-go]').onclick=()=>{const url=new URL(location.href);url.searchParams.set('inventory',next);location.assign(url);};
-    };
-    host.querySelector('[data-new]')?.addEventListener('click',()=>inventoryDialog(user,data.cycles));
-    header.after(host);
+    host.innerHTML=`<button type="button" class="inventory-selector" data-select aria-haspopup="dialog"><span class="inventory-selection"><small>Inventario seleccionado</small><span class="inventory-selection-value"><strong>${current ? esc(cycleLabel(current)) : 'Seleccionar inventario'}</strong>${inventoryStatus(current)}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>${user.role==='admin'?'<button type="button" class="inventory-create-action" data-new><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Crear inventario</span></button>':''}`;
+    host.querySelector('[data-select]').onclick=()=>openInventoryPicker(data.cycles,current);
+    host.querySelector('[data-new]')?.addEventListener('click',()=>{closeAccountMenu();inventoryDialog(user,data.cycles);});
+    if (location.pathname.startsWith('/pages/inventario/')) {
+      host.classList.add('in-account-menu');
+      document.querySelector('#settings-drawer .sync-controls')?.after(host);
+    } else header.after(host);
   }
   if (current) for (const link of document.querySelectorAll('a[href*="/pages/inventario/"]')) {
     const url = new URL(link.href); if (!url.searchParams.has('inventory')) {url.searchParams.set('inventory',current.id);link.href=url;}
@@ -67,7 +64,6 @@ export function inventoryDialog(user,cycles,existing=null,type='weekly') {
   const el=dialog(create?'Crear inventario':'Opciones del inventario',`<form class="inventory-form"><p data-cycle-error class="feedback-message" role="alert" hidden></p>${create?`<fieldset class="inventory-types"><legend>Tipo</legend><div class="inventory-type-options">${Object.keys(cycleTypeNames).map(id=>`<label><input type="radio" name="type" value="${id}" ${id===type?'checked':''}><span>${id==='both'?'Ambos':cycleTypeNames[id]}</span></label>`).join('')}</div></fieldset><p class="inventory-opening-date">${localDay().split('-').reverse().join('/')}</p><label class="inventory-check"><input type="checkbox" name="activate" checked>Activar inmediatamente</label>`:`<p>${esc(cycleLabel(existing))}</p>${existing.lifecycle==='prepared'?'<p>Al activarlo el equipo podrá comenzar a contar.</p>':'<p>Eliminar lo retirará de la lista. Los conteos y el historial se conservan para recuperación administrativa.</p>'}`}<section data-warnings class="inventory-warning" role="alert" hidden></section><div class="inventory-submit-row"><small>últ. inventario: ${esc(lastLabel)}</small><button class="button button-primary" type="submit">${create?'Crear inventario':existing.lifecycle==='prepared'?'Activar inventario':'Eliminar inventario'}</button></div><button type="button" class="inventory-link-action" data-cancel autofocus>Cancelar</button></form>`);
   el.classList.add('inventory-cycle-dialog');
   const form=el.querySelector('form'),error=el.querySelector('[data-cycle-error]'),warning=el.querySelector('[data-warnings]'),submit=form.querySelector('[type=submit]');
-  error.after(warning);
   let busy=false,uncertain=false;
   form.querySelector('[data-cancel]').onclick=()=>el.close();
 

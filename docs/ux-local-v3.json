@@ -2,24 +2,27 @@
   "checks": [
     "Navegación mínima autenticada, sin catálogo, con herencia y retirada de permisos inmediata",
     "Skeleton inmediato en ambos temas, espera larga explícita, movimiento reducido y error de ingreso recuperable",
-    "Inicio usa una petición ligera, conserva áreas ocultas hasta autorización y no descarga el catálogo",
-    "Inventario carga con una petición, sin progreso ficticio y sin esperar una animación para permitir uso",
-    "Administración obtiene identidad y cuentas en una petición y retira su skeleton al terminar",
+    "Inicio usa navegación ligera y contexto de inventario, conserva áreas ocultas hasta autorización y no descarga el catálogo",
+    "Inventario carga catálogo y contexto, sin progreso ficticio y sin esperar una animación para permitir uso",
+    "Administración obtiene identidad/cuentas y contexto de inventario, y retira su skeleton al terminar",
     "Guardado nuevo usa una petición: controles protegidos, sin doble envío ni éxito anticipado",
     "Historial abre inmediatamente con skeleton, permite cerrar durante carga y conserva el borrador",
     "Respuesta perdida seguida de un cambio ajeno: reintento recupera la versión vigente sin restaurar la anterior"
   ],
   "requests": {
     "home": [
-      "/api/navigation"
+      "/api/navigation",
+      "/api/cycles"
     ],
-    "navigationBytes": 275,
-    "previousHomeBootstrapBytes": 29126,
+    "navigationBytes": 305,
+    "previousHomeBootstrapBytes": 28669,
     "inventory": [
-      "/api/bootstrap"
+      "/api/bootstrap",
+      "/api/cycles"
     ],
     "admin": [
-      "/api/admin/users"
+      "/api/admin/users",
+      "/api/cycles"
     ],
     "save": [
       "/api/count"

@@ -8,6 +8,8 @@ No añadir bordes/anillos al foco táctil o selección; mantener indicación de 
 
 Supervisión muestra Servicio y Garzones en ramas desplegables con anillos y cifras reales, respetando permisos; la pestaña Áreas no necesita selector adicional de Área. Recomendación de inventario ámbar suave con X y colapso de 180 ms (inmediato con movimiento reducido), descartable durante el día por administrador.
 
+El contexto usa «Inventario seleccionado» con fecha y estado pequeño (punto verde + Activo). Selector compacto y botón + Crear inventario en Inicio; dentro de áreas se trasladan al menú derecho. Historial en diálogo: búsqueda, año, agrupación mensual y 24 filas por página; foco inicial en título. Menú con inset uniforme de 12 px y filas táctiles de 44 px. Advertencia de duplicado inmediatamente encima de las acciones de confirmación. Al entrar al conteo se abre el listado izquierdo sin enfocar búsqueda; elegir un ítem cierra el panel.
+
 ## Revisión vigente — implementada localmente, 23-10-2026
 
 [Contrato completo](decisiones-ux-y-operacion-2026-10-23.md). Títulos página/área 20 px/700, sección 16 px/600, cuerpo 14 px, secundario 12 px y campos 16 px; controles de al menos 44 px. Los títulos largos envuelven. Tonos crema/carbón/cian sin sombras ni degradados; Supervisión tiene más intensidad que resumen/cuenta/usuarios.

@@ -111,6 +111,16 @@ let sessionNeedsSave = false;
 
 
 let session = createSession();
+const viewContextKey = `inventory-view:${shared.user.id}:${shared.cycleId}:${scopeKey}`;
+// A refresh resumes the same authorized item; entering an area afresh keeps its chooser.
+try {
+    const navigation = performance.getEntriesByType('navigation')[0]?.type;
+    const previous = JSON.parse(sessionStorage.getItem(viewContextKey) || 'null');
+    if (!summaryEntry && ['reload', 'back_forward'].includes(navigation) && previous?.view === 'count') {
+        const index = activeItems.findIndex(item => item.id === previous.itemId);
+        if (index >= 0) { session.currentIndex = index; session.view = 'count'; }
+    }
+} catch { /* Presentation storage is optional; drafts remain separately scoped. */ }
 if (summaryEntry) session.view = "summary";
 const summaryContextKey = `inventory-summary-context:${shared.user.id}:${shared.cycleId}:${scopeKey}`;
 try {
@@ -196,7 +206,12 @@ function createId() {
 }
 
 
-function saveSession() { return true; }
+function saveSession() {
+    try {
+        sessionStorage.setItem(viewContextKey, JSON.stringify({ view: session.view, itemId: getCurrentItem()?.id }));
+    } catch { /* Do not block counting if presentation storage is unavailable. */ }
+    return true;
+}
 
 
 // ============================================================
@@ -816,6 +831,7 @@ function openCategory(
 
     render();
     window.scrollTo(0, 0);
+    document.querySelector('#open-item-drawer')?.click();
 }
 
 
@@ -1930,6 +1946,8 @@ if (sessionNeedsSave) {
 
 
 render();
+// Choose an item before counting when entering a zone or resuming the count view.
+if (session.view === 'count') document.querySelector('#open-item-drawer')?.click();
 shared.poll();
 
 if (Object.keys(shared.drafts.all()).length) shared.state('Cambios pendientes');

@@ -105,3 +105,15 @@ html[data-theme="dark"] .settings-drawer .account-logout { color: #ff98a9; backg
 .settings-drawer .settings-panel { background: var(--ui-solid); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .settings-panel .settings-actions:empty { display: none; }
 .settings-panel .settings-heading { margin-bottom: 16px; }
+/* All menu rows share the same inset and touch height. */
+.settings-panel .identity-bar { gap: 12px; }
+.settings-panel .identity-person { padding-inline: 12px; box-sizing: border-box; }
+.settings-panel .identity-profile { padding: 10px; border: 0; border-radius: 10px; box-shadow: none; background: color-mix(in srgb,var(--ui-accent) 5%,var(--ui-solid)); font-size: 12px; }
+.settings-panel .sync-controls { padding-left: 12px; }
+.settings-panel .settings-actions { gap: 4px; }
+.settings-panel .settings-action { padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+.settings-panel .account-logout { margin: 0; }
+.settings-panel .settings-appearance { padding-inline: 12px; }
+@media (hover: hover) and (pointer: fine) {
+  .settings-panel .settings-action:hover { background: color-mix(in srgb,var(--ui-accent) 5%,var(--ui-solid)); }
+}

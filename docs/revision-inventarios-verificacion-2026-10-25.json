@@ -204,5 +204,52 @@
     "local timings do not certify Cloudflare CPU or sustained free tier capacity",
     "metrics collection begins only when new app version deploys",
     "first scheduled encrypted remote backup and restore require dedicated token; not certified yet"
-  ]
+  ],
+  "followUp": {
+    "baseCommit": "45b50a1",
+    "unitTests": {
+      "passed": 72,
+      "failed": 0
+    },
+    "browserSuites": [
+      "cycle-ui (182 inventories, year/search/paging/cancel)",
+      "mobile-ux",
+      "inventory-navigation (3 groups, real isolated D1)",
+      "ux (8 groups)"
+    ],
+    "pageErrors": 0,
+    "responsiveWidths": [
+      320,
+      390,
+      654
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "pagesBuild": true,
+    "publicPackageAllowlist": true,
+    "backup": {
+      "worker": "inventory-private-backup",
+      "enabled": true,
+      "private": true,
+      "dailyCheckUTC": "05:17",
+      "intervalDays": 90,
+      "secretTypesVerified": true,
+      "createdAt": "2026-10-25T15:03:55.420Z",
+      "encryptedBytes": 157654,
+      "downloadChecksum": true,
+      "authenticatedDecryption": true,
+      "localRestore": true,
+      "integrity": "ok",
+      "foreignKeyErrors": 0,
+      "schemaMatches": true,
+      "tablesCompared": 19,
+      "rowsCompared": 2755,
+      "sessionsRevoked": true,
+      "restoreAuditRecorded": true
+    },
+    "applicationDeployment": "pending user push/deploy; D1 migrations and Pages variable already prepared",
+    "physicalMobileDevice": "not tested; visualViewport keyboard simulated"
+  }
 }

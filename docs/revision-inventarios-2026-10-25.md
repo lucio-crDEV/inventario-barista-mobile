@@ -20,7 +20,7 @@ El usuario autorizó implementación y preparación de D1 online. Push y desplie
 
 Antes de cambiar D1 se creó respaldo SQL privado con checksum, restaurado en destino local nuevo, con integridad y claves foráneas válidas y sesiones recuperadas revocadas. Rutas de los respaldos y evidencia agregada quedan en el informe JSON de verificación; el SQL no se incluye en Git ni assets.
 
-0008, 0009 y 0010 ya se aplicaron a D1 online y la comprobación completa de esquema/catálogo pasó, sin migraciones pendientes. Production de Pages ya tiene METRICS_ENABLED=1 y se conservaron las variables y binding DB existentes. El código nuevo aún no está desplegado; la recolección empezará al publicar esta versión. Archivo wrangler.pages.production.jsonc actualizado. El bucket inventario-backups está creado y se verificó que no tiene URL pública ni dominios. Hay configuración privada y clave local de cifrado en .backups/automation-20261025, excluidas de Git. Worker inventory-private-backup ya desplegado sin URL pública y con BACKUP_ENABLED=0; clave cargada como secreto. Falta token dedicado CF_BACKUP_TOKEN (D1 Edit) y activar/ensayar el respaldo; los respaldos programados todavía no están operativos. Instrucciones: [instrucciones](metrics-backup-2026-10-25.md). No se activa facturación ni se copian credenciales a archivos versionados.
+0008, 0009 y 0010 ya se aplicaron a D1 online y la comprobación completa de esquema/catálogo pasó, sin migraciones pendientes. Production de Pages ya tiene METRICS_ENABLED=1 y se conservaron las variables y binding DB existentes. El código nuevo aún no está desplegado; la recolección empezará al publicar esta versión. Archivo wrangler.pages.production.jsonc actualizado. El bucket inventario-backups está creado y se verificó que no tiene URL pública ni dominios. Hay configuración privada y clave local de cifrado en .backups/automation-20261025, excluidas de Git. Worker inventory-private-backup activo con BACKUP_ENABLED=1 y secretos configurados; copia cifrada real recuperada y verificada (19 tablas, 2.755 filas, integridad/FK correctas). Cron diario 05:17 UTC; crea copia cada 90 días desde el último éxito. Instrucciones: [instrucciones](metrics-backup-2026-10-25.md). No se activa facturación ni se copian credenciales a archivos versionados.
 
 ## Verificación y límites
 
@@ -35,6 +35,27 @@ La recuperación de contraseña de admin-prueba se hizo únicamente en la base d
 1. Revisar diff y ejecutar verificación documentada. Comprobar 0008/0009/0010 y METRICS_ENABLED=1 en D1/Pages.
 2. Crear commit y hacer push a inventory-v3 por decisión del usuario. Build Pages: npm run build:pages; salida dist. No publicar raíz ni libros.
 3. Verificar deployment y comprobaciones públicas. No ensayar escrituras ni carga sobre cuentas reales por este paso.
-4. Activar Worker de respaldos separado una vez creado bucket y configurados secretos. Validar primer respaldo cifrado y recuperación antes de considerarlo operativo.
+4. El Worker de respaldo separado ya está activo y recuperado. Custodiar la clave fuera del equipo/Cloudflare y revisar fallos y antigüedad de copias.
 
 No revertir migraciones borrando tablas/ciclos. Un rollback de assets exige comprobar compatibilidad del esquema; las estructuras aditivas preservan la información anterior.
+
+## Ajustes posteriores de navegación — 25/10/2026
+
+«Inventario seleccionado» reemplaza «Inventario de trabajo». Inicio muestra un selector compacto y botón cian suave con + Crear inventario. El selector abre un diálogo con activos primero (punto verde y texto pequeño Activo), históricos agrupados por mes/año, búsqueda por fecha/nombre, filtro de año y páginas de 24 filas. No se montan todos los años en el DOM. Utiliza los metadatos ya autorizados por /api/cycles, sin ampliar permisos ni paginar conteos. Cambiar requiere confirmación, conserva borradores por ciclo y parámetros área/sector/zona; cancelar conserva la búsqueda y posición. El inventario actual también se identifica en el listado. Preparados/eliminados no son inventarios de trabajo; su gestión continúa en Supervisión.
+
+Dentro de áreas, subáreas y zonas, selector y creación pasan al menú derecho. Sus filas comparten inset de 12 px y mínimos táctiles de 44 px. Perfil y cierre de sesión mantienen jerarquía sin bordes activos. Advertencias de posible duplicado van inmediatamente antes de las acciones, junto a Continuar de todas formas; los errores de ejecución siguen al inicio.
+
+Al entrar desde una categoría, abrir una zona de Garzones o recargar una ficha de conteo, el listado izquierdo se abre automáticamente con foco en el panel, sin teclado. Al recargar se restaura la ficha por ID autorizado y el borrador asociado; solo se guarda presentación en sessionStorage por usuario/inventario/ámbito. Entrar de nuevo desde otra página mantiene el selector de categorías. Elegir un producto lo cierra; Siguiente, guardados y consultas desde Resumen conservan la navegación directa y no lo reabren en cada actualización. Borradores y conteos permanecen aislados por inventario.
+
+### Verificación de esta continuación
+
+- `npm test`: **72/72**; conserva las 70 anteriores y añade historial por varios años/páginas/estado por ámbito.
+- `node tests/shared/cycle-ui.mjs`: aprobado, incluidos 182 inventarios, búsqueda, año, 24/48 filas, cancelación y permisos.
+- `node tests/shared/mobile-ux.mjs`: aprobado, error persistente al inicio, foco sin teclado, campos 16 px y acciones con visualViewport simulado.
+- `node tests/shared/inventory-navigation.mjs`: 3 grupos aprobados contra D1 local aislada; categoría/recarga/zona, borradores, menú, advertencia junto a acciones, 320/390/654 y ambos temas, cero errores de página.
+- `node tests/shared/ux.mjs`: 8 grupos aprobados, permisos retirados, skeletons, guardado sin duplicar, historial y respuesta perdida; cero errores de página.
+- `npm run build:pages` y `node tests/shared/package-security.mjs`: aprobados, sin archivos internos/secretos/symlinks en assets.
+- Revisión visual en navegador adjunto de Inicio, selector, menú derecho y apertura automática del listado. Teclado y zoom reales en teléfono físico siguen pendientes.
+- Recuperación cifrada real y activación del Worker verificadas según el documento de respaldo. No se desplegó la app ni se hizo push.
+
+El servidor de pruebas se reinició después de preparar su base: no usar una conexión workerd anterior a la recreación del estado local, porque mantiene referencias al archivo antiguo. La demo y D1 remota permanecen separadas de esas pruebas.

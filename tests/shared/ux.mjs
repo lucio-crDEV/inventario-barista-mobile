@@ -247,7 +247,8 @@ try {
   await captureLoading(worker.p, "skeleton-inventario");
   await releaseInventory();
   await expect(worker.p.locator(".category-card").first()).toBeVisible();
-  await expect(worker.p.locator(".inventory-context-bar")).toBeVisible();
+  await expect(worker.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(1);
+  await expect(worker.p.locator("main > .inventory-context-bar")).toHaveCount(0);
   requests.inventory = stop();
   assert.deepEqual(requests.inventory, ["/api/bootstrap", "/api/cycles"]);
   checks.push(
