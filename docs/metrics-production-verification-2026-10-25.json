@@ -1,0 +1,152 @@
+{
+  "verifiedAt": "2026-10-25T15:45:21.617Z",
+  "production": "https://inventario-login.pages.dev",
+  "sourceCommit": "d4c50da",
+  "configuration": {
+    "productionMetricsEnabled": true,
+    "metricsVariableType": "plain_text",
+    "dbBindingMatches": true
+  },
+  "controlledRequest": {
+    "path": "/api/status",
+    "method": "GET",
+    "httpStatus": 401,
+    "requestsSent": 2,
+    "recordedStatusDelta": 2
+  },
+  "beforeRequests": 52,
+  "afterRequests": 64,
+  "afterGroups": 12,
+  "after": [
+    {
+      "day": "2026-10-25",
+      "route": "admin-users",
+      "method": "GET",
+      "status_class": 4,
+      "requests": 1,
+      "elapsed_ms": 358,
+      "slow_requests": 0
+    },
+    {
+      "day": "2026-10-25",
+      "route": "bootstrap",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 2,
+      "elapsed_ms": 3247,
+      "slow_requests": 2
+    },
+    {
+      "day": "2026-10-25",
+      "route": "count",
+      "method": "POST",
+      "status_class": 2,
+      "requests": 2,
+      "elapsed_ms": 2594,
+      "slow_requests": 2
+    },
+    {
+      "day": "2026-10-25",
+      "route": "cycles",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 6,
+      "elapsed_ms": 6435,
+      "slow_requests": 6
+    },
+    {
+      "day": "2026-10-25",
+      "route": "login",
+      "method": "POST",
+      "status_class": 2,
+      "requests": 1,
+      "elapsed_ms": 1612,
+      "slow_requests": 1
+    },
+    {
+      "day": "2026-10-25",
+      "route": "me",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 15,
+      "elapsed_ms": 7003,
+      "slow_requests": 0
+    },
+    {
+      "day": "2026-10-25",
+      "route": "me",
+      "method": "GET",
+      "status_class": 4,
+      "requests": 2,
+      "elapsed_ms": 808,
+      "slow_requests": 0
+    },
+    {
+      "day": "2026-10-25",
+      "route": "navigation",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 5,
+      "elapsed_ms": 4817,
+      "slow_requests": 1
+    },
+    {
+      "day": "2026-10-25",
+      "route": "navigation",
+      "method": "GET",
+      "status_class": 4,
+      "requests": 2,
+      "elapsed_ms": 764,
+      "slow_requests": 0
+    },
+    {
+      "day": "2026-10-25",
+      "route": "status",
+      "method": "GET",
+      "status_class": 4,
+      "requests": 2,
+      "elapsed_ms": 761,
+      "slow_requests": 0
+    },
+    {
+      "day": "2026-10-25",
+      "route": "supervision",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 12,
+      "elapsed_ms": 14918,
+      "slow_requests": 12
+    },
+    {
+      "day": "2026-10-25",
+      "route": "sync",
+      "method": "GET",
+      "status_class": 2,
+      "requests": 14,
+      "elapsed_ms": 14875,
+      "slow_requests": 14
+    }
+  ],
+  "columns": [
+    "day",
+    "route",
+    "method",
+    "status_class",
+    "requests",
+    "elapsed_ms",
+    "slow_requests"
+  ],
+  "invalidAggregates": 0,
+  "focusedUnitTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "notes": [
+    "Counts are approximate request aggregates, not unique users.",
+    "Unauthenticated status checks were expected 401 responses; no account/inventory mutations.",
+    "Batch flushing occurs on a later request after a minute, per isolate."
+  ],
+  "verifiedAtLocal": "25/10/2026 12:45:21 America/Santiago",
+  "deploymentId": "b06ff3d2-e56b-4c0c-8596-e50576b0f780",
+  "environment": "Production"
+}

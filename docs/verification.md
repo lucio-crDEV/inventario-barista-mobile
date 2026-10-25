@@ -2,7 +2,7 @@
 
 Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009/0010; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
 
-Estado actualizado 25/10: respaldo cifrado remoto activo y restauración real verificada; selector histórico compacto y listado de ítems automático implementados localmente. La app espera push/despliegue del usuario; métricas comenzarán con ese despliegue.
+Estado actualizado 25/10: app publicada en producción con d4c50da; métricas activas y escritura real verificada a las 12:45 (Chile). Respaldo cifrado remoto activo y recuperación comprobada. [Evidencia de métricas](metrics-production-verification-2026-10-25.json).
 Pruebas de continuación 25/10: 72 unitarias, cycle-ui/mobile-ux, 3 grupos de navegación, 8 de UX y paquete Pages aprobados; recuperación real de respaldo verificada. Comandos, resultados y límites en la revisión enlazada arriba.
 
 ## Preparación remota autorizada — 23-10-2026
