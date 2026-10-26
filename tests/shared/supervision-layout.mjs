@@ -31,6 +31,7 @@ const rows = [{seq:2,itemId:'azucar',locationId:'servicio:barra',authorName:'Ana
 async function contextFor(role = 'admin') {
   const context = await browser.newContext({viewport:{width:390,height:844}}),data = fixture(role);
   const page = await context.newPage();page.on('pageerror',e => errors.push(e.message));
+ await page.route('**/shared/telemetry-client.js',route=>route.fulfill({contentType:'text/javascript',body:'export function startClientTelemetry(){}'}));
   await page.route('**/api/**',async route => {
     const url = new URL(route.request().url());requests.push(url.pathname + url.search);
     let result = {},status = 200;

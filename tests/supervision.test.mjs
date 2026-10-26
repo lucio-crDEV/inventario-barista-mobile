@@ -234,3 +234,43 @@ await test('3B revision: legacy migration prefers activation chronology over cyc
   const events=(await f.call('admin',base+'/events?cycle=test')).data.events;assert.equal(events[0].authorName,'admin');assert.equal(events[0].seq,12);
  }finally{f.db.sqlite.close();}
 });
+await test('Finalization 0012: explicit pending acknowledgment preserves unknowns, partials and confirmed zero; audited and idempotent',async()=>{
+ const f=setup(12),zero=f.item('cocina'),partial=f.item('servicio:barra');try{
+  assert.equal((await f.call('admin','/api/count',f.count(zero,{quantity:0}))).status,200);
+  assert.equal((await f.call('worker','/api/count',f.count(partial,{quantity:2,status:'partial'}))).status,200);
+  assert.equal((await f.call('admin',base+'/command',f.command('state',null,{scope:'',state:'review',reason:''}))).status,200);
+  const cmd=f.command('state',null,{scope:'',state:'closed',reason:''});
+  const first=await f.call('admin',base+'/command',cmd);assert.equal(first.data.code,'PENDING_ITEMS');assert.equal(first.data.completion.partial,1);assert.ok(first.data.completion.pending>0);
+  const acceptedCmd={...cmd,allowIncomplete:true,completionRevision:first.data.completionRevision};
+  const accepted=await f.call('admin',base+'/command',acceptedCmd);assert.equal(accepted.status,200,JSON.stringify(accepted));assert.equal(accepted.data.completion.partial,1);assert.equal(accepted.data.completion.uncompletedAsBlank,true);
+  assert.deepEqual(await f.call('admin',base+'/command',acceptedCmd),accepted);assert.equal(f.record(zero).quantity,0);assert.equal(f.record(partial).quantity,2);assert.equal(f.record(partial).status,'partial');
+  assert.equal(f.db.sqlite.prepare("SELECT count(*) n FROM counts WHERE cycle_id='test'").get().n,2);
+  const audit=JSON.parse(f.db.sqlite.prepare("SELECT detail FROM admin_audit WHERE action='inventory-state' ORDER BY rowid DESC LIMIT 1").get().detail);assert.equal(audit.allowIncomplete,1);assert.equal(audit.completion.partial,1);
+  assert.equal((await f.call('admin',base+'/command',{...acceptedCmd,completionRevision:acceptedCmd.completionRevision+1})).data.code,'ID_REUSED');
+ }finally{f.db.sqlite.close();}
+});
+await test('Finalization 0012: a changed count invalidates acknowledgment at SQL time; Service-only roles remain scoped',async()=>{
+ const f=setup(12),item=f.item('servicio:barra');try{
+  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'servicio',state:'review',reason:''}))).status,200);
+  const cmd=f.command('state',null,{scope:'servicio',state:'closed',reason:''});const warning=await f.call('lead',base+'/command',cmd);
+  assert.equal(warning.data.code,'PENDING_ITEMS');
+  const allow={...cmd,allowIncomplete:true,completionRevision:warning.data.completionRevision};
+  const prepare=f.db.prepare.bind(f.db);let raced=false;f.db.prepare=sql=>{const st=prepare(sql);if(sql.startsWith('INSERT INTO supervision_commands')&&!raced){const run=st.run.bind(st);st.run=()=>{raced=true;f.db.sqlite.prepare("INSERT INTO counts(cycle_id,item_id,location_id,q,unit,status,note,out_of_stock,author,version,updated_at) VALUES('test',?,?,1000,?,'partial','',0,?,1,datetime('now'))").run(item.id,item.location_id,item.unit,f.identities.worker.id);return run();};}return st;};
+  const changed=await f.call('lead',base+'/command',allow);assert.equal(changed.data.code,'COMPLETION_CHANGED',JSON.stringify(changed));assert.equal(changed.data.completion.partial,1);assert.notEqual(changed.data.completionRevision,allow.completionRevision);
+  assert.equal((await f.call('lead',base+'/command',{...allow,completionRevision:changed.data.completionRevision})).status,200);
+  assert.equal(f.db.sqlite.prepare("SELECT state FROM cycles WHERE id='test'").get().state,'open');
+  assert.equal((await f.call('lead',base+'/command',f.command('state',null,{scope:'',state:'closed',allowIncomplete:true,completionRevision:1}))).status,403);
+  assert.equal((await f.call('worker',base+'/command',allow)).status,403);
+ }finally{f.db.sqlite.close();}
+});
+await test('Finalization migration preserves accepted results/fingerprints and original records',async()=>{
+ const f=setup(11);try{
+  const cmd=f.command('state',null,{scope:'',state:'review',reason:''});const accepted=await f.call('admin',base+'/command',cmd);assert.equal(accepted.status,200);
+  const before=f.db.sqlite.prepare('SELECT fingerprint,result FROM supervision_commands WHERE id=?').get(cmd.id);
+  f.db.migrate(12,12);
+  assert.deepEqual(await f.call('admin',base+'/command',cmd),accepted);
+  assert.deepEqual(f.db.sqlite.prepare('SELECT fingerprint,result FROM supervision_commands WHERE id=?').get(cmd.id),before);
+  assert.equal(f.db.sqlite.prepare('SELECT count(*) n FROM counts').get().n,0);
+  assert.equal(f.db.sqlite.prepare('PRAGMA integrity_check').get().integrity_check,'ok');assert.equal(f.db.sqlite.prepare('PRAGMA foreign_key_check').all().length,0);
+ }finally{f.db.sqlite.close();}
+});

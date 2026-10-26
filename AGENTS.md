@@ -1,5 +1,7 @@
 # AGENTS.md — inventory-v3
 
+Actualización 26/10: [finalización con pendientes y opciones de inventario](docs/finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+
 ## Ampliación autorizada — 26-10-2026
 
 Errores técnicos/versión, Web Vitals estándar sin atribución, histogramas y salud del recolector implementados con 0011 después de 0010. El receptor POST /api/telemetry solo recibe agregados validados; no da acceso de lectura, no requiere identidad ni registra contenido personal. Root permanece sin implementar. Estado de pruebas/publicación y límites en docs/observabilidad-2026-10-26.md. No confundir acumulados diarios anteriores con datos desde la hora exacta de un despliegue.

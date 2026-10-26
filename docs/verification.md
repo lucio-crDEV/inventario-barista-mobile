@@ -1,5 +1,7 @@
 # Verificación — inventory-v3
 
+Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+
 ## Observabilidad — 26-10-2026
 
 83 pruebas aprobadas, build Pages correcto y paquete público sin archivos internos. Prueba Chromium real de LCP/error con transporte sin cookie/referrer/contenido aprobada (`node tests/shared/observability-browser.mjs`). Migración aditiva 0011 aplicada a D1 productiva tras respaldo privado; cinco SELECT de nuevos agregados correctos, cero filas escritas. Código nuevo sin publicar. [Implementación y límites](observabilidad-2026-10-26.md), [consultas](metricas-ampliadas-consultas.sql) e [informe de producción](analisis-metricas-2026-10-26.md).
@@ -449,3 +451,7 @@ En el origen aislado `127.0.0.1:8766` se revisaron dos ítems guardados «Sin st
 ### Realimentación de botones
 
 Se retiraron los cambios visuales de hover y pulsación de los botones, incluidos cambios de color, borde y escala. Se mantienen los estados de negocio (por ejemplo, categoría actual) y el contorno `:focus-visible` para teclado. La búsqueda de selectores `:hover` y `:active` en las hojas CSS no encontró reglas restantes.
+
+## Cierre con pendientes y opciones — comprobación 26/10
+
+86 unitarias aprobadas; cuatro recorridos Chromium (cycle-ui, incomplete-finalization, inventory-options, supervision-layout), contrato del libro, build Pages y empaquetado público correctos. D1 migrada a 0012 tras respaldo/restauración aislada; agregados operativos y estados preservados. Nuevo código sin publicar. [Evidencia](finalizacion-verificacion-2026-10-26.json) y [contrato actualizado](finalizacion-con-pendientes-2026-10-26.md).

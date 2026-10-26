@@ -1,5 +1,7 @@
 # Contexto del proyecto — inventory-v3
 
+Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+
 Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009/0010; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
 
 Estado actualizado 25/10: app publicada en producción con d4c50da; métricas activas y escritura real verificada a las 12:45 (Chile). Respaldo cifrado remoto activo y recuperación comprobada. [Evidencia de métricas](metrics-production-verification-2026-10-25.json).

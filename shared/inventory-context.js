@@ -68,15 +68,38 @@ export function inventoryDialog(user,cycles,existing=null,type='weekly') {
   const latestDate=latest?.created_at || (latest?.period?latest.period+'T12:00:00Z':'');
   const lastLabel=latestDate ? relativeInventoryDate(latestDate) : latest ? 'fecha no disponible' : 'sin anteriores';
   const command={id:crypto.randomUUID(),kind:create?'create':existing.lifecycle==='prepared'?'activate':'delete',cycleId:create?crypto.randomUUID():existing.id,...(!create?{expectedRevision:existing.revision}:{})};
-  const el=dialog(create?'Crear inventario':'Opciones del inventario',`<form class="inventory-form"><p data-cycle-error class="feedback-message" role="alert" hidden></p>${create?`<fieldset class="inventory-types"><legend>Tipo</legend><div class="inventory-type-options">${Object.keys(cycleTypeNames).map(id=>`<label><input type="radio" name="type" value="${id}" ${id===type?'checked':''}><span>${id==='both'?'Ambos':cycleTypeNames[id]}</span></label>`).join('')}</div></fieldset><p class="inventory-opening-date">${localDay().split('-').reverse().join('/')}</p><label class="inventory-check"><input type="checkbox" name="activate" checked>Activar inmediatamente</label>`:`<p>${esc(cycleLabel(existing))}</p>${existing.lifecycle==='prepared'?'<p>Al activarlo el equipo podrá comenzar a contar.</p>':'<p>Eliminar lo retirará de la lista. Los conteos y el historial se conservan para recuperación administrativa.</p>'}`}<section data-warnings class="inventory-warning" role="alert" hidden></section><div class="inventory-submit-row"><small>últ. inventario: ${esc(lastLabel)}</small><button class="button button-primary" type="submit">${create?'Crear inventario':existing.lifecycle==='prepared'?'Activar inventario':'Eliminar inventario'}</button></div><button type="button" class="inventory-link-action" data-cancel autofocus>Cancelar</button></form>`);
+  const prepared=existing?.lifecycle==='prepared';
+  const el=dialog(create?'Crear inventario':'Opciones del inventario',`<form class="inventory-form"><p data-cycle-error class="feedback-message" role="alert" hidden></p>${create?`<fieldset class="inventory-types"><legend>Tipo</legend><div class="inventory-type-options">${Object.keys(cycleTypeNames).map(id=>`<label><input type="radio" name="type" value="${id}" ${id===type?'checked':''}><span>${id==='both'?'Ambos':cycleTypeNames[id]}</span></label>`).join('')}</div></fieldset><p class="inventory-opening-date">${localDay().split('-').reverse().join('/')}</p><label class="inventory-check"><input type="checkbox" name="activate" checked>Activar inmediatamente</label>`:`<div class="inventory-options-context"><strong>${esc(cycleLabel(existing))}</strong><div><span>${esc(cycleTypeNames[existing.type] || 'Inventario')}</span>${inventoryStatus(existing)}</div></div><section data-activation ${prepared?'':'hidden'}><h3>Activar inventario</h3><p>El equipo podrá comenzar a contar en este inventario.</p></section><section data-delete-confirm hidden><p>Se retirará de la lista. Sus conteos y su historial se conservan.</p></section>`}<section data-warnings class="inventory-warning" role="alert" hidden></section><div class="inventory-submit-row" ${!create&&!prepared?'hidden':''}>${create?`<small>últ. inventario: ${esc(lastLabel)}</small>`:''}<button class="button button-primary" type="submit">${create?'Crear inventario':prepared?'Activar inventario':'Eliminar inventario'}</button></div>${create?'':`<section class="inventory-options-danger" data-delete-option><h3>Eliminar inventario</h3><p>Retíralo de la lista conservando sus conteos e historial.</p><button type="button" class="inventory-danger-button" data-delete>Eliminar inventario</button></section>`}<button type="button" class="inventory-link-action" data-cancel autofocus>${create?'Cancelar':'Cerrar'}</button></form>${create?'':'<button type="button" class="inventory-options-close" data-options-close aria-label="Cerrar opciones del inventario"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>'}`);
   el.classList.add('inventory-cycle-dialog');
   const form=el.querySelector('form'),error=el.querySelector('[data-cycle-error]'),warning=el.querySelector('[data-warnings]'),submit=form.querySelector('[type=submit]');
-  let busy=false,uncertain=false;
-  form.querySelector('[data-cancel]').onclick=()=>el.close();
+  let busy=false,uncertain=false,deleting=false;
+  const cancel=form.querySelector('[data-cancel]'),row=form.querySelector('.inventory-submit-row');
+  if(!create)el.classList.add('inventory-options-dialog');
+  el.querySelector('[data-options-close]')?.addEventListener('click',()=>el.close());
+  function deletionStep(confirm) {
+    deleting=confirm;
+    Object.assign(command,{id:crypto.randomUUID(),kind:confirm?'delete':prepared?'activate':'delete'});
+    delete command.confirm;delete command.confirmWarnings;delete command.confirmationRevision;
+    warning.hidden=true;error.hidden=true;
+    form.querySelector('[data-activation]').hidden=confirm||!prepared;
+    form.querySelector('[data-delete-option]').hidden=confirm;
+    form.querySelector('[data-delete-confirm]').hidden=!confirm;
+    row.hidden=!confirm&&!prepared;
+    submit.textContent=confirm?'Eliminar inventario':'Activar inventario';
+    submit.classList.toggle('inventory-danger-button',confirm);
+    submit.classList.toggle('button-primary',!confirm);
+    if(confirm)row.prepend(cancel);else form.append(cancel);
+    cancel.textContent=confirm?'Cancelar':'Cerrar';
+    el.querySelector('h2').textContent=confirm?'Eliminar inventario':'Opciones del inventario';
+    if(confirm)cancel.focus({preventScroll:true});else form.querySelector('[data-delete]').focus({preventScroll:true});
+  }
+  form.querySelector('[data-delete]')?.addEventListener('click',()=>{if(!busy&&!uncertain)deletionStep(true);});
+  cancel.onclick=()=>{if(deleting&&!busy&&!uncertain)deletionStep(false);else el.close();};
 
   form.addEventListener('input',()=>{if(!uncertain){command.confirmWarnings=false;delete command.confirmationRevision;warning.hidden=true;submit.textContent=create?'Crear inventario':command.kind==='activate'?'Activar inventario':'Eliminar inventario';}});
   form.onsubmit=async event=>{
-    event.preventDefault();if(busy)return;busy=true;error.hidden=true;
+    event.preventDefault();if(busy||!create&&!prepared&&!deleting)return;busy=true;error.hidden=true;
+    const deleteOption=form.querySelector('[data-delete]');if(deleteOption)deleteOption.disabled=true;
     if(!uncertain){if(create)Object.assign(command,{name:localDay().split('-').reverse().join('/'),type:form.elements.type.value,period:localDay(),activate:form.elements.activate.checked});else if(command.kind==='delete')command.confirm=true;}
     submit.disabled=true;submit.textContent=uncertain?'Comprobando…':'Guardando…';
     for(const input of form.querySelectorAll('input,select'))input.disabled=true;
@@ -86,7 +109,7 @@ export function inventoryDialog(user,cycles,existing=null,type='weekly') {
       if(['CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED'].includes(e.code)){
         warning.hidden=false;warning.textContent=(e.warnings||[]).map(w=>w.message).join(' ')||e.message;command.confirmWarnings=true;command.confirmationRevision=e.confirmationRevision;submit.textContent='Continuar de todas formas';uncertain=false;
       } else {uncertain=!e.status || e.status>=500 || [408,429].includes(e.status);error.hidden=false;error.textContent=e.message || 'No se pudo confirmar el cambio.';submit.textContent=uncertain?'Reintentar confirmación':create?'Crear inventario':'Reintentar';}
-    }finally{busy=false;submit.disabled=false;for(const input of form.querySelectorAll('input,select'))input.disabled=uncertain;}
+    }finally{busy=false;submit.disabled=false;if(deleteOption)deleteOption.disabled=uncertain;for(const input of form.querySelectorAll('input,select'))input.disabled=uncertain;}
   };
 }
 

@@ -74,3 +74,27 @@ html[data-theme="dark"] .inventory-status.is-active::before {background:#41d2a2;
 .inventory-history-dialog [hidden] {display:none!important;}
 
 .inventory-calendar-heading [data-period] {text-transform:none;}
+
+/* Inventory management keeps context and destructive confirmation together. */
+.inventory-options-dialog {position:relative;box-sizing:border-box;max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;border-radius:16px;}
+.inventory-options-dialog h2 {margin:0 0 16px;padding-right:40px;font-size:20px;line-height:1.25;}
+.inventory-options-dialog h3 {margin:0;font-size:16px;font-weight:600;}
+.inventory-options-dialog p {margin:6px 0 0;font-size:14px;line-height:1.5;text-align:left;}
+.inventory-options-context {display:grid;gap:6px;padding:12px;border-radius:12px;background:var(--ui-field);}
+.inventory-options-context strong {font-size:14px;font-weight:650;overflow-wrap:anywhere;}
+.inventory-options-context > div {display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--ui-muted);}
+.inventory-options-danger {padding-top:16px;margin-top:4px;border-top:1px solid var(--ui-border);}
+.inventory-options-dialog .inventory-options-danger button {margin-top:10px;}
+.inventory-options-dialog .inventory-danger-button {min-height:44px;border:1px solid #b43a43;border-radius:10px;padding:10px 12px;background:transparent;color:#ad2634;font:inherit;font-size:14px;font-weight:600;box-shadow:none;cursor:pointer;}
+html[data-theme="dark"] .inventory-options-dialog .inventory-danger-button {border-color:#e87d86;color:#ff9ea6;}
+.inventory-options-dialog .inventory-submit-row {justify-content:flex-end;}
+.inventory-options-dialog .inventory-submit-row [data-cancel] {margin-right:auto;}
+.inventory-options-dialog [data-cancel] {justify-self:start;padding:10px 12px;min-height:44px;font-size:14px;}
+.inventory-options-dialog .inventory-options-close {position:absolute;right:10px;top:10px;display:grid;place-items:center;width:44px;height:44px;padding:10px;margin:0;border:0;border-radius:10px;background:transparent;color:var(--ui-muted);box-shadow:none;cursor:pointer;}
+.inventory-options-close svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+.inventory-options-dialog button:focus {outline:none!important;box-shadow:none!important;text-decoration:none;}
+.inventory-options-dialog button:focus-visible {filter:brightness(.85);}
+html[data-theme="dark"] .inventory-options-dialog button:focus-visible {filter:brightness(1.25);}
+.inventory-options-dialog [hidden] {display:none!important;}
+.inventory-options-dialog button:disabled {opacity:.6;cursor:default;}
+.inventory-options-dialog .inventory-submit-row > [type=submit] {min-width:0;max-width:100%;white-space:normal;}

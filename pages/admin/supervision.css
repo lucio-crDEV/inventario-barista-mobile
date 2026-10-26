@@ -142,3 +142,6 @@ html[data-theme="dark"] #supervision { --supervision-counted:#60d9bd;--supervisi
 #supervision-filters {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
 #supervision-filters .supervision-tools {display:contents;}
 #supervision-filters #apply-filters {grid-column:1/-1;justify-self:end;margin:0;}
+
+.supervision-completion-warning {margin:12px 0;padding:12px;border:0;border-radius:12px;background:color-mix(in srgb,var(--ui-warning,#ba7800) 12%,var(--ui-surface));color:var(--ui-text);font-size:14px;line-height:1.5;}
+.supervision-completion-warning[hidden] {display:none;}

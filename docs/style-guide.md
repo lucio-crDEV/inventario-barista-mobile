@@ -1,5 +1,7 @@
 # Guía de estilo UX/UI — inventory-v3
 
+Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+
 ## Revisión vigente — 25-10-2026
 
 Las decisiones de [inventarios y móvil](revision-inventarios-2026-10-25.md) prevalecen sobre descripciones históricas. Avisos que requieren acción persisten cerca del encabezado o al inicio del formulario; confirmaciones breves usan el aviso flotante superior. Nunca ubicar notificaciones al final de la página. Mensajes de sincronización breves y sin detalles técnicos.

@@ -9,6 +9,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.
 const browser=await chromium.launch();
 try{
  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+ await page.route('**/shared/telemetry-client.js',route=>route.fulfill({contentType:'text/javascript',body:'export function startClientTelemetry(){}'}));
  await page.clock.setFixedTime(new Date('2026-10-25T15:00:00Z'));
  let user={id:'context-admin',username:'admin',name:'Admin',role:'admin',revision:1},signedIn=true;
  const scopes=[{id:'cocina',name:'Cocina',parent:null},{id:'servicio',name:'Servicio',parent:null},{id:'servicio:garzones',name:'Garzones',parent:'servicio'},{id:'servicio:garzones:salon',name:'Salón',parent:'servicio:garzones'},{id:'servicio:garzones:terraza',name:'Terraza',parent:'servicio:garzones'},{id:'servicio:garzones:privada',name:'Zona Privada',parent:'servicio:garzones'}];

@@ -582,6 +582,7 @@ export default {
                 ? "Debe quedar un administrador activo."
                 : "No se pudo completar la operación.",
             ...(e.current !== undefined ? { current: e.current } : {}),
+            ...(e.completion !== undefined ? {completion:e.completion,completionRevision:e.completionRevision} : {}),
             ...(e.warnings !== undefined ? { warnings: e.warnings, confirmationRevision: e.confirmationRevision } : {}),
           },
           e.status || (known ? 409 : 500),

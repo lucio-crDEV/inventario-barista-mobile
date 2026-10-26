@@ -1,5 +1,7 @@
 # inventory-v3
 
+Actualización 26/10: [finalización con pendientes y opciones de inventario](docs/finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+
 Actualización 26/10: [ampliación de observabilidad](docs/observabilidad-2026-10-26.md) y [análisis de producción](docs/analisis-metricas-2026-10-26.md). Migración 0011; nuevas mediciones implementadas, pendientes de publicar el código.
 
 [Consultar las métricas: acceso, 15 consultas y privacidad](docs/metricas-consulta-y-privacidad.md). Consultas de solo lectura validadas en D1; sin nuevos roles ni seguimiento personal.

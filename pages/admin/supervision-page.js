@@ -343,7 +343,7 @@ function changeDialog(change,item) {
   const command = {id:crypto.randomUUID(),cycleId:cycle.id,expectedRevision:cycle.revision,...change,confirm:true};
   if (item) Object.assign(command,{itemId:item.id,locationId:item.locationId,expectedVersion:item.record?.version || 0});
   const draftKey = `${state.cycleId}:${item ? key(item) : change.scope || 'global'}:${change.kind}:${change.state || ''}`;
-  const el = dialog(titles[change.kind], `<p class="supervision-dialog-context">${esc(item ? item.name + ' · ' + locationName(item.locationId) : scopeName)}</p><p>${esc(descriptions)}</p><form id="change-form">${edit ? `<label>Total (${esc(item.unit || 'unidad pendiente')})<input name="quantity" inputmode="decimal" type="number" min="0" max="1000000" step="0.001" value="${item.record?.quantity ?? ''}" required></label><label>Estado<select name="status"><option value="counted">Contado</option><option value="partial" ${item.status === 'partial' ? 'selected' : ''}>Avance</option></select></label><label class="supervision-check"><input type="checkbox" name="outOfStock" ${item.record?.outOfStock ? 'checked' : ''}>Sin stock (cero contado)</label><label>Nota (opcional)<textarea name="note" maxlength="1000">${esc(item.record?.note || '')}</textarea></label><p id="change-preview" class="supervision-preview" aria-live="polite"></p>` : ''}${reopen ? '<div class="supervision-reasons"><button type="button" data-reason="Revisar o corregir conteos">Revisar conteos</button><button type="button" data-reason="Completar el conteo de productos">Completar productos</button></div>' : ''}${reopen || edit || annul ? `<label>Motivo${reopen ? '' : ' (opcional)'}<textarea name="reason" ${reopen ? 'minlength="3" required' : ''} maxlength="500" placeholder="${reopen ? 'Elige una sugerencia o escribe otro motivo' : annul ? 'Por ejemplo: producto contado por error' : 'Por ejemplo: ajuste tras revisar el conteo'}"></textarea></label>` : ''}<p data-command-error role="alert"></p><div class="supervision-dialog-actions"><button type="button" class="button button-secondary" data-cancel autofocus>Cancelar</button><button type="submit" class="button ${annul ? 'button-danger' : 'button-primary'}" data-confirm>${edit ? 'Guardar' : annul ? 'Anular' : reopen ? 'Reabrir' : change.state === 'review' ? 'Cerrar' : 'Finalizar y enviar'}</button></div></form>`);
+  const el = dialog(titles[change.kind], `<p class="supervision-dialog-context">${esc(item ? item.name + ' · ' + locationName(item.locationId) : scopeName)}</p><p>${esc(descriptions)}</p><form id="change-form">${edit ? `<label>Total (${esc(item.unit || 'unidad pendiente')})<input name="quantity" inputmode="decimal" type="number" min="0" max="1000000" step="0.001" value="${item.record?.quantity ?? ''}" required></label><label>Estado<select name="status"><option value="counted">Contado</option><option value="partial" ${item.status === 'partial' ? 'selected' : ''}>Avance</option></select></label><label class="supervision-check"><input type="checkbox" name="outOfStock" ${item.record?.outOfStock ? 'checked' : ''}>Sin stock (cero contado)</label><label>Nota (opcional)<textarea name="note" maxlength="1000">${esc(item.record?.note || '')}</textarea></label><p id="change-preview" class="supervision-preview" aria-live="polite"></p>` : ''}${reopen ? '<div class="supervision-reasons"><button type="button" data-reason="Revisar o corregir conteos">Revisar conteos</button><button type="button" data-reason="Completar el conteo de productos">Completar productos</button></div>' : ''}${reopen || edit || annul ? `<label>Motivo${reopen ? '' : ' (opcional)'}<textarea name="reason" ${reopen ? 'minlength="3" required' : ''} maxlength="500" placeholder="${reopen ? 'Elige una sugerencia o escribe otro motivo' : annul ? 'Por ejemplo: producto contado por error' : 'Por ejemplo: ajuste tras revisar el conteo'}"></textarea></label>` : ''}<section data-completion-warning class="supervision-completion-warning" role="alert" hidden></section><p data-command-error role="alert"></p><div class="supervision-dialog-actions"><button type="button" class="button button-secondary" data-cancel autofocus>Cancelar</button><button type="submit" class="button ${annul ? 'button-danger' : 'button-primary'}" data-confirm>${edit ? 'Guardar' : annul ? 'Anular' : reopen ? 'Reabrir' : change.state === 'review' ? 'Cerrar' : 'Finalizar y enviar'}</button></div></form>`);
   el.classList.add('supervision-modal'); el.querySelector('h2').after(el.querySelector('[data-command-error]')); commandDialog = el;
   const form = el.querySelector('form');
   const saveDraft = () => { const data = Object.fromEntries(new FormData(form)); if (edit) data.outOfStock = form.elements.outOfStock.checked; state.drafts[draftKey] = data; snapshot(); };
@@ -364,6 +364,7 @@ function changeDialog(change,item) {
     if (done) { delete state.drafts[draftKey]; snapshot(); if (el.open) el.close(); }
     else if (el.isConnected) {
       el.querySelector('[data-command-error]').textContent = message.textContent;
+      el.querySelector('[data-command-error]').hidden = !el.querySelector('[data-completion-warning]').hidden;
       if (!pendingCommand) { for (const field of form.elements) field.disabled = false; preview(); }
       else { el.querySelector('[data-cancel]').textContent = 'Cerrar'; }
     }
@@ -381,11 +382,21 @@ async function submitCommand(command) {
     sending = false; await refresh(); notice('Cambio guardado.','success'); return true;
   } catch (error) {
     pendingCommand = error.pending || readCommand(user.id);
-    if (['CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED'].includes(error.code) && commandDialog?.open) {
+    if (['PENDING_ITEMS','COMPLETION_CHANGED'].includes(error.code) && error.completion && commandDialog?.open) {
+      command.allowIncomplete=true;command.completionRevision=error.completionRevision;
+      const warning=commandDialog.querySelector('[data-completion-warning]');warning.hidden=false;
+      const pending=error.completion.pending||0,partial=error.completion.partial||0;
+      warning.textContent=`${error.code==='COMPLETION_CHANGED'?'Los conteos cambiaron. ':''}Quedan ${pending} ítems pendientes y ${partial} con avance. Al finalizar, estos ítems quedarán en blanco en el Excel. Los ceros confirmados se conservarán.`;
+      commandDialog.querySelector('[data-confirm]').textContent='Continuar de todas formas';
+      message.textContent='';
+    } else if (['CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED'].includes(error.code) && commandDialog?.open) {
       command.confirmWarnings=true;command.confirmationRevision=error.confirmationRevision;
       const button=commandDialog.querySelector('[data-confirm]'); if(button)button.textContent='Continuar de todas formas';
       notice((error.warnings || []).map(w=>w.message).join(' ') || error.message, 'error');
-    } else notice(pendingCommand ? 'Resultado incierto. Reintenta para confirmar el cambio.' : error.message, 'error', true);
+    } else {
+      const warning=commandDialog?.querySelector('[data-completion-warning]');if(warning)warning.hidden=true;
+      notice(pendingCommand ? 'Resultado incierto. Reintenta para confirmar el cambio.' : error.message, 'error', true);
+    }
     renderCycleActions(); return false;
   } finally { sending = false; if (cycle) renderCycleActions(); }
 }

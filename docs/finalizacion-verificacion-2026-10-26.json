@@ -1,0 +1,33 @@
+{
+  "migration": "0012",
+  "productionApplied": true,
+  "existingCountsTotalsHistoryCommandsAuditCycleStatesPreserved": true,
+  "schema": {
+    "cycle_column": 1,
+    "command_columns": 3,
+    "completion_triggers": 6
+  },
+  "backupRestoredLocally": true,
+  "applicationPublished": false,
+  "unitTestsPassed": 86,
+  "browserChecks": [
+    "cycle-ui",
+    "incomplete-finalization",
+    "inventory-options",
+    "supervision-layout"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "viewportWidths": [
+    320,
+    390,
+    654
+  ],
+  "workbookRowsPreserved": 1151,
+  "vitrinaReferencesPreserved": 41,
+  "pagesBuild": "passed",
+  "packageAllowlist": "passed",
+  "gitDiffCheck": "passed"
+}
