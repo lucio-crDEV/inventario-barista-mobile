@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-26",
+  "sourceBase": "96adb55",
+  "unitTests": {
+    "passed": 83,
+    "failed": 0
+  },
+  "pagesBuild": "passed",
+  "packageAllowlist": "passed",
+  "realChromium": {
+    "lcpObserved": true,
+    "normalizedErrorObserved": true,
+    "cookiesSent": false,
+    "referrerSent": false,
+    "privateContentSent": false
+  },
+  "productionD1": {
+    "migration": "0011",
+    "applied": true,
+    "readOnlyQueriesPassed": 5,
+    "queryRowsWritten": 0,
+    "newSamples": 0
+  },
+  "applicationPublished": false,
+  "providerAnalytics": "rate limiter budget depleted; exact deployment interval unavailable"
+}

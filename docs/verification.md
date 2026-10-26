@@ -1,5 +1,13 @@
 # Verificación — inventory-v3
 
+## Observabilidad — 26-10-2026
+
+83 pruebas aprobadas, build Pages correcto y paquete público sin archivos internos. Prueba Chromium real de LCP/error con transporte sin cookie/referrer/contenido aprobada (`node tests/shared/observability-browser.mjs`). Migración aditiva 0011 aplicada a D1 productiva tras respaldo privado; cinco SELECT de nuevos agregados correctos, cero filas escritas. Código nuevo sin publicar. [Implementación y límites](observabilidad-2026-10-26.md), [consultas](metricas-ampliadas-consultas.sql) e [informe de producción](analisis-metricas-2026-10-26.md).
+
+## Consultas de métricas — 25-10-2026, 14:01 Chile
+
+[Quince consultas de solo lectura](metricas-consultas.sql) comprobadas con el esquema 0009: base vacía, medias ponderadas, períodos completos, denominadores nulos, días sin observaciones, muestra mínima y límites semanales/anuales. La evidencia productiva previa de 64 solicitudes coincide con Q01. Las 15 se ejecutaron también contra D1 de producción: cero filas escritas y cero grupos incoherentes. La exportación de resultados usa `--command=... --json`; `--file` puede devolver solo un resumen de importación. [Evidencia](metricas-consultas-verificacion-2026-10-25.json) y [guía de acceso, interpretación y privacidad](metricas-consulta-y-privacidad.md). Cambios documentales, sin migraciones, nuevos eventos, roles o despliegue de aplicación.
+
 Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009/0010; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
 
 Estado actualizado 25/10: app publicada en producción con d4c50da; métricas activas y escritura real verificada a las 12:45 (Chile). Respaldo cifrado remoto activo y recuperación comprobada. [Evidencia de métricas](metrics-production-verification-2026-10-25.json).

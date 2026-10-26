@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-25",
+  "queries": 15,
+  "readOnlyAuthorizer": true,
+  "emptyDatabase": "passed",
+  "weightedAverages": "passed",
+  "periodBoundaries": "passed",
+  "missingDates": "passed",
+  "nullDenominators": "passed",
+  "minimumSample": "passed",
+  "weekAndYearBoundaries": "passed",
+  "invalidAggregate": "passed",
+  "versionedProductionFixture": {
+    "requests": 64,
+    "result": "passed"
+  },
+  "verifiedAt": "2026-10-25T17:01:27Z",
+  "sourceCommit": "96adb55",
+  "production": {
+    "queriesSucceeded": 15,
+    "rowsWritten": 0,
+    "inconsistentGroups": 0
+  },
+  "scope": "Read-only usage_daily reports; no application, schema, role or telemetry changes."
+}

@@ -1,8 +1,12 @@
 # Métricas y respaldo — implementación 25-10-2026
 
+Actualización 26/10: [ampliación de observabilidad](observabilidad-2026-10-26.md) y [análisis de producción](analisis-metricas-2026-10-26.md). Migración 0011; nuevas mediciones implementadas, pendientes de publicar el código.
+
 La nueva solicitud autoriza implementar registro de métricas y respaldo periódico. Sustituye la desactivación de telemetría del 23-10 en este alcance; Root sigue sin implementar, los tres roles y la prohibición de publicar métricas por API se conservan. El estado remoto comprobado figura al final: respaldo activo; métricas de la app registrando en producción.
 
 ## Datos útiles y mínimos
+
+[Guía de consulta y privacidad](metricas-consulta-y-privacidad.md): acceso por Cloudflare o terminal, diccionario de campos, límites, ampliaciones y [15 consultas SQL listas](metricas-consultas.sql). [Verificación de consultas en producción](metricas-consultas-verificacion-2026-10-25.json), sin filas escritas.
 
 Migración `0009_usage_metrics.sql`, después de 0008: `usage_daily`, clave primaria día UTC/ruta normalizada/método/clase HTTP. Guarda número de peticiones, suma de duración de pared y peticiones de ≥1 segundo. Las rutas de conteo, resumen, historial, búsqueda, supervisión y navegación permiten comparar uso de funciones; errores 4xx/5xx y duración orientan decisiones de rendimiento. Los sondeos sync/status cuentan como solicitudes y deben analizarse separados de acciones humanas. No se incorporan identificadores de cuenta/dispositivo/sesión, IP, user-agent, nombres, cantidades, notas, cuerpos, consultas, cookies ni secretos. No mide usuarios únicos, concurrencia, CPU ni experiencia visual del navegador. No se presentan solicitudes como personas.
 

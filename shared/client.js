@@ -1,3 +1,5 @@
+import { startClientTelemetry } from './telemetry-client.js';
+startClientTelemetry();
 import { mountInventoryContext } from "./inventory-context.js";
 import { settingsAccount } from "./settings.js";
 import { refreshLimit } from "./refresh-limit.js";

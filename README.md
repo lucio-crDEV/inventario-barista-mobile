@@ -1,5 +1,9 @@
 # inventory-v3
 
+Actualización 26/10: [ampliación de observabilidad](docs/observabilidad-2026-10-26.md) y [análisis de producción](docs/analisis-metricas-2026-10-26.md). Migración 0011; nuevas mediciones implementadas, pendientes de publicar el código.
+
+[Consultar las métricas: acceso, 15 consultas y privacidad](docs/metricas-consulta-y-privacidad.md). Consultas de solo lectura validadas en D1; sin nuevos roles ni seguimiento personal.
+
 Actualización vigente 25-10-2026: [creación/activación de inventarios y UX móvil](docs/revision-inventarios-2026-10-25.md), [métricas agregadas y respaldo privado cada 90 días](docs/metrics-backup-2026-10-25.md). Requiere 0008/0009/0010 después de 0007. Esta actualización sustituye la pausa previa de telemetría; Root continúa pendiente. Ver esos documentos para pruebas nuevas, estado D1 y límites de publicación.
 
 Estado actualizado 25/10: app publicada en producción con d4c50da; métricas activas y escritura real verificada a las 12:45 (Chile). Respaldo cifrado remoto activo y recuperación comprobada. [Evidencia de métricas](docs/metrics-production-verification-2026-10-25.json).

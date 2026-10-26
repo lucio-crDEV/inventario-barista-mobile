@@ -1,5 +1,9 @@
 # AGENTS.md — inventory-v3
 
+## Ampliación autorizada — 26-10-2026
+
+Errores técnicos/versión, Web Vitals estándar sin atribución, histogramas y salud del recolector implementados con 0011 después de 0010. El receptor POST /api/telemetry solo recibe agregados validados; no da acceso de lectura, no requiere identidad ni registra contenido personal. Root permanece sin implementar. Estado de pruebas/publicación y límites en docs/observabilidad-2026-10-26.md. No confundir acumulados diarios anteriores con datos desde la hora exacta de un despliegue.
+
 ## Actualización autorizada — 25-10-2026
 
 El usuario autorizó implementar creación/activación solo por Administrador, selección automática del inventario, jerarquía de Servicio y correcciones UX móvil. Métricas agregadas vuelven a estar autorizadas con 0009 y `METRICS_ENABLED=1`; Root sigue sin implementar. Respaldos privados cifrados cada 90 días operativos con Worker separado y R2 privado; primera copia real recuperada y verificada el 25-10-2026. Esta decisión sustituye la pausa de telemetría del 23-10, sin autorizar telemetría personal ni borrar inventarios por antigüedad. 0008, 0009 y 0010 se aplican después de 0007; nunca 0005.

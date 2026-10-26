@@ -38,7 +38,8 @@
     "test:security:isolated": "node scripts/test-security-isolated.mjs"
   },
   "dependencies": {
-    "bcryptjs": "3.0.3"
+    "bcryptjs": "3.0.3",
+    "web-vitals": "5.1.0"
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",

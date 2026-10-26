@@ -1,3 +1,4 @@
+import { observeRequest, receiveTelemetry } from './observability.js';
 import {
   hashPassword,
   checkPassword,
@@ -538,11 +539,12 @@ export default {
     const event = { requestId: crypto.randomUUID(), route: routeName(url.pathname), method: ["GET", "POST"].includes(req.method) ? req.method : "other", status: 500 };
     const finish = (res) => {
       event.status = res.status;
-      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith("/api/")) ctx?.waitUntil?.(recordMetric(env, { route: event.route, method: event.method, status: event.status, elapsedMs: Date.now() - started }));
+      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith("/api/") && url.pathname!=="/api/telemetry") ctx?.waitUntil?.(recordMetric(env, { route: event.route, method: event.method, status: event.status, elapsedMs: Date.now() - started }));
+      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith('/api/') && url.pathname!=='/api/telemetry') ctx?.waitUntil?.(observeRequest(env,{...event,elapsedMs:Date.now()-started}));
       const response = secured(res);
       response.headers.set("X-Request-ID", event.requestId);
 
-      if (url.pathname.startsWith("/api/")) {
+      if (url.pathname.startsWith("/api/") && url.pathname!=="/api/telemetry") {
         // Bounded metadata only; no usage persistence or per-poll database writes.
         if (res.status >= 400 || ["login", "logout", "password", "profile", "admin-users"].includes(event.route))
           logEvent({ ...event, at: new Date().toISOString(), elapsedMs: Date.now() - started });
@@ -551,7 +553,8 @@ export default {
     };
     try {
       let res;
-      if (url.pathname.startsWith("/api/")) res = await api(req, env, url, event);
+      if (url.pathname === '/api/telemetry') res = await receiveTelemetry(req,env);
+      else if (url.pathname.startsWith("/api/")) res = await api(req, env, url, event);
       else if (
         !/^\/(?:$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,
@@ -561,6 +564,7 @@ export default {
       else res = await env.ASSETS.fetch(req);
       return finish(res);
     } catch (e) {
+      event.errorCode = e.status ? e.code : e.name;
       const known = e.status || /LAST_ADMIN|UNIQUE constraint/.test(e.message);
       return finish(
         json(
