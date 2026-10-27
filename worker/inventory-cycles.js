@@ -5,8 +5,8 @@ const actor=`WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id
 export async function cyclesEnabled(db) {
  return !!await db.prepare("SELECT 1 ok FROM sqlite_schema WHERE type='table' AND name='inventory_cycle_commands'").first();
 }
-async function cyclesSnapshot(db,hash,includeDeleted=false) {
- const modern=await cyclesEnabled(db);
+async function cyclesSnapshot(db,hash,includeDeleted=false,modern=undefined) {
+ if(modern===undefined)modern=await cyclesEnabled(db);
  const statements=[
   db.prepare(actor+`SELECT c.* FROM cycles c WHERE ${modern&&!includeDeleted?"c.lifecycle!='deleted' AND (c.lifecycle!='prepared' OR EXISTS(SELECT 1 FROM actor WHERE role IN('admin','service_lead'))) AND ":''}EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version AND ci.location_id IN(SELECT scope_id FROM allowed)) ${includeDeleted?"AND EXISTS(SELECT 1 FROM actor WHERE role='admin')":''} ORDER BY c.rowid DESC`).bind(hash),
   db.prepare(actor+`SELECT cs.* FROM cycle_scope_states cs WHERE EXISTS(SELECT 1 FROM scope_closure cl WHERE cl.ancestor=cs.scope_id AND cl.descendant IN(SELECT scope_id FROM allowed))`).bind(hash),
@@ -20,11 +20,14 @@ async function cyclesSnapshot(db,hash,includeDeleted=false) {
 export async function listCycles(db,hash,includeDeleted=false) {
  return (await cyclesSnapshot(db,hash,includeDeleted)).cycles;
 }
-export async function resolveCycle(db,hash,requested,legacyDefault) {
- if(!await cyclesEnabled(db))return requested||legacyDefault;
- const cycles=await listCycles(db,hash);
- if(requested)return cycles.some(c=>c.id===requested)?requested:null;
- return defaultCycle(cycles)?.id||null;
+export async function resolveCycle(db,hash,requested,legacyDefault,modern=undefined) {
+ if(modern===undefined)modern=await cyclesEnabled(db);
+ if(!modern)return requested||legacyDefault;
+ const row=await db.prepare(actor+`SELECT c.id FROM cycles c WHERE c.lifecycle!='deleted'
+ AND (c.lifecycle!='prepared' OR EXISTS(SELECT 1 FROM actor WHERE role IN('admin','service_lead')))
+ AND ((?2='' AND c.lifecycle!='prepared' AND (c.state IN('open','review','closed') OR EXISTS(SELECT 1 FROM cycle_scope_states cs WHERE cs.cycle_id=c.id AND cs.state!='closed'))) OR c.id=?2) AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version AND ci.location_id IN(SELECT scope_id FROM allowed))
+ ORDER BY CASE WHEN (c.state IN('open','review') OR EXISTS(SELECT 1 FROM cycle_scope_states cs WHERE cs.cycle_id=c.id AND cs.state!='closed')) THEN 0 WHEN c.state='closed' THEN 1 ELSE 2 END,c.rowid DESC LIMIT 1`).bind(hash,requested||'').first();
+ return row?.id||null;
 }
 export async function warningData(db,b) {
  const [rowsResult,registryResult]=await db.batch([db.prepare("SELECT c.*,EXISTS(SELECT 1 FROM cycle_scope_states cs WHERE cs.cycle_id=c.id AND cs.state IN('open','review')) scope_active FROM cycles c WHERE c.lifecycle!='deleted' AND c.id!=? ORDER BY c.rowid DESC").bind(b.cycleId),db.prepare('SELECT revision FROM cycle_registry WHERE id=1')]);
@@ -38,7 +41,7 @@ export async function warningData(db,b) {
 export async function inventoryCyclesRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest},catalogVersion) {
  if(req.method==='GET' && ['/api/cycles','/api/admin/cycles','/api/admin/supervision/cycles'].includes(url.pathname)) {
   if(url.pathname!=='/api/cycles'&&!['admin','service_lead'].includes(u.role))fail(403,'SUPERVISOR_REQUIRED','No tienes acceso a supervisión.');
-  const snapshot=await cyclesSnapshot(db,hash,u.role==='admin'&&url.searchParams.get('includeDeleted')==='1');
+  const snapshot=await cyclesSnapshot(db,hash,u.role==='admin'&&url.searchParams.get('includeDeleted')==='1',true);
   return json({user:userDTO(u),...snapshot,defaultCycleId:defaultCycle(snapshot.cycles)?.id||null});
  }
  if(url.pathname!=='/api/admin/cycles/command'||req.method!=='POST')fail(404,'NOT_FOUND');

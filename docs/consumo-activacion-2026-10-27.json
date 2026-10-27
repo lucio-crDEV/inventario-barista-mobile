@@ -1,0 +1,113 @@
+{
+  "recordedAt": "2026-10-27T23:40:04.461647+00:00",
+  "authorization": "User approved remote preparation, reserves git push by SSH; Pages deploy must follow that push.",
+  "d1": {
+    "priorSchemaVerifiedEquivalentObjects": 57,
+    "alreadyAppliedRegistered": [
+      "0011_observability.sql",
+      "0012_incomplete_finalization.sql"
+    ],
+    "applied": [
+      "0013_runtime_consumption.sql"
+    ],
+    "preflight": {
+      "ready": true,
+      "schemaContract": "runtime-consumption-0013",
+      "cycle": "piloto-v3-servicio"
+    },
+    "beforeAndAfterCounts": {
+      "counts": 209,
+      "history": 223,
+      "users": 15
+    },
+    "catalogIntegrity": [
+      {
+        "version": "inventory-v2-2026-10-21",
+        "rows": 1227
+      },
+      {
+        "version": "inventory-v3-2026-10-22",
+        "rows": 1268
+      }
+    ],
+    "recovery": {
+      "type": "D1 Time Travel internal bookmark",
+      "bookmark": "000000c8-00000000-00005111-ed8e4dfc007c0617e7480533bd8833cf",
+      "localExportPerformed": false,
+      "reason": "Automatic approval rejected exporting sensitive database contents to local files. Used internal provider recovery instead."
+    }
+  },
+  "realtimeWorker": {
+    "name": "inventory-realtime",
+    "version": "9e99e84d-deaa-4177-9b6f-06d22d930105",
+    "publicURL": false
+  },
+  "backupWorker": {
+    "name": "inventory-private-backup",
+    "version": "645a4dad-ceaa-4fab-aa70-4641d458ded4",
+    "bindings": [
+      {
+        "name": "BACKUP_ENABLED",
+        "type": "plain_text",
+        "value": "1"
+      },
+      {
+        "name": "BACKUP_ENCRYPTION_KEY",
+        "type": "secret_text"
+      },
+      {
+        "name": "BACKUP_JOBS",
+        "type": "durable_object_namespace",
+        "class_name": "BackupJob",
+        "namespace_id": "7bae9d53420b41299db6618e9880f461"
+      },
+      {
+        "name": "BACKUPS",
+        "type": "r2_bucket",
+        "bucket_name": "inventario-backups"
+      },
+      {
+        "name": "CF_BACKUP_TOKEN",
+        "type": "secret_text"
+      },
+      {
+        "name": "CLOUDFLARE_ACCOUNT_ID",
+        "type": "plain_text"
+      },
+      {
+        "name": "D1_DATABASE_ID",
+        "type": "plain_text"
+      }
+    ],
+    "secretsPreserved": true,
+    "enabled": true,
+    "cron": "17 5 * * *",
+    "freshBackupForced": false,
+    "newScheduledExecutionVerified": false
+  },
+  "pages": {
+    "productionBinding": "REALTIME",
+    "namespaceId": "c147ec60870b44f6ab1ecefff736ac89",
+    "otherSettingsPreserved": true,
+    "previewPreserved": true,
+    "buildPreserved": true,
+    "pagesDeploymentUnchanged": true,
+    "currentDeploymentId": "f773d8d9-cf02-44c0-b3f6-2e15775555bb"
+  },
+  "publicCheck": {
+    "status": 403,
+    "providerError": 1010,
+    "applicationResponseVerified": false,
+    "note": "Anonymous request blocked by Cloudflare; not certified as app success or failure."
+  },
+  "git": {
+    "commitPerformed": false,
+    "pushPerformed": false
+  },
+  "remaining": [
+    "User commit and SSH push to inventory-v3.",
+    "Verify automatic Pages Production deploy at pushed commit.",
+    "Verify authenticated realtime101, two phones and metrics after deploy.",
+    "Review next scheduled backup execution; no fresh export was forced."
+  ]
+}

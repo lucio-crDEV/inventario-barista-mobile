@@ -26,9 +26,12 @@ try {
   await expect(lead.page.locator("#header-back-to-categories")).toBeHidden();
   await expect(lead.page.locator(".scope-card")).toHaveCount(5);
   await expect(lead.page.locator(".scope-card")).toContainText(["Garzones","Mercadito","Barra","Línea / Armado","Copería"]);
-  assert.deepEqual(lead.requests.filter(p=>p!=="/api/me"),["/api/login","/api/bootstrap","/api/cycles"]);
+  assert.deepEqual(lead.requests.filter(p=>!["/api/me","/api/telemetry"].includes(p)),["/api/login","/api/bootstrap"]);
+  assert.ok(!lead.requests.includes('/api/cycles'),'closed settings must not request cycles');
   await lead.page.locator('[data-settings-toggle]').click();
   await expect(lead.page.locator(".identity-person")).toContainText("Jefa de servicio");
+  await expect(lead.page.locator('#settings-drawer .inventory-context-bar')).toBeVisible();
+  assert.equal(lead.requests.filter(p=>p==='/api/cycles').length,1,'opening settings loads cycles once');
   await lead.page.getByRole("link",{name:"Gestionar usuarios y accesos",exact:true}).click();
   await expect(lead.page.locator("#user-search")).toBeVisible();
   assert.equal(await lead.page.locator('[value="cocina"],[value="pasteleria"],[value="principal"],[value="panaderia"]').count(),0);
@@ -109,6 +112,9 @@ try {
   await single.page.goto(origin+"/");await expect(single.page).toHaveURL(/area=servicio&sector=garzones$/);
   await expect(single.page.locator(".scope-card")).toHaveCount(1);await expect(single.page.locator(".scope-card")).toContainText("Zona privada");
   await single.page.locator(".scope-card").click();await expect(single.page.locator("#quantity")).toBeVisible();
+  await expect(single.page.locator('#item-drawer')).toHaveClass(/is-open/);
+  await single.page.locator('#close-item-drawer').click();
+  await expect(single.page.locator('#item-drawer')).not.toHaveClass(/is-open/);
   await single.page.locator("#header-back-to-categories").click();await expect(single.page.locator(".scope-card")).toHaveCount(1);
   checks.push("Área única entra a categorías, dos áreas muestran Inicio y Garzones conserva solo sus zonas y regreso útil");
   assert.equal((await updateUser(admin,"sin-areas",{grants:[]})).status,200);

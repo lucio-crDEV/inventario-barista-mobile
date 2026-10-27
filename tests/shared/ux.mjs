@@ -88,13 +88,7 @@ async function captureLoading(page, name) {
         ),
       );
     }
-    assert.equal(
-      await page
-        .locator(".skeleton")
-        .first()
-        .evaluate((el) => getComputedStyle(el).animationName),
-      "skeleton-pulse",
-    );
+    await expect(page.locator('.skeleton').first()).toHaveCSS('animation-name', 'skeleton-pulse');
     await page.screenshot({ path: `test-results/ux/${name}-${theme}.png` });
   }
 }
@@ -129,7 +123,8 @@ try {
     assert.equal(nav.status, 200);
     assert.deepEqual(nav.data.scopes, boot.scopes);
     assert.equal(nav.data.cycleId, boot.cycle?.id || null);
-    assert.deepEqual(Object.keys(nav.data).sort(), ["cycleId", "scopes", "user"]);
+    assert.deepEqual(Object.keys(nav.data).sort(), ["cycleId", "realtime", "scopes", "user"]);
+    assert.equal(nav.data.realtime,false,'without namespace, fallback is explicit');
   }
   await updateUser(admin, "multiple", { grants: ["servicio:barra"] });
   const multi = new Client();
@@ -233,7 +228,7 @@ try {
   );
 
   stop = measure(worker.p);
-  const releaseInventory = await gate(worker.p, "**/api/bootstrap");
+  const releaseInventory = await gate(worker.p, "**/api/bootstrap?*");
   await worker.p.goto(
     origin + "/pages/inventario/?area=servicio&sector=barra",
     { waitUntil: "commit" },
@@ -247,10 +242,15 @@ try {
   await captureLoading(worker.p, "skeleton-inventario");
   await releaseInventory();
   await expect(worker.p.locator(".category-card").first()).toBeVisible();
-  await expect(worker.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(1);
+  await expect(worker.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(0);
+  assert.deepEqual(stop(), ["/api/bootstrap"], 'closed inventory settings issue no cycle request');
+  stop = measure(worker.p);
+  await worker.p.locator('[data-settings-toggle]').click();
+  await expect(worker.p.locator("#settings-drawer .inventory-context-bar")).toBeVisible();
+  await worker.p.locator('.settings-close').click();
   await expect(worker.p.locator("main > .inventory-context-bar")).toHaveCount(0);
   requests.inventory = stop();
-  assert.deepEqual(requests.inventory, ["/api/bootstrap", "/api/cycles"]);
+  assert.deepEqual(requests.inventory, ["/api/cycles"]);
   checks.push(
     "Inventario carga catálogo y contexto, sin progreso ficticio y sin esperar una animación para permitir uso",
   );
@@ -264,10 +264,15 @@ try {
   await captureLoading(boss.p, "skeleton-admin");
   await releaseAdmin();
   await expect(boss.p.locator("#user-search")).toBeVisible();
-  await expect(boss.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(1);
+  await expect(boss.p.locator("#settings-drawer .inventory-context-bar")).toHaveCount(0);
+  assert.deepEqual(stop(), ["/api/admin/users"], 'closed administration settings issue no cycle request');
+  stop = measure(boss.p);
+  await boss.p.locator('[data-settings-toggle]').click();
+  await expect(boss.p.locator("#settings-drawer .inventory-context-bar")).toBeVisible();
+  await boss.p.locator('.settings-close').click();
   await expect(boss.p.locator("main > .inventory-context-bar")).toHaveCount(0);
   requests.admin = stop();
-  assert.deepEqual(requests.admin, ["/api/admin/users", "/api/cycles"]);
+  assert.deepEqual(requests.admin, ["/api/cycles"]);
   await expect(boss.p.locator("#users")).toHaveAttribute("aria-busy", "false");
   checks.push(
     "Administración obtiene identidad/cuentas y contexto de inventario, y retira su skeleton al terminar",

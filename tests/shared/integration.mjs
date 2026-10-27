@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   Client,
+  injectFixtureSchema,
   database,
   resetLocal,
   operation,
@@ -361,7 +362,7 @@ await test("Ciclo cerrado, ubicaciones independientes, error atómico y consiste
   assert.equal((await record(a, x)).quantity, 4);
   const y = bar[6],
     op = operation(y, 4);
-  db.exec(
+  injectFixtureSchema(db,
     "CREATE TRIGGER test_failure BEFORE UPDATE OF after_record ON history BEGIN SELECT RAISE(ABORT,'INJECTED_FAILURE'); END",
   );
   try {
@@ -378,7 +379,7 @@ await test("Ciclo cerrado, ubicaciones independientes, error atómico y consiste
       0,
     );
   } finally {
-    db.exec("DROP TRIGGER test_failure");
+    injectFixtureSchema(db,"DROP TRIGGER test_failure");
   }
   assert.equal((await a.request("/api/count", op)).status, 200);
   const totals = db

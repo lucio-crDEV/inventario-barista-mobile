@@ -1,0 +1,319 @@
+{
+  "date": "2026-10-27",
+  "recordedAt": "2026-10-27T23:31:28.953980+00:00",
+  "branch": "inventory-v3",
+  "baseCommit": "2f515a3",
+  "productionModified": false,
+  "productionCPUOrBillingCertified": false,
+  "dependenciesAdded": false,
+  "unit": {
+    "command": "npm test",
+    "passed": 123,
+    "failed": 0
+  },
+  "isolatedSuites": {
+    "command": "npm run test:security:isolated",
+    "initialFailures": [
+      "tests/shared/integration.mjs",
+      "tests/shared/extended.mjs",
+      "tests/shared/users-service-browser.mjs",
+      "tests/shared/ux.mjs",
+      "tests/shared/refresh.mjs",
+      "tests/shared/browser.mjs"
+    ],
+    "initialFailureCauses": [
+      "Deliberate failure-injection DDL now requires test-only schema approval; production rejects arbitrary schema changes.",
+      "Navigation capability and lazy menu requests changed the expected API contract.",
+      "Some older UI tests attempted to open an already automatically opened drawer or raced styles/virtual timers.",
+      "Telemetry POST is separate from inventory writes."
+    ],
+    "finalPassed": 24,
+    "finalFailed": 0,
+    "runs": [
+      {
+        "script": "scripts/build-pages.mjs",
+        "durationMs": 127,
+        "passed": true
+      },
+      {
+        "script": "scripts/prepare-tests.mjs",
+        "durationMs": 21178,
+        "passed": true
+      },
+      {
+        "script": "scripts/preflight.mjs",
+        "durationMs": 1859,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/preflight-negative.mjs",
+        "durationMs": 4582,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/integration.mjs",
+        "durationMs": 11984,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/extended.mjs",
+        "durationMs": 4685,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/users-service.mjs",
+        "durationMs": 5241,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/load.mjs",
+        "durationMs": 6878,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/sync.mjs",
+        "durationMs": 1871,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/backoff.mjs",
+        "durationMs": 957,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/users-service-browser.mjs",
+        "durationMs": 1590,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/security-live.mjs",
+        "durationMs": 1865,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/supervision-live.mjs",
+        "durationMs": 1390,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/supervision-browser.mjs",
+        "durationMs": 5649,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/revision-browser.mjs",
+        "durationMs": 4743,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/ux.mjs",
+        "durationMs": 1810,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/refresh.mjs",
+        "durationMs": 9090,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/admin-layout.mjs",
+        "durationMs": 4104,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/browser.mjs",
+        "durationMs": 48517,
+        "passed": true,
+        "targetedRerun": true
+      },
+      {
+        "script": "tests/shared/views.mjs",
+        "durationMs": 14884,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/migration-service.mjs",
+        "durationMs": 6822,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/operations.mjs",
+        "durationMs": 17784,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/package-security.mjs",
+        "durationMs": 192,
+        "passed": true
+      },
+      {
+        "script": "tests/shared/pages.mjs",
+        "durationMs": 1978,
+        "passed": true
+      }
+    ],
+    "method": "Reran only affected suites with fresh isolated baseline, preserving assertions. Additional restore assertions independently passed with OPERATIONS_WRITE_EVIDENCE=0."
+  },
+  "nativeMetrics": {
+    "pass": true,
+    "runtime": "local workerd/D1",
+    "metadata": {
+      "calls": 5,
+      "statements": 7,
+      "rows_read": 5,
+      "rows_written": 1,
+      "metadata_missing": 2,
+      "sql_ms": 0,
+      "binding_ms": 4
+    },
+    "sqlDataStored": false
+  },
+  "nativeRealtime": {
+    "pass": true,
+    "runtime": "local workerd + SQLite Durable Object + synthetic D1 + native WebSocket",
+    "peers": 30,
+    "initialD1Reads": 1,
+    "changedSweepD1Reads": 2,
+    "idleSweepD1Reads": 1,
+    "heartbeatD1Reads": 0,
+    "emptySweepD1Reads": 0,
+    "scopeAndCycleIsolation": true,
+    "snapshotUpperBound": true,
+    "authClose": 4001,
+    "failureClose": 1011,
+    "overflowClose": 1012,
+    "outboundRequests": 0,
+    "localClientCloseTimeoutMs": 100,
+    "productionCPUCertified": false
+  },
+  "nativeBackup": {
+    "pass": true,
+    "runtime": "local workerd + SQLite Durable Object + R2 multipart",
+    "sqlBytes": 12582977,
+    "outboundMockRequests": 2,
+    "publicHTTP": 404,
+    "secondRun": "not-due",
+    "sqliteIntegrity": "ok",
+    "productionCPUCertified": false
+  },
+  "browserVitals": {
+    "passed": true,
+    "metrics": [
+      "LCP",
+      "INP",
+      "CLS"
+    ],
+    "privateContentExcluded": true
+  },
+  "runtimeContract": {
+    "localD1Migration": 13,
+    "preflightLegacy7And13Passed": true,
+    "fullSchemaBackupRestoreValidated": true,
+    "schemaMetadataObjectsSynthetic": 68,
+    "schemaSignatureBytesSynthetic": 40245,
+    "catalogCounts": [
+      1227,
+      1268
+    ],
+    "source": "Focused runtime tests + actual isolated Wrangler/D1 migrations and recovery."
+  },
+  "applicationQueries": {
+    "fixture": {
+      "catalog": 1268,
+      "cycles": 1,
+      "role": "admin"
+    },
+    "rows": [
+      {
+        "path": "/api/me",
+        "statements": 2,
+        "bindings": 2
+      },
+      {
+        "path": "/api/navigation?cycle=cost",
+        "statements": 4,
+        "bindings": 4
+      },
+      {
+        "path": "/api/sync?cycle=cost&cursor=0",
+        "statements": 5,
+        "bindings": 4
+      },
+      {
+        "path": "/api/bootstrap?cycle=cost&area=cocina",
+        "statements": 9,
+        "bindings": 4
+      },
+      {
+        "path": "/api/cycles",
+        "statements": 5,
+        "bindings": 3
+      },
+      {
+        "path": "/api/admin/supervision?cycle=cost",
+        "statements": 7,
+        "bindings": 5
+      },
+      {
+        "path": "/api/admin/supervision?cycle=cost&version=unchanged",
+        "statements": 6,
+        "bindings": 4
+      },
+      {
+        "path": "/api/count",
+        "statements": 5,
+        "bindings": 5
+      }
+    ],
+    "limits": [
+      "Synthetic local API requests, no remote traffic.",
+      "Counts outside triggers; excludes collector writes.",
+      "Not billed rows, production latency, CPU or throughput."
+    ]
+  },
+  "collectorModel": {
+    "scenario": {
+      "clients": 30,
+      "hours": 4,
+      "pollSeconds": 5,
+      "requests": 86400,
+      "diagnosticSamples": 86
+    },
+    "baseline": {
+      "calls": 21600,
+      "statements": 43290
+    },
+    "current": {
+      "calls": 7200,
+      "statements": 22985
+    },
+    "reductionPercent": {
+      "dbCalls": 66.7,
+      "statements": 46.9
+    },
+    "limits": [
+      "Models30 stable isolates, same route, healthy storage, deterministic0.1% diagnostic sample.",
+      "Counts external D1 invocations/statements, not rows read/written or cost.",
+      "No application query, server throughput, CPU or R2 measurement.",
+      "Final buffered events await next request; process termination losses remain unknown."
+    ]
+  },
+  "publicStaticAssetsBypassWorker": 45,
+  "packagingDryRun": {
+    "realtimePassed": true,
+    "backupPassed": true,
+    "published": false
+  },
+  "limits": [
+    "Local synthetic tests and arithmetic models, not production throughput or billed rows.",
+    "Shared watcher activation requires private REALTIME binding and migration0013. Without binding, legacy polling stays active.",
+    "Backup migration requires entry.js plus private BACKUP_JOBS SQLite object. No credentials were read or copied.",
+    "Online latency up to5s is a target under healthy conditions; fallback/network failures can exceed it.",
+    "No deployment, remote migration, commit or push performed."
+  ]
+}

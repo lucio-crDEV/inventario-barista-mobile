@@ -1,6 +1,6 @@
 {
   "name": "inventory-private-backup",
-  "main": "index.js",
+  "main": "entry.js",
   "compatibility_date": "2026-10-01",
   "triggers": {
     "crons": [
@@ -25,5 +25,21 @@
       "CF_BACKUP_TOKEN",
       "BACKUP_ENCRYPTION_KEY"
     ]
-  }
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BACKUP_JOBS",
+        "class_name": "BackupJob"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-private-backup-job",
+      "new_sqlite_classes": [
+        "BackupJob"
+      ]
+    }
+  ]
 }

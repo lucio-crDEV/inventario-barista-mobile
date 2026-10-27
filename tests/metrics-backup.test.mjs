@@ -5,11 +5,12 @@ import { recordMetric, routeName } from '../worker/telemetry.js';
 import { isDue, INTERVAL_MS, encryptionKey, sealBackup, runBackup } from '../operations/backup-worker/index.js';
 import { createDecipheriv } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
+import { decryptBackupFile } from '../scripts/decrypt-backup.mjs';
 
 test('telemetry opt-in, safe dimensions, minute batching, retention only metrics', async () => {
  assert.equal(routeName('/api/cycles'),'cycles');
  assert.equal(routeName('/api/admin/cycles/command'),'inventory-management');
- const DB = sqliteDB(9); const now = Date.UTC(2026,9,25);
+ const DB = sqliteDB(11); const now = Date.UTC(2026,9,25);
  try {
   await recordMetric({DB},{route:'count',method:'POST',status:200,elapsedMs:15},now);
   assert.equal(DB.sqlite.prepare('SELECT count(*) n FROM usage_daily').get().n,0);
@@ -57,9 +58,10 @@ test('scheduled complete export verifies R2 before checkpoint; downloaded artifa
  const original=globalThis.fetch; const objects=new Map(); const secret=Buffer.alloc(32,4);
  const sql='CREATE TABLE users(id TEXT PRIMARY KEY);\nINSERT INTO users VALUES(\'retained-author\');\nCREATE TABLE sessions(hash TEXT);\n';
  const bucket={
-  async get(key){const bytes=objects.get(key);return bytes ? {json:async()=>JSON.parse(Buffer.from(bytes).toString()),arrayBuffer:async()=>Uint8Array.from(bytes).buffer} : null;},
+  async get(key){const bytes=objects.get(key);return bytes ? {json:async()=>JSON.parse(Buffer.from(bytes).toString()),arrayBuffer:async()=>Uint8Array.from(bytes).buffer,body:new Response(bytes).body} : null;},
   async put(key,value){objects.set(key,typeof value==='string'?Buffer.from(value):Buffer.from(value));return {};},
-  async delete(key){objects.delete(key);}
+  async delete(key){objects.delete(key);},
+  async createMultipartUpload(key){const parts=[];return {async uploadPart(partNumber,value){parts.push(Buffer.from(value));return {partNumber,etag:String(partNumber)};},async complete(){objects.set(key,Buffer.concat(parts));},async abort(){}};}
  };
  try {
   globalThis.fetch=async url=>String(url).includes('/export') ? Response.json({success:true,result:{status:'complete',result:{signed_url:'https://example.com/signed-export'}}}) : new Response(sql);
@@ -68,9 +70,11 @@ test('scheduled complete export verifies R2 before checkpoint; downloaded artifa
   assert.equal((await runBackup(env,Date.UTC(2026,9,26))).status,'not-due');
   const checkpoint=JSON.parse(objects.get('inventory/last-success.json').toString());
   const bytes=objects.get(checkpoint.objectKey); assert.equal(objects.size,2);
-  const decipher=createDecipheriv('aes-256-gcm',secret,bytes.subarray(4,16));
-  decipher.setAAD(Buffer.from('inventory-backup-v1'));decipher.setAuthTag(bytes.subarray(-16));
-  const payload=JSON.parse(gunzipSync(Buffer.concat([decipher.update(bytes.subarray(16,-16)),decipher.final()])).toString());
+  const {mkdtempSync,writeFileSync,readFileSync,rmSync}=await import('node:fs');
+  const {join}=await import('node:path'); const {tmpdir}=await import('node:os');
+  const temporary=mkdtempSync(join(tmpdir(),'ibk2-roundtrip-'));
+  let payload;
+  try {writeFileSync(join(temporary,'copy.ibk'),bytes);await decryptBackupFile(join(temporary,'copy.ibk'),join(temporary,'restored'),secret.toString('base64'));payload={sql:readFileSync(join(temporary,'restored/database.sql'),'utf8')};} finally {rmSync(temporary,{recursive:true,force:true});}
   const {DatabaseSync}=await import('node:sqlite'); const restored=new DatabaseSync(':memory:');
   try {restored.exec(payload.sql);assert.equal(restored.prepare('SELECT id FROM users').get().id,'retained-author');assert.equal(restored.prepare('PRAGMA integrity_check').get().integrity_check,'ok');} finally {restored.close();}
  } finally {globalThis.fetch=original;}
@@ -80,7 +84,7 @@ test('concurrent backup lease suppresses overlapping cron export',async()=>{
  const original=globalThis.fetch;let calls=0;
  try {
  globalThis.fetch=async()=>{calls++;throw Error('should not export');};
- const env={BACKUP_ENABLED:'1',CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),D1_DATABASE_ID:'a'.repeat(36),CF_BACKUP_TOKEN:'fake',BACKUP_ENCRYPTION_KEY:Buffer.alloc(32,1).toString('base64'),BACKUPS:{get:async()=>({json:async()=>({owner:'another',expires:Date.now()+60000})})}};
+ const env={BACKUP_ENABLED:'1',CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),D1_DATABASE_ID:'a'.repeat(36),CF_BACKUP_TOKEN:'fake',BACKUP_ENCRYPTION_KEY:Buffer.alloc(32,1).toString('base64'),BACKUPS:{get:async key=>key.endsWith('last-success.json') ? null : ({json:async()=>({owner:'another',expires:Date.now()+60000})})}};
  assert.equal((await runBackup(env)).status,'already-running');assert.equal(calls,0);
  env.BACKUPS={get:async()=>null,put:async(_key,_value,options)=>{assert.equal(options.onlyIf.get('If-None-Match'),'*');return null;}};
  assert.equal((await runBackup(env)).status,'already-running');assert.equal(calls,0);

@@ -1,3 +1,5 @@
+import { createAPI } from "./api-request.js";
+import { homeURL } from "./navigation.js";
 import { startClientTelemetry } from './telemetry-client.js';
 startClientTelemetry();
 import { mountInventoryContext } from "./inventory-context.js";
@@ -12,55 +14,7 @@ export const escapeHtml = (value) =>
         c
       ],
   );
-export async function api(path, body) {
-  const r = await fetch(path, {
-    credentials: "same-origin",
-    cache: "no-store",
-    signal: AbortSignal.timeout(15000),
-    ...(body === undefined
-      ? {}
-      : {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(path === "/api/count" || path === "/api/profile" || path.startsWith("/api/admin/")
-              ? {
-                  "X-Inventory-User":
-                    sessionStorage.getItem("inventory-user") || "",
-                }
-              : {}),
-          },
-          body: JSON.stringify(body),
-        }),
-  });
-  if (!r.headers.get("content-type")?.includes("application/json"))
-    throw Object.assign(
-      Error(
-        "El servicio de inventario no está disponible. Contacta al administrador.",
-      ),
-      { status: 503, code: "API_UNAVAILABLE" },
-    );
-  let data;
-  try {
-    data = await r.json();
-  } catch {
-    throw Object.assign(
-      Error("No se pudo leer la respuesta del servicio. Inténtalo de nuevo."),
-      { status: 503, code: "INVALID_RESPONSE" },
-    );
-  }
-  if (!data || typeof data !== "object" || Array.isArray(data))
-    throw Object.assign(
-      Error("El servicio de inventario no está disponible."),
-      { status: 503, code: "INVALID_RESPONSE" },
-    );
-  if (!r.ok)
-    throw Object.assign(Error(data.message || data.code), data, {
-      status: r.status,
-      retryAfter: Math.min(900, Math.max(0, Number(r.headers.get("Retry-After")) || 0)),
-    });
-  return data;
-}
+export const api = createAPI();
 export function loginRedirect() {
   location.replace("/pages/cuenta/");
 }
@@ -102,7 +56,7 @@ window.addEventListener("storage", (e) => {
   if (e.key === "inventory-logout-event") loginRedirect();
 });
 let disposeIdentity = () => {};
-export function identityBar(user, refresh) {
+export function identityBar(user, refresh, scopes) {
   disposeIdentity();
   const bar = document.createElement("section");
   bar.className = "identity-bar";
@@ -111,7 +65,11 @@ export function identityBar(user, refresh) {
   const selectedInventory=new URLSearchParams(location.search).get('inventory');
   if(selectedInventory)for(const link of bar.querySelectorAll('a[href]')){const target=new URL(link.href);target.searchParams.set('inventory',selectedInventory);link.href=target;}
   const home=bar.querySelector('[data-go-home]');
-  if(home){let opening=false;home.onclick=async event=>{event.preventDefault();if(opening)return;opening=true;home.setAttribute('aria-busy','true');await mountInventoryContext(user);location.assign(home.href);};}
+  if (home && scopes) {
+    const target = new URL(homeURL(scopes), location.origin);
+    if (selectedInventory) target.searchParams.set('inventory', selectedInventory);
+    home.href = target;
+  }
   settingsAccount(bar);
   const button = bar.querySelector(".sync-refresh");
   const limit = refreshLimit(user.id);

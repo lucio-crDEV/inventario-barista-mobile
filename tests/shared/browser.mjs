@@ -172,7 +172,7 @@ try {
   await expect(B.page.locator("#quantity")).toHaveValue("3");
   checks.push("Sincronización remota conserva campos en edición");
   await B.page.reload();
-  await B.page.locator("#header-open-item-drawer").click();
+  await expect(B.page.locator("#item-drawer")).toHaveClass(/is-open/);
   await B.page.locator("#item-drawer-search").fill(target.name);
   await B.page
     .locator(".item-drawer-link")
@@ -229,6 +229,10 @@ try {
   await expect(B.page.locator("#header-open-item-drawer")).toBeVisible({
     timeout: 10000,
   });
+  // Restored count sessions open the item list; close that modal before Settings.
+  await expect(B.page.locator('#item-drawer')).toHaveClass(/is-open/);
+  await B.page.locator('#close-item-drawer').click();
+  await expect(B.page.locator('#item-drawer')).not.toHaveClass(/is-open/);
   // Logout and switch to another identity in the same browser context.
   await B.page.locator("[data-settings-toggle]").click();
   await B.page.locator("#logout").click();

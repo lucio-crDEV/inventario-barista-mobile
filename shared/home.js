@@ -1,3 +1,5 @@
+import { startRealtime } from "./realtime.js";
+import { startPolling } from "./polling.js";
 import { api, authenticated, identityBar, escapeHtml } from "./client.js";
 import { loading, reveal } from "./loading.js";
 import { homeURL } from "./navigation.js";
@@ -6,7 +8,8 @@ const nav = document.querySelector("nav"),
 const finishLoading = loading(placeholder);
 try {
   const selectedInventory = new URLSearchParams(location.search).get("inventory");
-  const data = await authenticated("/api/navigation" + (selectedInventory ? "?cycle=" + encodeURIComponent(selectedInventory) : ""));
+  const navigationPath = "/api/navigation" + (selectedInventory ? "?cycle=" + encodeURIComponent(selectedInventory) : "");
+  const data = await authenticated(navigationPath);
   const user = data.user;
   const destination = homeURL(data.scopes);
   if (destination !== "/") {
@@ -16,7 +19,7 @@ try {
     location.replace(target);
     await new Promise(() => {});
   }
-  identityBar(user);
+  identityBar(user, undefined, data.scopes);
   for (const link of nav.querySelectorAll("a")) {
     const id = new URL(link.href).searchParams.get("area");
     if (!data.scopes.some((x) => x.id === id)) link.remove();
@@ -32,14 +35,18 @@ try {
   const tick = async () => {
     if (document.hidden) return;
     try {
-      const { user: u } = await api("/api/me");
-      if (u.revision !== revision) location.reload();
+      const current = await api(data.realtime === true ? navigationPath : "/api/me"), u = current.user;
+      if (u.id !== user.id || u.revision !== revision || data.realtime === true && current.cycleId !== data.cycleId) location.reload();
     } catch (e) {
       if (e.status === 401) location.replace("/pages/cuenta/");
+      throw e;
     }
   };
-  setInterval(tick, 5000);
-  document.addEventListener("visibilitychange", tick);
+  const polling = startPolling(tick);
+  startRealtime({ enabled:data.realtime, polling, onChange:async type => {
+    await polling.refresh({afterPending:true});
+    if (type !== 'ready') location.reload();
+  }});
 } catch (e) {
   finishLoading();
   placeholder.remove();

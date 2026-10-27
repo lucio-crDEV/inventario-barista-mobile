@@ -1,9 +1,10 @@
 import { cyclesEnabled, warningData } from './inventory-cycles.js';
+import { cycleItemsSQL } from './inventory-sql.js';
 // Operational inventory supervision, separate from technical usage metrics.
 const actor = `WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id
  WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.deleted_at IS NULL AND u.must_change=0 AND u.role IN ('admin','service_lead')),
  allowed AS (SELECT p.scope_id FROM inventory_permissions p JOIN actor a ON a.id=p.user_id) `;
-const inventory = 'supervision_items';
+const inventory = cycleItemsSQL();
 const parse = value => value ? JSON.parse(value) : null;
 export function historyDTO(h) {
   const after = parse(h.after_record), before = parse(h.before_record), entered = parse(h.entered_record);
@@ -15,7 +16,7 @@ export function workerHistoryDTO(h) {
   const after=parse(h.after_record);
   return {authorName:after?.authorName || h.author_name || '',createdAt:h.created_at,quantity:after?.quantity ?? null,unit:after?.unit || '',status:after?.status || 'pending'};
 }
-export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body,userDTO,digest}) {
+export async function supervisionRequest(req, db, url, {u,hash,metadataRevision=0}, {json,fail,body,userDTO,digest}) {
   if (!['admin','service_lead'].includes(u.role)) fail(403,'SUPERVISOR_REQUIRED','No tienes acceso a supervisión.');
   const p=url.pathname, q=url.searchParams;
   if (p==='/api/admin/supervision/cycles' && req.method==='GET') {
@@ -52,7 +53,7 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
     }catch(e){
       const code=['COMPLETION_CHANGED','CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED','FORBIDDEN','ADMIN_REOPEN_REQUIRED','REASON_REQUIRED','ID_REUSED','CYCLE_CHANGED','ACTIVITY_CHANGED','STALE','CYCLE_CLOSED','ITEM_INACTIVE','INVALID_TRANSITION','PENDING_ITEMS','INVALID_SCOPE'].find(c=>e.message.includes(c));
       if(['PENDING_ITEMS','COMPLETION_CHANGED'].includes(code)&&completionEnabled){
-        const counts=await db.prepare(`SELECT sum(active=1 AND status='pending') pending,sum(active=1 AND status='partial') partial FROM supervision_items WHERE cycle_id=? AND (?='' OR location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?))`).bind(b.cycleId,b.scope||'',b.scope||'').first();
+        const counts=await db.prepare(`SELECT sum(active=1 AND status='pending') pending,sum(active=1 AND status='partial') partial FROM ${cycleItemsSQL({cycle:'?1'})} WHERE (?2='' OR location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3))`).bind(b.cycleId,b.scope||'',b.scope||'').first();
         const current=await db.prepare('SELECT completion_revision FROM cycles WHERE id=?').bind(b.cycleId).first();
         fail(409,code,code==='COMPLETION_CHANGED'?'Los conteos cambiaron. Revisa los pendientes antes de finalizar.':'Quedan productos sin completar.',{completion:{pending:Number(counts.pending)||0,partial:Number(counts.partial)||0},completionRevision:current.completion_revision});
       }
@@ -83,21 +84,38 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
       const page=rows.results.slice(0,50);return json({events:page.map(m=>({...m,result:JSON.parse(m.result)})),nextCursor:rows.results.length>50?page.at(-1).seq:null});
     }
     if (p==='/api/admin/supervision') {
-      const data=await db.batch([
+      // Materialize only this cycle's permitted rows once; both rollups reuse it.
+      // Area selection affects groups, while scopeGroups retains its global scope contract.
+      const metadata=await db.batch([
         db.prepare(actor+`SELECT s.* FROM scopes s WHERE s.id IN(SELECT scope_id FROM allowed) ORDER BY s.id`).bind(hash),
-        db.prepare(actor+`SELECT i.area_id areaId, sum(i.active) total,
-         sum(i.active=0) excluded, sum(i.active=1 AND i.status='counted') counted,
-         sum(i.active=1 AND i.status='partial') partial, sum(i.active=1 AND i.status='pending') pending
-         FROM ${inventory} i WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) ${within} GROUP BY areaId`).bind(hash,cycle,scope),
+        db.prepare(actor+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND cs.scope_id IN(SELECT scope_id FROM allowed) ORDER BY cs.scope_id`).bind(hash,cycle),
+        db.prepare(actor+`SELECT a.*,(SELECT coalesce(max(h.seq),0) FROM history h WHERE h.cycle_id=?2 AND h.location_id IN(SELECT scope_id FROM allowed)) history_cursor FROM actor a`).bind(hash,cycle),
       ]);
-      return json({user:userDTO(u),cycle:{...cy,scopeStates:(await db.prepare(actor+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND cs.scope_id IN(SELECT scope_id FROM allowed)`).bind(hash,cycle).all()).results},scopes:data[0].results,groups:data[1].results,scopeGroups:(await db.prepare(actor+`SELECT sc.ancestor scopeId,sum(i.active) total,sum(i.active=0) excluded,sum(i.active=1 AND i.status='counted') counted,sum(i.active=1 AND i.status='partial') partial,sum(i.active=1 AND i.status='pending') pending FROM ${inventory} i JOIN scope_closure sc ON sc.descendant=i.location_id WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) AND sc.ancestor IN(SELECT scope_id FROM allowed) GROUP BY sc.ancestor`).bind(hash,cycle).all()).results,updatedAt:new Date().toISOString()});
+      const currentActor=metadata[2].results[0];
+      if(!currentActor)fail(403,'FORBIDDEN');
+      const version=await digest(JSON.stringify([currentActor.id,currentActor.revision,metadataRevision,cy,scope,metadata[0].results,metadata[1].results,currentActor.history_cursor]));
+      if(q.get('version')===version)return json({user:userDTO(currentActor),version,unchanged:true});
+      const data=await db.prepare(actor.trimEnd()+`, permitted_items AS MATERIALIZED (
+          SELECT i.area_id,i.location_id,i.active,i.status FROM ${inventory} i
+          WHERE i.location_id IN(SELECT scope_id FROM allowed))
+          SELECT 'area' kind,i.area_id group_id,sum(i.active) total,sum(i.active=0) excluded,
+          sum(i.active=1 AND i.status='counted') counted,sum(i.active=1 AND i.status='partial') partial,sum(i.active=1 AND i.status='pending') pending
+          FROM permitted_items i WHERE (?3='' OR i.location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3)) GROUP BY i.area_id
+          UNION ALL
+          SELECT 'scope' kind,sc.ancestor group_id,sum(i.active) total,sum(i.active=0) excluded,
+          sum(i.active=1 AND i.status='counted') counted,sum(i.active=1 AND i.status='partial') partial,sum(i.active=1 AND i.status='pending') pending
+          FROM permitted_items i JOIN scope_closure sc ON sc.descendant=i.location_id
+          WHERE sc.ancestor IN(SELECT scope_id FROM allowed) GROUP BY sc.ancestor`).bind(hash,cycle,scope).all();
+      const groups=data.results.filter(x=>x.kind==='area').map(({kind,group_id,...x})=>({areaId:group_id,...x}));
+      const scopeGroups=data.results.filter(x=>x.kind==='scope').map(({kind,group_id,...x})=>({scopeId:group_id,...x}));
+      return json({user:userDTO(currentActor),version,cycle:{...cy,scopeStates:metadata[1].results},scopes:metadata[0].results,groups,scopeGroups,updatedAt:new Date().toISOString()});
     }
     const cursor=Number(q.get('cursor')||0);
     if (!Number.isSafeInteger(cursor)||cursor<0) fail(400,'INVALID_CURSOR');
     if (p==='/api/admin/supervision/items') {
       const status=q.get('status')||'',search=q.get('q')||'',item=q.get('item')||'';
       if (!['','pending','partial','counted','excluded'].includes(status)||search.length>100||item.length>150) fail(400,'INVALID_FILTER');
-      const rows=await db.prepare(actor+`SELECT i.* FROM ${inventory} i WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) ${within}
+      const rows=await db.prepare(actor+`SELECT i.* FROM ${cycleItemsSQL({records:true})} i WHERE i.cycle_id=?2 AND i.location_id IN(SELECT scope_id FROM allowed) ${within}
        AND (?4='' OR (?4='excluded' AND i.active=0) OR (i.active=1 AND i.status=?4))
        AND instr(lower(json_extract(i.data,'$.name')),lower(?5))>0 AND i.position>?6 AND (?7='' OR i.id=?7) ORDER BY i.position LIMIT 51`).bind(hash,cycle,scope,status,search,cursor,item).all();
       const page=rows.results.slice(0,50);
@@ -114,14 +132,24 @@ export async function supervisionRequest(req, db, url, {u,hash}, {json,fail,body
          WHERE h.cycle_id=?2 AND h.location_id IN(SELECT scope_id FROM allowed) AND (?3='' OR h.location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3)) AND h.item_id=?4 AND (?5='' OR h.location_id=?5) AND (?6=0 OR h.seq<?6) ORDER BY h.seq DESC LIMIT 51`).bind(hash,cycle,scope,item,location,cursor).all();
         const page=rows.results.slice(0,50);return json({history:page.map(historyDTO),nextCursor:rows.results.length>50?page.at(-1).seq:null});
       }
-      const rows=await db.prepare(actor+`SELECT h.item_id,h.location_id,json_extract(ci.data,'$.name') product,ci.unit,max(h.seq) lastSeq,max(h.created_at) latestAt,
-       sum(h.action IN('direct','add')) counts,sum(h.action IN('overwrite','rectify')) corrections,sum(h.action='annul') annulments,
-       max(CASE WHEN ?4='' OR (?4='count' AND h.action IN('direct','add')) OR (?4='correction' AND h.action IN('overwrite','rectify')) OR (?4='annul' AND h.action='annul') THEN 1 ELSE 0 END) categoryMatch,
-       max(CASE WHEN ?5='' OR h.user_id=?5 THEN 1 ELSE 0 END) authorMatch
-       FROM history h JOIN cycles cy ON cy.id=h.cycle_id JOIN catalog_items ci ON ci.version=cy.catalog_version AND ci.id=h.item_id AND ci.location_id=h.location_id
-       WHERE h.cycle_id=?2 AND h.location_id IN(SELECT scope_id FROM allowed) AND (?3='' OR h.location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3))
-       AND instr(lower(json_extract(ci.data,'$.name')),lower(?6))>0 GROUP BY h.item_id,h.location_id
-       HAVING categoryMatch=1 AND authorMatch=1 AND (?7=0 OR max(h.seq)<?7) ORDER BY lastSeq DESC LIMIT 51`).bind(hash,cycle,scope,categories[category],author,search,cursor).all();
+      // Find the page by each catalog item's last indexed movement, then aggregate
+      // only those 51 items. Category and author may match different movements.
+      const rows=await db.prepare(actor.trimEnd()+`, history_page AS MATERIALIZED (
+       SELECT ci.id item_id,ci.location_id,json_extract(ci.data,'$.name') product,ci.unit,latest.seq lastSeq
+       FROM cycles cy JOIN catalog_items ci ON ci.version=cy.catalog_version
+       JOIN history latest ON latest.seq=(SELECT h.seq FROM history h
+         WHERE h.cycle_id=cy.id AND h.item_id=ci.id AND h.location_id=ci.location_id ORDER BY h.seq DESC LIMIT 1)
+       WHERE cy.id=?2 AND ci.location_id IN(SELECT scope_id FROM allowed)
+       AND (?3='' OR ci.location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3))
+       AND instr(lower(json_extract(ci.data,'$.name')),lower(?6))>0 AND (?7=0 OR latest.seq<?7)
+       AND (?4='' OR EXISTS(SELECT 1 FROM history h WHERE h.cycle_id=cy.id AND h.item_id=ci.id AND h.location_id=ci.location_id
+         AND ((?4='count' AND h.action IN('direct','add')) OR (?4='correction' AND h.action IN('overwrite','rectify')) OR (?4='annul' AND h.action='annul'))))
+       AND (?5='' OR EXISTS(SELECT 1 FROM history h WHERE h.cycle_id=cy.id AND h.item_id=ci.id AND h.location_id=ci.location_id AND h.user_id=?5))
+       ORDER BY latest.seq DESC LIMIT 51)
+       SELECT p.item_id,p.location_id,p.product,p.unit,p.lastSeq,max(h.created_at) latestAt,
+       sum(h.action IN('direct','add')) counts,sum(h.action IN('overwrite','rectify')) corrections,sum(h.action='annul') annulments
+       FROM history_page p JOIN history h ON h.cycle_id=?2 AND h.item_id=p.item_id AND h.location_id=p.location_id
+       GROUP BY p.item_id,p.location_id ORDER BY p.lastSeq DESC`).bind(hash,cycle,scope,categories[category],author,search,cursor).all();
       const page=rows.results.slice(0,50);
       return json({items:page.map(h=>({itemId:h.item_id,locationId:h.location_id,product:h.product,unit:h.unit,lastSeq:h.lastSeq,latestAt:h.latestAt,counts:{counts:h.counts,corrections:h.corrections,annulments:h.annulments}})),nextCursor:rows.results.length>50?page.at(-1).lastSeq:null});
     }

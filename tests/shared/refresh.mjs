@@ -19,10 +19,17 @@ const totals = () => ["counts", "operations", "history"].map(table =>
 const draftSnapshot = () => page.evaluate(() => Object.fromEntries(
   Object.entries(localStorage).filter(([key]) => key.startsWith("inventory-drafts-v1:"))));
 async function nextCheck() {
-  // Advance the manual cooldown with polling hidden, without making timed GETs.
-  await page.evaluate(() => Object.defineProperty(document, "hidden", { configurable: true, value: true }));
-  await page.clock.fastForward(30_001);
-  await page.evaluate(() => Object.defineProperty(document, "hidden", { configurable: true, value: false }));
+  // Advance to the stored deadline after the handler/lock has settled. Running
+  // virtual timers chronologically lets the cooldown callback observe that date.
+  await expect(page.locator('.sync-refresh')).not.toHaveAttribute('aria-busy', 'true');
+  const remaining = await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable:true, value:true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    const user = sessionStorage.getItem('inventory-user');
+    return Math.max(0, Number(localStorage.getItem(`inventory-refresh-next:${user}`)) - Date.now());
+  });
+  await page.clock.runFor(remaining + 1);
+  await page.evaluate(() => Object.defineProperty(document, 'hidden', { configurable:true, value:false }));
   await expect(page.locator(".sync-refresh")).toBeEnabled();
 }
 
@@ -86,7 +93,7 @@ try {
   await page.locator(".item-drawer-link").filter({ has: page.getByText(item.name, { exact: true }) }).first().click();
   await expect(page.locator("#quantity")).toBeVisible();
   let writes = 0;
-  page.on("request", req => { if (req.method() !== "GET") writes++; });
+  page.on("request", req => { if (req.method() !== "GET" && new URL(req.url()).pathname !== "/api/telemetry") writes++; });
 
   // A poll in flight and a manual request must share its result, without reload.
   const gate = await gateSync();

@@ -107,8 +107,9 @@ export function startClientTelemetry({
     try { vitals?.[`on${name}`]?.(metric => recordVital(name, metric)); }
     catch { /* Unsupported observers must not interrupt startup. */ }
   }
-  // Register after web-vitals so its hidden callbacks finalize values first.
-  // Defer within the same event turn to include any final synchronous reporters.
+  // Match web-vitals' hidden boundary. pagehide can precede visibilitychange,
+  // so flushing there would freeze the visit before INP/CLS are finalized.
+  // Register after the library and defer to include its final reporters.
   const scheduleFlush = () => {
     if (typeof win.queueMicrotask === 'function') win.queueMicrotask(flush);
     else Promise.resolve().then(flush);
@@ -116,5 +117,4 @@ export function startClientTelemetry({
   doc.addEventListener('visibilitychange', () => {
     if (doc.visibilityState === 'hidden') scheduleFlush();
   });
-  win.addEventListener('pagehide', scheduleFlush);
 }

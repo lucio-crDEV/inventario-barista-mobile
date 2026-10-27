@@ -14,6 +14,7 @@ import { join, resolve } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
 import { hashPassword } from "../../worker/password.js";
+import { runtimeSchemaSQL, runtimeReadinessSQL } from "../../worker/runtime-readiness.js";
 import {
   localDatabase,
   wrangler,
@@ -110,6 +111,11 @@ try {
     "item_activity",
     "item_activity_events",
   ];
+  const catalogIntegrityBefore = db.prepare("SELECT * FROM catalog_integrity ORDER BY version").all();
+  const contractBefore = db.prepare("SELECT * FROM runtime_contract WHERE id=1").get();
+  assert.equal(contractBefore.schema_signature, Object.values(db.prepare(runtimeSchemaSQL).get())[0]);
+  assert.equal(db.prepare(runtimeReadinessSQL).get('', '').ready, 1);
+  const revokedSessionCount = db.prepare("SELECT count(*) n FROM sessions").get().n;
   const snapshot = Object.fromEntries(
     tables.map((t) => [
       t,
@@ -159,6 +165,15 @@ try {
       t,
     );
   assert.equal(copy.prepare("SELECT count(*) n FROM sessions").get().n, 0);
+  const contractAfter = copy.prepare("SELECT * FROM runtime_contract WHERE id=1").get();
+  assert.equal(contractAfter.schema_signature, contractBefore.schema_signature, "restore preserves exact signed DDL");
+  assert.equal(contractAfter.schema_signature, Object.values(copy.prepare(runtimeSchemaSQL).get())[0], "restored DDL still matches its stored signature");
+  assert.equal(contractAfter.catalog_version, contractBefore.catalog_version);
+  assert.deepEqual(copy.prepare("SELECT * FROM catalog_integrity ORDER BY version").all(),catalogIntegrityBefore);
+  assert.equal(contractAfter.users_metadata_revision, contractBefore.users_metadata_revision + revokedSessionCount, "session revocation transactionally invalidates metadata revision");
+  assert.equal(copy.prepare(runtimeReadinessSQL).get('', '').ready, 1, "restored application passes hot readiness contract");
+  assert.deepEqual(copy.prepare("SELECT c.version,c.row_count,c.expected_count,count(ci.id) actual FROM catalog_integrity c JOIN catalog_items ci ON ci.version=c.version GROUP BY c.version ORDER BY c.version").all().map(row=>[row.row_count,row.expected_count,row.actual]), [[1227,1227,1227],[1268,1268,1268]]);
+  checks.push("Migración 0013: firma DDL exacta y contrato de lectura válidos tras exportar/restaurar, contadores de catálogo conservados e invalidación de sesiones transaccional");
   assert.equal(copy.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
   assert.equal(
     copy
@@ -291,7 +306,7 @@ try {
   checks.push(
     "Se rechazan opciones remotas incompletas; restauración automatizada exclusivamente local",
   );
-  writeFileSync(
+  if (process.env.OPERATIONS_WRITE_EVIDENCE !== "0") writeFileSync(
     "docs/operaciones-local-3a.json",
     JSON.stringify(
       {

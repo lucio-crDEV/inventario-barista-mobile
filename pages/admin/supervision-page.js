@@ -1,3 +1,5 @@
+import { startPolling } from "/shared/polling.js";
+import { startRealtime } from "/shared/realtime.js";
 import { cycleLabel } from '/shared/cycles.js';
 import { inventoryDialog } from '/shared/inventory-context.js';
 import { authenticated, identityBar, escapeHtml as esc, dialog, setSync } from '/shared/client.js';
@@ -11,8 +13,9 @@ const message = document.querySelector('#message');
 const state = { mode: 'areas', cycleId: '', scope: '', status: '', search: '', category: '', author: '',
   location: '', pageCount: 1, openProducts: [], openHistory: [], scroll: 0, drafts: {}, openScopes: [] };
 let user, cycle, scopes = [], groups = [], scopeGroups = [], products = [], historyItems = [], cursor = null;
-let generation = 0, pendingCommand = null, sending = false, loading = false, timer, searchTimer;
+let generation = 0, pendingCommand = null, sending = false, loading = false, searchTimer;
 let commandDialog = null, restoreScroll = null, restoring = false;
+let overviewKey = "", overviewVersion = "", refreshFailures = 0, retryRefreshAt = 0, realtimeEnabled = false, refreshPolling, realtime;
 const details = new Map();
 const $ = selector => root.querySelector(selector);
 const key = item => `${item.id || item.itemId}\u001f${item.locationId}`;
@@ -139,17 +142,30 @@ function renderScopes() {
   }
 }
 async function refresh({ reset = false, quiet = false, authors = false } = {}) {
-  if (loading && quiet || sending && quiet || document.hidden && quiet || document.querySelector('dialog[open]') && quiet) return;
-  if (quiet && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  if (quiet && Date.now() < retryRefreshAt) return false;
+  if (loading && quiet || sending && quiet || document.hidden && quiet || document.querySelector('dialog[open]') && quiet) return false;
+  if (quiet && ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement?.tagName)) return false;
   const ticket = ++generation; loading = true;
   const y = window.scrollY;
   const focused = quiet ? focusSnapshot() : null;
   if (!reset && !restoring) snapshot();
   if (!quiet) { root.setAttribute('aria-busy', 'true'); $('#results').innerHTML = skeleton(); }
   try {
-    const data = await authenticated('/api/admin/supervision?' + params());
+    const query = params(), projectionKey = query.toString();
+    if (quiet && !reset && !authors && overviewKey === projectionKey && overviewVersion) query.set('version', overviewVersion);
+    else overviewVersion = '';
+
+    const data = await authenticated('/api/admin/supervision?' + query);
     if (ticket !== generation) return;
     if (data.user.id !== user.id || data.user.role !== user.role) { location.reload(); return; }
+    realtimeEnabled = data.realtime === true;
+    refreshFailures = 0; retryRefreshAt = 0;
+    if (data.unchanged) {
+      setSync(pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado', pendingCommand ? 'pending' : 'synced');
+      return true;
+    }
+    // A full response is acknowledged only after every visible page succeeds.
+    overviewVersion = '';
     user = data.user; cycle = data.cycle; scopes = data.scopes; groups = data.groups; scopeGroups = data.scopeGroups || [];
     document.dispatchEvent(new CustomEvent('inventory:cycle-updated',{detail:cycle}));
     renderScopes();
@@ -165,15 +181,20 @@ async function refresh({ reset = false, quiet = false, authors = false } = {}) {
     if (state.mode === 'areas') { cursor = null; renderAreas(); }
     else await fetchPages(reset ? 1 : state.pageCount, ticket);
     if (ticket !== generation) return;
+    overviewKey = projectionKey; overviewVersion = data.version || "";
     updateMode(); setSync(pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado', pendingCommand ? 'pending' : 'synced');
     if (quiet || restoreScroll !== null) window.scrollTo({ top: restoreScroll ?? y, behavior: 'instant' });
     restoreScroll = null;
     if (focused) restoreFocus(focused);
     snapshot();
+    return true;
   } catch (error) {
     if (ticket !== generation) return;
+    refreshFailures = Math.min(6, refreshFailures + 1);
+    retryRefreshAt = Date.now() + Math.max(Number(error.retryAfter) || 0, Math.min(60, 2 ** refreshFailures)) * 1000;
     if (!quiet) $('#results').innerHTML = '<p class="supervision-empty">No se pudo cargar el inventario. Puedes volver a elegir una vista para reintentar.</p>';
     notice(error.message); setSync('No se pudo actualizar', 'error');
+    return false;
   } finally { if (ticket === generation) { loading = false; root.setAttribute('aria-busy','false'); } }
 }
 function focusSnapshot() {
@@ -401,12 +422,13 @@ async function submitCommand(command) {
   } finally { sending = false; if (cycle) renderCycleActions(); }
 }
 function scheduleRefresh() {
-  clearTimeout(timer); if (document.hidden) return;
-  timer = setTimeout(async () => { await refresh({quiet:true}); scheduleRefresh(); }, 20000);
+  realtime?.stop(); refreshPolling?.stop();
+  refreshPolling = startPolling(async () => {
+    if (await refresh({quiet:true}) === false) throw Error('Actualización aplazada');
+  }, { interval:20000 });
+  realtime = startRealtime({enabled:realtimeEnabled,cycleId:state.cycleId,polling:refreshPolling});
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else { refresh({quiet:true}); scheduleRefresh(); } });
-window.addEventListener('pagehide', () => { if (user) snapshot(); clearTimeout(timer); });
-window.addEventListener('pageshow', event => { if (event.persisted && user) { refresh({quiet:true}); scheduleRefresh(); } });
+window.addEventListener('pagehide', () => { if (user) snapshot(); });
 window.addEventListener('scroll', () => { if (user && !restoring) { clearTimeout(window.supervisionScrollTimer); window.supervisionScrollTimer = setTimeout(snapshot, 150); } }, {passive:true});
 
 try {

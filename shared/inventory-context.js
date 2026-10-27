@@ -3,7 +3,7 @@ import { cycleLabel, cycleTypeNames } from './cycles.js';
 import { recommendation, relativeInventoryDate, localDay } from './inventory-calendar.js';
 import { showNotice } from './notices.js';
 import { openInventoryPicker, inventoryStatus, closeAccountMenu } from './inventory-picker.js';
-let identity = '', mounting, pendingMount=false;
+let identity = '', mounting, pendingMount=false, deferred;
 const pendingKey = user => `inventory-cycle-pending:${user.id}`;
 function readPending(user) { try { return JSON.parse(sessionStorage.getItem(pendingKey(user)) || 'null'); } catch { return null; } }
 function retainPending(user,command) { sessionStorage.setItem(pendingKey(user),JSON.stringify(command)); }
@@ -13,6 +13,13 @@ function styles() {
   const link = document.createElement('link'); link.rel='stylesheet'; link.href='/shared/inventory-context.css'; link.dataset.inventoryContext=''; document.head.append(link);
 }
 export function mountInventoryContext(user) {
+  // The selector lives inside settings away from Home: load its cycles on demand.
+  if (!['/', '/index.html'].includes(location.pathname) && !document.querySelector('#settings-drawer.is-open')) {
+    deferred?.abort();
+    deferred = new AbortController();
+    document.querySelector('[data-settings-toggle]')?.addEventListener('click', () => mountInventoryContext(user), { once: true, signal: deferred.signal });
+    return;
+  }
   if (user.mustChange || identity===user.id && (pendingMount || document.querySelector('.inventory-context-bar'))) return mounting;
   identity=user.id;
   pendingMount=true;
@@ -40,8 +47,6 @@ async function mount(user) {
     Object.assign(current,event.detail);
     host.querySelector('.inventory-selection-value').innerHTML=`<strong>${esc(cycleLabel(current))}</strong>${inventoryStatus(current)}`;
   });
-  const home=document.querySelector('[data-go-home]');
-  if(home){const url=new URL('/',location.origin);if(current && current.lifecycle!=='prepared')url.searchParams.set('inventory',current.id);home.href=url.pathname+url.search;}
   if (current) for (const link of document.querySelectorAll('a[href*="/pages/inventario/"],.settings-action[href],.identity-profile,.header-back-button[href]')) {
     if(link.matches('[data-go-home]'))continue;
     const url = new URL(link.href); if (!url.searchParams.has('inventory')) {url.searchParams.set('inventory',current.id);link.href=url;}

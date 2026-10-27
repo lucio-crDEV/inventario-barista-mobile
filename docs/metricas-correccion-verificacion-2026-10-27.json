@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-27",
+  "stage": "metrics-correction-1",
+  "baseCommit": "2f515a3",
+  "localOnly": true,
+  "frameworksOrDependenciesAdded": false,
+  "migrationRequired": false,
+  "productionMutations": false,
+  "r2Operations": 0,
+  "tests": {
+    "unit": {
+      "passed": 95,
+      "failed": 0
+    },
+    "chromium": {
+      "pass": true,
+      "assertions": [
+        "real LCP",
+        "deliberate INP>=100ms",
+        "nonzero CLS",
+        "normalized error",
+        "generated build version",
+        "single report",
+        "no cookie/referrer/private content"
+      ],
+      "negativeControl": "Original client fails INP assertion",
+      "actualBFCacheRoundtrip": false
+    },
+    "d1Runtime": {
+      "pass": true,
+      "runtime": "local workerd/D1",
+      "metadata": {
+        "calls": 5,
+        "statements": 7,
+        "rows_read": 5,
+        "rows_written": 1,
+        "metadata_missing": 2,
+        "sql_ms": 0,
+        "binding_ms": 6
+      },
+      "sqlDataStored": false
+    },
+    "pagesBuild": {
+      "pass": true,
+      "isolated": true
+    }
+  },
+  "collectorSimulation": {
+    "scenario": {
+      "clients": 30,
+      "hours": 4,
+      "pollSeconds": 5,
+      "requests": 86400,
+      "diagnosticSamples": 86
+    },
+    "baseline": {
+      "calls": 21600,
+      "statements": 43290
+    },
+    "current": {
+      "calls": 7200,
+      "statements": 22985
+    },
+    "reductionPercent": {
+      "dbCalls": 66.7,
+      "statements": 46.9
+    },
+    "limits": [
+      "Models30 stable isolates, same route, healthy storage, deterministic0.1% diagnostic sample.",
+      "Counts external D1 invocations/statements, not rows read/written or cost.",
+      "No application query, server throughput, CPU or R2 measurement.",
+      "Final buffered events await next request; process termination losses remain unknown."
+    ]
+  },
+  "diagnostics": {
+    "samplingProbability": 0.001,
+    "unknownMetadataExcludedFromRowMeans": true,
+    "serverTiming": "authenticated admin, status<400, metrics enabled",
+    "contentRetained": false
+  },
+  "limitations": [
+    "No deployed verification of new code or billable CPU/row measurement.",
+    "No physical mobile/Safari certification; BFCache mocked.",
+    "First-hidden sampling and strict current-version acceptance remain.",
+    "Collector still traffic-driven; instance termination/client delivery losses unknown.",
+    "Usage, hourly metrics and diagnostics share one bounded atomic collector; reports remain approximate."
+  ],
+  "pending": [
+    "Per-request D1 readiness/catalog scans",
+    "Duplicate cycle resolution",
+    "Supervision/bootstrap SQL plan",
+    "Client request reuse/static routes",
+    "5s freshness with30users2-4h",
+    "R2 capacity/failure alerts/key custody",
+    "Later library/framework decisions"
+  ]
+}

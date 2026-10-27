@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { runtimeSchemaSQL } from "../../worker/runtime-readiness.js";
 import { DatabaseSync } from "node:sqlite";
 import { readdirSync } from "node:fs";
 export const origin = process.env.INVENTORY_TEST_ORIGIN || "http://127.0.0.1:8790";
@@ -109,4 +110,13 @@ export async function resetPassword(admin, id, password) {
   const target = r.data.users.find(u => u.id === id);
   assert.ok(target);
   return admin.request(`/api/admin/users/${id}/password`, { password, expectedRevision: target.revision });
+}
+
+// Test-only approval of deliberate failure-injection DDL in disposable SQLite.
+// Production has no restamping endpoint; unexpected DDL still fails closed.
+export function injectFixtureSchema(db,sql) {
+  assert.ok(sql.startsWith('CREATE TRIGGER test_')||sql.startsWith('DROP TRIGGER test_'));
+  db.exec(sql);
+  if(db.prepare("SELECT 1 FROM sqlite_schema WHERE name='runtime_contract'").get())
+    db.exec('UPDATE runtime_contract SET schema_signature=('+runtimeSchemaSQL+') WHERE id=1');
 }

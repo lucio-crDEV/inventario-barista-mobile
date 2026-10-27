@@ -1,4 +1,8 @@
+Actualización 27/10: [corrección integral de consumo](consumo-critico-2026-10-27.md). Sustituye el recorrido local anterior por recolector unificado, consultas optimizadas y respaldo IBK2 por flujo/objeto privado; conserva los estados remotos fechados como históricos. Publicación pendiente.
+
 # Ampliación de observabilidad — 26-10-2026
+
+Actualización vigente 27/10: [corrección de métricas y cuotas del recolector](metricas-correccion-2026-10-27.md). Primera etapa local: entrega real de INP/CLS, recolector diario/horario unificado, depuración horaria acotada y diagnóstico D1 muestreado al 0,1 %. Sin dependencias ni migraciones nuevas, sin cambios remotos ni despliegue. Las optimizaciones de consultas, sincronización y R2 siguen pendientes por etapas. Esta actualización sustituye las descripciones anteriores del recolector; las verificaciones fechadas siguen siendo históricas.
 
 Implementación autorizada: errores técnicos normalizados y versión; experiencia móvil LCP/INP/CLS; distribución de latencias; salud del recolector. Root sigue sin implementar. Ninguna API entrega estadísticas a los usuarios de la aplicación. El endpoint nuevo solo recibe agregados limitados.
 

@@ -1,4 +1,10 @@
+Estado vigente 27/10: [preparación remota completada](docs/consumo-activacion-2026-10-27.md). 0013 aplicada y preflight remoto aprobado; Workers privados publicados y REALTIME preparado en Pages. Entrega incluida en un commit local; push por SSH reservado al usuario. Pages se publica con ese push. No repetir migraciones. Verificación pública bloqueada por Cloudflare1010; comprobación funcional posterior al push pendiente. Esta nota sustituye estados anteriores que decían que no había cambios remotos.
+
 # AGENTS.md — inventory-v3
+
+Actualización vigente 27/10: [corrección integral del consumo crítico](docs/consumo-critico-2026-10-27.md). Código local de métricas, consultas, cliente, canal compartido y respaldo por flujo implementado. Requiere 0013 después de 0012 y activación explícita de los dos objetos privados (REALTIME y BACKUP_JOBS); no se migró ni desplegó producción. La compatibilidad sin binding conserva el sondeo, sin eliminar su volumen. Esta nota sustituye los pendientes locales de consultas/sincronización/R2 de la primera etapa; la publicación y medición online siguen pendientes.
+
+Actualización vigente 27/10: [corrección de métricas y cuotas del recolector](docs/metricas-correccion-2026-10-27.md). Primera etapa local: entrega real de INP/CLS, recolector diario/horario unificado, depuración horaria acotada y diagnóstico D1 muestreado al 0,1 %. Sin dependencias ni migraciones nuevas, sin cambios remotos ni despliegue. Las optimizaciones de consultas, sincronización y R2 siguen pendientes por etapas. Esta actualización sustituye las descripciones anteriores del recolector; las verificaciones fechadas siguen siendo históricas.
 
 Actualización 26/10: [finalización con pendientes y opciones de inventario](docs/finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
 

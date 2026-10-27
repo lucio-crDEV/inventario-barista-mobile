@@ -43,3 +43,58 @@ test('HTTP receiver bypasses user data and excludes itself from request statisti
  assert.equal(DB.sqlite.prepare('SELECT count(*) n FROM telemetry_hourly').get().n,3);
  }finally{DB.sqlite.close();}
 });
+
+
+test('unified collector preserves daily reports; minute batching avoids repeated retention work',async()=>{
+ const DB=sqliteDB(11);try{const e=env(DB),base=DB.batch;let batches=0;const sizes=[];
+ DB.batch=async statements=>{batches++;sizes.push(statements.length);return base(statements);};
+ await observeRequest(e,{route:'count',method:'POST',status:200,elapsedMs:12},now);
+ for(let n=1;n<60;n++)await observeRequest(e,{route:'count',method:'POST',status:200,elapsedMs:12},now+n*1000);
+ await observeRequest(e,{route:'count',method:'POST',status:200,elapsedMs:12},now+60000);
+ assert.equal(batches,2);assert.deepEqual(sizes,[6,3]);
+ assert.equal(DB.sqlite.prepare('SELECT requests FROM usage_daily').get().requests,61);
+ assert.equal(DB.sqlite.prepare("SELECT sum(n) n FROM telemetry_hourly WHERE kind='latency'").get().n,61);
+ }finally{DB.sqlite.close();}
+});
+
+test('sampled diagnostics use fixed numeric dimensions and never infer complete row totals',async()=>{
+ const DB=sqliteDB(11);try{const e=env(DB);
+ const diagnostics={sampled:true,stats:{calls:4,statements:5,rows_read:1914,rows_written:0,metadata_missing:0,sql_ms:1,binding_ms:480,private:'never'},phases:{preflight:300,auth:100,cycle:0,handler:80,private:400}};
+ await observeRequest(e,{route:'me',method:'GET',status:200,elapsedMs:480,diagnostics},now);
+ await observeRequest(e,{route:'me',method:'GET',status:200,elapsedMs:480,diagnostics:{...diagnostics,sampled:false}},now+60000);
+ const read=DB.sqlite.prepare("SELECT n,value_sum FROM telemetry_hourly WHERE kind='d1' AND metric='rows_read'").get();
+ assert.deepEqual({...read},{n:1,value_sum:1914});
+ assert.equal(DB.sqlite.prepare("SELECT count(*) n FROM telemetry_hourly WHERE metric='private'").get().n,0);
+ assert.equal(DB.sqlite.prepare('SELECT requests FROM usage_daily').get().requests,2);
+ await observeRequest(e,{route:'me',status:500,diagnostics:{...diagnostics,stats:{...diagnostics.stats,metadata_missing:1}}},now+120000);
+ assert.equal(DB.sqlite.prepare("SELECT n FROM telemetry_hourly WHERE kind='d1' AND metric='rows_read'").get().n,1);
+ assert.equal(DB.sqlite.prepare("SELECT sum(value_sum) n FROM telemetry_hourly WHERE kind='d1' AND metric='metadata_missing'").get().n,1);
+ }finally{DB.sqlite.close();}
+});
+
+test('in-flight flush keeps new arrivals and records one loss without replay after ambiguous failure',async()=>{
+ const DB=sqliteDB(11);try{const e=env(DB),base=DB.batch;let release;let first=true;
+ DB.batch=async s=>{if(first){first=false;await new Promise(r=>release=r);throw Error('ambiguous');}return base(s);};
+ const pending=observeRequest(e,{route:'sync',status:200,elapsedMs:1},now);
+ await observeRequest(e,{route:'sync',status:200,elapsedMs:2},now+1);release();await pending;
+ await observeRequest(e,{route:'sync',status:200,elapsedMs:3},now+60000);
+ assert.equal(DB.sqlite.prepare('SELECT sum(requests) n FROM usage_daily').get().n,2);
+ assert.equal(DB.sqlite.prepare("SELECT sum(n) n FROM telemetry_hourly WHERE kind='latency'").get().n,2);
+ const health=DB.sqlite.prepare('SELECT * FROM collector_health').get();assert.equal(health.known_lost,1);assert.equal(health.failed_flushes,1);
+ }finally{DB.sqlite.close();}
+});
+
+
+test('retention hourly marker is shared across instances and never prunes operational tables',async()=>{
+ const DB=sqliteDB(11);try{const first=env(DB),second=env({prepare:DB.prepare,batch:DB.batch});
+ DB.sqlite.exec("INSERT INTO usage_daily VALUES('2020-01-01','count','POST',2,1,1,0)");
+ await observeRequest(first,{route:'sync',status:200,elapsedMs:1},now);
+ assert.equal(DB.sqlite.prepare("SELECT count(*) n FROM usage_daily WHERE day='2020-01-01'").get().n,0);
+ DB.sqlite.exec("INSERT INTO usage_daily VALUES('2020-01-01','count','POST',2,1,1,0)");
+ await observeRequest(second,{route:'sync',status:200,elapsedMs:1},now+1000);
+ assert.equal(DB.sqlite.prepare("SELECT count(*) n FROM usage_daily WHERE day='2020-01-01'").get().n,1);
+ await observeRequest(first,{route:'sync',status:200,elapsedMs:1},now+3600000);
+ assert.equal(DB.sqlite.prepare("SELECT count(*) n FROM usage_daily WHERE day='2020-01-01'").get().n,0);
+ assert.equal(DB.sqlite.prepare("SELECT count(*) n FROM sqlite_schema WHERE type='table' AND name IN ('users','counts','history')").get().n,3);
+ }finally{DB.sqlite.close();}
+});

@@ -1,3 +1,5 @@
+Actualización 27/10: [corrección integral de consumo](consumo-critico-2026-10-27.md). Sustituye el recorrido local anterior por recolector unificado, consultas optimizadas y respaldo IBK2 por flujo/objeto privado; conserva los estados remotos fechados como históricos. Publicación pendiente.
+
 # Métricas y respaldo — implementación 25-10-2026
 
 Actualización 26/10: [ampliación de observabilidad](observabilidad-2026-10-26.md) y [análisis de producción](analisis-metricas-2026-10-26.md). Migración 0011; nuevas mediciones implementadas, pendientes de publicar el código.

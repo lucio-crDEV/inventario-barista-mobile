@@ -91,6 +91,50 @@ test('first hidden includes final library callbacks and suppresses duplicate obs
   assert.deepEqual(f.requests[0].payload.vitals, [{ name: 'LCP', value: 1000 }, { name: 'CLS', value: 0.25 }]);
 });
 
+test('pagehide before hidden waits for final INP/CLS without finalizing an empty visit', async () => {
+  for (const initialLCP of [undefined, 1200]) {
+    const f = fixture();
+    f.start();
+    if (initialLCP !== undefined) f.callbacks.LCP({ value: initialLCP });
+    // Real navigation can drain microtasks after pagehide, before hidden.
+    emit(f.win, 'pagehide', { persisted: true });
+    await settled();
+    assert.equal(f.requests.length, 0);
+    f.doc.addEventListener('visibilitychange', () => {
+      f.callbacks.INP({ value: 128 });
+      f.callbacks.CLS({ value: 0.05 });
+    });
+    await f.hide();
+    assert.equal(f.requests.length, 1);
+    assert.deepEqual(f.requests[0].payload.vitals, [
+      ...(initialLCP === undefined ? [] : [{ name: 'LCP', value: initialLCP }]),
+      { name: 'INP', value: 128 }, { name: 'CLS', value: 0.05 },
+    ]);
+    emit(f.win, 'pagehide');
+    await f.hide();
+    assert.equal(f.requests.length, 1);
+  }
+});
+
+test('BFCache restore accepts library values at pageshow then waits for restored hidden', async () => {
+  const f = fixture();
+  f.start();
+  f.callbacks.INP({ value: 80 });
+  await f.hide();
+  // Registered after startup, like the library restore listeners.
+  f.win.addEventListener('pageshow', event => {
+    if (event.persisted) f.callbacks.LCP({ value: 10 });
+  });
+  f.show(true);
+  emit(f.win, 'pagehide', { persisted: true });
+  await settled();
+  assert.equal(f.requests.length, 1);
+  f.doc.addEventListener('visibilitychange', () => f.callbacks.CLS({ value: 0.2 }));
+  await f.hide();
+  assert.deepEqual(f.requests[1].payload.vitals, [{ name: 'LCP', value: 10 }, { name: 'CLS', value: 0.2 }]);
+  assert.equal(f.requests.length, 2);
+});
+
 test('BFCache restores reset values once per visit and cap sends at four per document', async () => {
   const f = fixture({ path: '/pages/cuenta/', width: 1000 });
   f.start();

@@ -1,4 +1,5 @@
 import { observeRequest, receiveTelemetry } from './observability.js';
+import { requestMetrics } from './request-metrics.js';
 import {
   hashPassword,
   checkPassword,
@@ -8,9 +9,10 @@ import {
 import { supervisionRequest, historyDTO, workerHistoryDTO } from "./supervision.js";
 import { accountRequest } from "./accounts.js";
 import { homeURL } from "../shared/navigation.js";
-import { routeName, allowRequest, logEvent, recordMetric } from "./telemetry.js";
-import { readinessSQL, fastReadinessSQL } from "./readiness.js";
-import { cyclesEnabled, resolveCycle, inventoryCyclesRequest, cycleSchemaSQL } from "./inventory-cycles.js";
+import { routeName, allowRequest, logEvent } from "./telemetry.js";
+import { deploymentState } from "./runtime-readiness.js";
+import { itemActiveSQL } from "./inventory-sql.js";
+import { resolveCycle, inventoryCyclesRequest } from "./inventory-cycles.js";
 const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
     status,
@@ -89,7 +91,7 @@ async function auth(req, env) {
     fail(401, "SESSION_REQUIRED", "Inicia sesión para continuar.");
   const hash = await digest(raw);
   const u = await env.DB.prepare(
-    "SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=? AND s.expires>? AND u.active=1 AND u.deleted_at IS NULL",
+    "SELECT u.*,s.expires session_expires FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=? AND s.expires>? AND u.active=1 AND u.deleted_at IS NULL",
   )
     .bind(hash, now())
     .first();
@@ -131,7 +133,7 @@ async function allowedItem(db, hash, cycle, item, location) {
     fail(403, "FORBIDDEN", "No tienes acceso a este producto o ubicación.");
   return x;
 }
-async function boot(db, hash, cycle) {
+async function boot(db, hash, cycle, area="") {
   const results = await db.batch([
     db
       .prepare(
@@ -142,15 +144,15 @@ async function boot(db, hash, cycle) {
     db
       .prepare(
         actorCTE +
-          `SELECT i.data, i.active operational_active FROM supervision_items i WHERE i.cycle_id=?2 AND i.location_id IN (SELECT id FROM allowed)`,
+          `SELECT ci.data, ${itemActiveSQL} operational_active FROM cycles cy JOIN catalog_items ci ON ci.version=cy.catalog_version LEFT JOIN item_activity st ON st.area_id=json_extract(ci.data,'$.areaId') AND st.item_id=ci.id WHERE cy.id=?2 AND ci.location_id IN (SELECT id FROM allowed) AND (?3='' OR json_extract(ci.data,'$.areaId')=?3)`,
       )
-      .bind(hash, cycle),
+      .bind(hash, cycle,area),
     db
       .prepare(
         actorCTE +
-          `SELECT cr.record FROM count_records cr WHERE cr.cycle_id=?2 AND cr.location_id IN (SELECT id FROM allowed)`,
+          `SELECT cr.record FROM count_records cr JOIN catalog_items ci ON ci.id=cr.item_id AND ci.location_id=cr.location_id AND ci.version=(SELECT catalog_version FROM cycles WHERE id=?2) WHERE cr.cycle_id=?2 AND cr.location_id IN (SELECT id FROM allowed) AND (?3='' OR json_extract(ci.data,'$.areaId')=?3)`,
       )
-      .bind(hash, cycle),
+      .bind(hash, cycle,area),
     db
       .prepare(
         actorCTE +
@@ -163,9 +165,10 @@ async function boot(db, hash, cycle) {
           `SELECT coalesce(max(seq),0) cursor FROM history WHERE cycle_id=?2 AND location_id IN (SELECT id FROM allowed)`,
       )
       .bind(hash, cycle),
+    db.prepare(actorCTE+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND EXISTS(SELECT 1 FROM scope_closure cl WHERE cl.ancestor=cs.scope_id AND cl.descendant IN(SELECT id FROM allowed))`).bind(hash,cycle),
   ]);
   return {
-    cycle: results[0].results[0] ? {...results[0].results[0],scopeStates:(await db.prepare(actorCTE+`SELECT cs.scope_id,cs.state FROM cycle_scope_states cs WHERE cs.cycle_id=?2 AND EXISTS(SELECT 1 FROM scope_closure cl WHERE cl.ancestor=cs.scope_id AND cl.descendant IN(SELECT id FROM allowed))`).bind(hash,cycle).all()).results} : null,
+    cycle: results[0].results[0] ? {...results[0].results[0],scopeStates:results[5].results} : null,
     items: results[1].results.map((r) => {
       const x = JSON.parse(r.data);
       x.active = !!r.operational_active;
@@ -192,6 +195,7 @@ async function boot(db, hash, cycle) {
   };
 }
 async function api(req, env, url, event) {
+  event.measure?.phase("preflight");
   if (
     !env.DB ||
     !env.APP_ORIGIN ||
@@ -205,32 +209,14 @@ async function api(req, env, url, event) {
       !["127.0.0.1", "localhost"].includes(url.hostname))
   )
     fail(503, "NOT_CONFIGURED");
-  let modernCycles, catalogVersion;
+  let modernCycles, catalogVersion, metadataRevision;
   try {
-  modernCycles = await cyclesEnabled(env.DB);
-  catalogVersion = modernCycles ? (env.ACTIVE_CATALOG_VERSION || (env.ACTIVE_CYCLE_ID ? (await env.DB.prepare('SELECT catalog_version FROM cycles WHERE id=?').bind(env.ACTIVE_CYCLE_ID).first())?.catalog_version : null) || (await env.DB.prepare("SELECT version FROM catalog_items WHERE version IN ('inventory-v3-2026-10-22','inventory-v2-2026-10-21') ORDER BY version DESC LIMIT 1").first())?.version) : null;
-    let readiness = ["/api/login", "/api/me", "/api/status", "/api/bootstrap"].includes(url.pathname) ? readinessSQL : fastReadinessSQL;
-    if (modernCycles) readiness = readiness.replace('FROM cycles c WHERE c.id=?', 'FROM (SELECT ? catalog_version) c WHERE 1=1') + cycleSchemaSQL;
-    const ready = await env.DB.prepare(
-      readiness,
-    )
-      .bind(modernCycles ? catalogVersion : (env.ACTIVE_CYCLE_ID || ""))
-      .first();
-    if (!ready)
-      fail(
-        503,
-        "NOT_INITIALIZED",
-        "El inventario aún no está habilitado. Contacta al administrador.",
-      );
-  } catch (e) {
-    if (e.status) throw e;
-
-    fail(
-      503,
-      "NOT_INITIALIZED",
-      "El inventario aún no está habilitado. Contacta al administrador.",
-    );
+    const state=await deploymentState(env.DB,env,event.dbIdentity||env.DB,url.pathname);
+    modernCycles=state.modern;catalogVersion=state.catalogVersion;metadataRevision=state.metadataRevision;
+  } catch(error) {
+    fail(503,'NOT_INITIALIZED','El inventario aún no está habilitado. Contacta al administrador.');
   }
+  event.measure?.phase("auth");
   if (
     req.method !== "GET" &&
     (req.headers.get("origin") !== env.APP_ORIGIN ||
@@ -274,12 +260,17 @@ async function api(req, env, url, event) {
     if (!inserted.meta.changes)
       fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
     event.actor = u.id;
-    const loginCycle = await resolveCycle(db, hash, null, env.ACTIVE_CYCLE_ID);
+    event.measure?.phase("cycle");
+    const loginCycle = await resolveCycle(db, hash, null, env.ACTIVE_CYCLE_ID,modernCycles);
+    event.measure?.phase("handler");
+    if(event.measure)event.measure.admin=u.role==="admin";
     const navigation = await db.prepare(actorCTE + `SELECT sc.* FROM scopes sc WHERE EXISTS(SELECT 1 FROM scope_closure cl JOIN catalog_items ci ON ci.location_id=cl.descendant JOIN cycles cy ON cy.catalog_version=ci.version WHERE cy.id=?2 AND cl.ancestor=sc.id AND ci.location_id IN(SELECT id FROM allowed))`).bind(hash, loginCycle || "").all();
     return json({ user: userDTO(u), homeUrl: homeURL(navigation.results) }, 200, { "Set-Cookie": cookie(env, raw) });
   }
   const { u, hash } = await auth(req, env);
   event.actor = u.id;
+  event.measure?.phase("handler");
+  if(event.measure)event.measure.admin=u.role==="admin";
   if (p !== "/api/logout" && !allowRequest(u.id, event.route))
     fail(429, "RATE_LIMIT", "Demasiadas solicitudes. Espera un minuto.", { retryAfter: 60 });
   if (p === "/api/logout" && req.method === "POST") {
@@ -328,7 +319,9 @@ async function api(req, env, url, event) {
     // Root and persistent metrics are deferred. No current role may read them.
     fail(403, "ROOT_NOT_ENABLED", "Las métricas técnicas están reservadas a Root, todavía no habilitado.");
   }
-  const selectedCycle = await resolveCycle(db, hash, url.searchParams.get("cycle"), env.ACTIVE_CYCLE_ID);
+  event.measure?.phase("cycle");
+  const selectedCycle = ["/api/navigation","/api/bootstrap","/api/sync","/api/search","/api/summary","/api/record","/api/history","/api/realtime"].includes(p) ? await resolveCycle(db, hash, url.searchParams.get("cycle"), env.ACTIVE_CYCLE_ID,modernCycles) : null;
+  event.measure?.phase("handler");
   if (p === "/api/navigation" && req.method === "GET") {
     const scopes = await db
       .prepare(
@@ -337,36 +330,45 @@ async function api(req, env, url, event) {
       )
       .bind(hash, selectedCycle || "")
       .all();
-    return json({ user: userDTO(u), scopes: scopes.results, cycleId: selectedCycle });
+    return json({ user: userDTO(u), scopes: scopes.results, cycleId: selectedCycle,realtime:!!env.REALTIME });
   }
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
   if (modernCycles && (p === '/api/cycles' || p === '/api/admin/cycles' || p === '/api/admin/cycles/command' || p === '/api/admin/supervision/cycles'))
     return inventoryCyclesRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest},catalogVersion);
   if (p === "/api/admin/supervision" || p.startsWith("/api/admin/supervision/"))
-    return supervisionRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest});
+    return supervisionRequest(req,db,url,{u,hash,metadataRevision},{json:p==='/api/admin/supervision'&&req.method==='GET'?(data,status,headers)=>json({...data,realtime:!!env.REALTIME},status,headers):json,fail,body,userDTO,digest});
   if (p.startsWith("/api/admin/") || p === "/api/profile")
     return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event });
+  if(p==='/api/realtime') {
+    if(!env.REALTIME)fail(503,'REALTIME_UNAVAILABLE');
+    if(req.method!=='GET'||req.headers.get('upgrade')?.toLowerCase()!=='websocket')fail(426,'WEBSOCKET_REQUIRED');
+    if(req.headers.get('origin')!==env.APP_ORIGIN)fail(403,'ORIGIN_REJECTED');
+    if(url.searchParams.get('cycle')&&!selectedCycle)fail(403,'FORBIDDEN');
+    const scopes=await db.prepare(actorCTE+'SELECT id FROM allowed').bind(hash).all();
+    const context={userId:u.id,revision:u.revision,accessRevision:metadataRevision,expires:u.session_expires,cycleId:url.searchParams.has('cycle')?selectedCycle||'':'',scopeIds:scopes.results.map(row=>row.id)};
+    const stub=env.REALTIME.get(env.REALTIME.idFromName('inventory'));
+    return stub.fetch(new Request('https://realtime.internal/connect',{headers:{Upgrade:'websocket','X-Inventory-Context':JSON.stringify(context)}}));
+  }
   const cycle = selectedCycle || "";
   if (p === "/api/bootstrap" && req.method === "GET") {
-    const data = await boot(db, hash, cycle);
+    const area=url.searchParams.get("area")||"";
+    if(area&&!['principal','cocina','panaderia','pasteleria','servicio'].includes(area))fail(400,'INVALID_AREA');
+    const data = await boot(db, hash, cycle,area);
     event.scope = [...new Set(data.items.map(x => x.areaId))].sort().join(",") || "none";
-    return json({ ...data, user: userDTO(u) });
+    return json({ ...data, user: userDTO(u),realtime:!!env.REALTIME });
   }
   if (p === "/api/sync" && req.method === "GET") {
     const cursor = Number(url.searchParams.get("cursor") || 0);
     if (!Number.isSafeInteger(cursor) || cursor < 0)
       fail(400, "INVALID_CURSOR");
-    const rows = await db
-      .prepare(
-        actorCTE +
-          `SELECT seq,after_record FROM history WHERE cycle_id=?2 AND seq>?3 AND location_id IN (SELECT id FROM allowed) ORDER BY seq LIMIT 250`,
-      )
-      .bind(hash, cycle, cursor)
-      .all();
+    const [rows,cycleRows]=await db.batch([
+      db.prepare(actorCTE+`SELECT seq,after_record FROM history WHERE cycle_id=?2 AND seq>?3 AND location_id IN (SELECT id FROM allowed) ORDER BY seq LIMIT 250`).bind(hash,cycle,cursor),
+      db.prepare(actorCTE+`SELECT revision FROM cycles WHERE id=?2 AND EXISTS(SELECT 1 FROM allowed)`).bind(hash,cycle),
+    ]);
     return json({
       user: userDTO(u),
-      cycleRevision: (await db.prepare(actorCTE+`SELECT revision FROM cycles WHERE id=?2 AND EXISTS(SELECT 1 FROM allowed)`).bind(hash,cycle).first())?.revision,
+      cycleRevision: cycleRows.results[0]?.revision,
       changes: rows.results.map((x) => JSON.parse(x.after_record)),
       cursor: rows.results.at(-1)?.seq ?? cursor,
     });
@@ -521,28 +523,36 @@ async function api(req, env, url, event) {
   }
   fail(404, "NOT_FOUND");
 }
-function secured(res) {
+function secured(res, req) {
+  const socketOrigin=new URL(req.url);socketOrigin.protocol=socketOrigin.protocol==='https:'?'wss:':'ws:';
   const headers = new Headers(res.headers);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "same-origin");
   headers.set("X-Frame-Options", "DENY");
   headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ${socketOrigin.origin}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
   );
-  return new Response(res.body, { status: res.status, headers });
+  return new Response(res.body, { status: res.status, headers,...(res.webSocket?{webSocket:res.webSocket}:{}) });
 }
 export default {
   async fetch(req, env, ctx) {
     const started = Date.now();
     const url = new URL(req.url);
     const event = { requestId: crypto.randomUUID(), route: routeName(url.pathname), method: ["GET", "POST"].includes(req.method) ? req.method : "other", status: 500 };
+    Object.defineProperty(event,'dbIdentity',{value:env.DB});
+    const measured=env.METRICS_ENABLED==='1'&&env.DB&&url.pathname.startsWith('/api/')&&url.pathname!=='/api/telemetry';
+    if(measured)Object.defineProperty(event,'measure',{value:requestMetrics(env.DB)});
     const finish = (res) => {
       event.status = res.status;
-      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith("/api/") && url.pathname!=="/api/telemetry") ctx?.waitUntil?.(recordMetric(env, { route: event.route, method: event.method, status: event.status, elapsedMs: Date.now() - started }));
-      if (env.METRICS_ENABLED === "1" && url.pathname.startsWith('/api/') && url.pathname!=='/api/telemetry') ctx?.waitUntil?.(observeRequest(env,{...event,elapsedMs:Date.now()-started}));
-      const response = secured(res);
+      if (event.measure) ctx?.waitUntil?.(observeRequest(env,{
+        route:event.route,method:event.method,status:event.status,errorCode:event.errorCode,
+        elapsedMs:Date.now()-started,diagnostics:event.measure.finish(),
+      }));
+      const response = secured(res, req);
       response.headers.set("X-Request-ID", event.requestId);
+      // Expose request-local diagnostics only to an authenticated administrator.
+      if(event.measure?.admin && res.status<400)response.headers.set('Server-Timing',event.measure.serverTiming());
 
       if (url.pathname.startsWith("/api/") && url.pathname!=="/api/telemetry") {
         // Bounded metadata only; no usage persistence or per-poll database writes.
@@ -554,7 +564,7 @@ export default {
     try {
       let res;
       if (url.pathname === '/api/telemetry') res = await receiveTelemetry(req,env);
-      else if (url.pathname.startsWith("/api/")) res = await api(req, env, url, event);
+      else if (url.pathname.startsWith("/api/")) res = await api(req, event.measure ? {...env,DB:event.measure.DB} : env, url, event);
       else if (
         !/^\/(?:$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,

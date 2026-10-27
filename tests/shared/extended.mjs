@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   Client,
+  injectFixtureSchema,
   database,
   operation,
   record,
@@ -120,7 +121,7 @@ await test("Sesión caducada y carrera al crear sesión no producen acceso ni co
     c.user.id,
   );
   assert.equal((await c.request("/api/me")).status, 401);
-  db.exec(
+  injectFixtureSchema(db,
     "CREATE TRIGGER test_ignore_session BEFORE INSERT ON sessions BEGIN SELECT RAISE(IGNORE); END",
   );
   try {
@@ -131,7 +132,7 @@ await test("Sesión caducada y carrera al crear sesión no producen acceso ni co
     assert.equal(response.status, 401);
     assert.equal(response.headers.get("set-cookie"), null);
   } finally {
-    db.exec("DROP TRIGGER test_ignore_session");
+    injectFixtureSchema(db,"DROP TRIGGER test_ignore_session");
   }
 });
 await test("Desactivar una cuenta revoca dos dispositivos y reactivar no restaura sus sesiones", async () => {

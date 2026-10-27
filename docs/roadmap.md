@@ -1,4 +1,10 @@
+Estado vigente 27/10: [preparación remota completada](consumo-activacion-2026-10-27.md). 0013 aplicada y preflight remoto aprobado; Workers privados publicados y REALTIME preparado en Pages. Entrega incluida en un commit local; push por SSH reservado al usuario. Pages se publica con ese push. No repetir migraciones. Verificación pública bloqueada por Cloudflare1010; comprobación funcional posterior al push pendiente. Esta nota sustituye estados anteriores que decían que no había cambios remotos.
+
+Actualización 27/10: [corrección integral del consumo crítico](consumo-critico-2026-10-27.md) y [evidencia consolidada](consumo-verificacion-2026-10-27.json). Implementación local completa de las causas críticas; requiere 0013 y despliegue/bindings privados. Producción no modificada. Sin frameworks ni dependencias nuevas.
+
 # Roadmap — inventory-v3
+
+Actualización vigente 27/10: [corrección de métricas y cuotas del recolector](metricas-correccion-2026-10-27.md). Primera etapa local: entrega real de INP/CLS, recolector diario/horario unificado, depuración horaria acotada y diagnóstico D1 muestreado al 0,1 %. Sin dependencias ni migraciones nuevas, sin cambios remotos ni despliegue. Las optimizaciones de consultas, sincronización y R2 siguen pendientes por etapas. Esta actualización sustituye las descripciones anteriores del recolector; las verificaciones fechadas siguen siendo históricas.
 
 Actualización vigente 25-10-2026: [inventarios y UX móvil](revision-inventarios-2026-10-25.md), [métricas y respaldos](metrics-backup-2026-10-25.md). Requiere 0008/0009/0010; sustituye la pausa previa de telemetría, sin implementar Root. Ver esos documentos para estado y verificación nuevos; las cifras inferiores son históricas.
 

@@ -1,3 +1,5 @@
+import { startRealtime } from "./realtime.js";
+import { startPolling } from "./polling.js";
 import { openProductHistory } from "./product-history.js";
 import { pendingButton } from "./loading.js";
 import { describeCountValue } from "./count-display.js";
@@ -13,17 +15,22 @@ import {
 } from "./client.js";
 export class SharedInventory {
   static async create(cycle) {
-    const data = await authenticated("/api/bootstrap"+(cycle?"?cycle="+encodeURIComponent(cycle):""));
+    const query = new URLSearchParams();
+    if (cycle) query.set('cycle', cycle);
+    const area = new URLSearchParams(location.search).get('area');
+    if (area) query.set('area', area);
+    const data = await authenticated('/api/bootstrap?' + query);
     const inventory = new SharedInventory(data.user, data);
     identityBar(data.user, async () => {
       await inventory.sync({ manual: true });
       return inventory.pendingState();
-    });
+    }, data.scopes);
     inventory.state(inventory.pendingState());
     return inventory;
   }
   constructor(user, data) {
     this.user = user;
+    this.area = new URLSearchParams(location.search).get("area") || "";
     this.data = data;
     const cycleKey = `inventory-cycle:${user.id}`;
     // A revoked user receives no cycle data. Retain only their previously known
@@ -341,7 +348,7 @@ export class SharedInventory {
   }
   async refreshPermissions() {
     const data = await api(
-      "/api/bootstrap?cycle=" + encodeURIComponent(this.cycleId),
+      "/api/bootstrap?cycle=" + encodeURIComponent(this.cycleId) + (this.area ? "&area=" + encodeURIComponent(this.area) : ""),
     );
     if (data.user.id !== this.user.id) {
       loginRedirect();
@@ -351,13 +358,13 @@ export class SharedInventory {
     this.data = data;
     this.onPermissions?.(data);
   }
-  sync({ manual = false } = {}) {
+  sync({ manual = false, force = false } = {}) {
     // Manual refresh and polling share one in-flight read. Neither sends drafts.
     if (this.syncing) return this.syncing;
     if (Date.now() < (this.retrySyncAt || 0))
       return Promise.reject(Object.assign(Error("Espera antes de volver a sincronizar. Borrador conservado."), { status: 429 }));
     // A recent accepted poll already performed this read; do not ask D1 again.
-    if (manual && Date.now() - this.lastSyncAt < 5000)
+    if (manual && !force && Date.now() - this.lastSyncAt < 5000)
       return Promise.resolve();
     this.syncing = (async () => {
       try {
@@ -406,13 +413,12 @@ export class SharedInventory {
     return this.syncing;
   }
   poll() {
-    const tick = async () => {
-      if (document.hidden) return;
-      // sync() already presents failures; background reads must not reject unhandled.
-      await this.sync().catch(() => {});
-    };
-    this.timer = setInterval(tick, 5000);
-    document.addEventListener("visibilitychange", tick);
-    return tick;
+    this.realtime?.stop();
+    this.pollTick?.stop();
+    // sync presents failures and keeps drafts isolated. The scheduler handles
+    // visibility and overlap without changing the accepted cursor.
+    this.pollTick = startPolling(() => this.sync({ force:true }));
+    this.realtime = startRealtime({enabled:this.data.realtime, cycleId:this.cycleId, polling:this.pollTick});
+    return this.pollTick;
   }
 }
