@@ -1,9 +1,10 @@
+import { actorSQL as authorizedActorSQL } from './authorization.js';
 import { hashPassword, validPassword } from "./password.js";
 
 const serviceGrant = (alias) => `EXISTS(SELECT 1 FROM grants g JOIN scope_closure c ON c.descendant=g.scope_id WHERE g.user_id=${alias}.id AND c.ancestor='servicio')`;
 const externalGrant = (alias) => `EXISTS(SELECT 1 FROM grants g WHERE g.user_id=${alias}.id AND NOT EXISTS(SELECT 1 FROM scope_closure c WHERE c.ancestor='servicio' AND c.descendant=g.scope_id))`;
 const serviceMember = (alias) => `(${serviceGrant(alias)} OR (${alias}.managed_scope='servicio' AND NOT ${externalGrant(alias)}))`;
-const actorSQL = `SELECT a.* FROM users a JOIN sessions s ON s.user_id=a.id WHERE s.hash=?1 AND s.expires>unixepoch() AND a.active=1 AND a.deleted_at IS NULL AND a.must_change=0`;
+const actorSQL = authorizedActorSQL('a');
 const managerial = `WITH actor AS (${actorSQL} AND a.role IN ('admin','service_lead')) `;
 const roles = ["worker", "service_lead", "admin"];
 const validUsername = value => typeof value === "string" && /^[a-z0-9._-]{3,40}$/.test(value);

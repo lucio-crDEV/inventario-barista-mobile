@@ -1,3 +1,5 @@
+Etapa 4 iniciada: [backend, contratos y decisiones vigentes](docs/etapa-4-backend-y-contratos.md). Primera entrega local de estructura y verificación de plantilla; exportación aún pendiente.
+
 # inventory-v3
 
 Actualización 26/10: [finalización con pendientes y opciones de inventario](docs/finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.

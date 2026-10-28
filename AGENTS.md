@@ -1,3 +1,5 @@
+Estado vigente de etapa 4 — 28/10: [backend y contratos](docs/etapa-4-backend-y-contratos.md). Refactor local sin cambios de esquema. Decisiones aprobadas: solo finalizados globalmente; Servicio suma ubicaciones terminadas; inactivos excluidos; excepción de STOCK cocina!C74 documentada con reversión. La exportación aún no está implementada. Para publicación prevalece la evidencia productiva del 27/10 sobre notas históricas de preparación.
+
 Estado vigente 27/10: [preparación remota completada](docs/consumo-activacion-2026-10-27.md). 0013 aplicada y preflight remoto aprobado; Workers privados publicados y REALTIME preparado en Pages. Entrega incluida en un commit local; push por SSH reservado al usuario. Pages se publica con ese push. No repetir migraciones. Verificación pública bloqueada por Cloudflare1010; comprobación funcional posterior al push pendiente. Esta nota sustituye estados anteriores que decían que no había cambios remotos.
 
 # AGENTS.md — inventory-v3

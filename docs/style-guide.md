@@ -1,3 +1,5 @@
+Actualización local 28/10: diálogos con fondo compartido al 16 % en claro y 22 % en oscuro, blur 8 px y sombra leve. Tokens --ui-dialog-backdrop y --ui-dialog-shadow. Transparencia reducida desactiva el blur; controles, foco y menú se conservan.
+
 # Guía de estilo UX/UI — inventory-v3
 
 Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.

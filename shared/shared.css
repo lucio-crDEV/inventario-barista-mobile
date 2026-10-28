@@ -583,6 +583,7 @@ html[data-theme="dark"] .state-chip.is-inactive { color: #ffadbb; }
 }
 .shared-dialog {
   color: var(--ui-text);
+  box-shadow: var(--ui-dialog-shadow);
   background: var(--ui-solid);
   padding: 24px;
   width: min(calc(100vw - 28px), 600px);
@@ -591,8 +592,9 @@ html[data-theme="dark"] .state-chip.is-inactive { color: #ffadbb; }
   overscroll-behavior: contain;
 }
 .shared-dialog::backdrop {
-  background: rgb(17 19 21 / 65%);
-  backdrop-filter: blur(4px);
+  background: var(--ui-dialog-backdrop);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .shared-dialog h2 {
   font-size: 1.25rem;
@@ -648,6 +650,7 @@ html[data-theme="dark"] .state-chip.is-inactive { color: #ffadbb; }
   display: none !important;
 }
 @media (prefers-reduced-transparency: reduce) {
+  .shared-dialog::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .account-card,
   .user-card,
   .create-user,

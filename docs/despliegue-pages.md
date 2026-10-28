@@ -1,6 +1,21 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
-## Próxima publicación: etapa 3B y esquema 0006
+## Publicación vigente: etapa 4A — 28-10-2026
+
+Esta entrega conserva el esquema 0013 y la configuración ya usada por 2d94cf5. No añade migraciones, bindings, variables, dependencias ni recursos remotos. Los pasos de instalación y migración de las secciones históricas no deben repetirse para publicarla.
+
+1. Desde /Users/lucio/workspace/inventario_brioche, hacer git push origin inventory-v3 con los commits locales preparados.
+2. Esperar el despliegue automático de Pages y comprobar Production / Success y el commit correcto.
+3. Recargar la app y comprobar acceso, resumen/supervisión, sincronización entre teléfonos y popups en ambos temas.
+
+La integración Git genera el paquete con npm run build:pages y publica dist. No hace falta un despliegue manual adicional, npm ci local ni ejecutar Wrangler para esta entrega. Si falla el build, revisar su log antes de reintentar o cambiar configuración.
+
+Se publica la preparación 4A del backend y la fidelidad del libro. La función de descarga Excel todavía no está implementada. El original y los datos de inventario no se modifican. Los pendientes de aceptación productiva, cuotas y respaldo siguen separados de los requisitos para este push.
+
+[Alcance y contratos](etapa-4-backend-y-contratos.md). [Pruebas y límites](etapa-4-verificacion-2026-10-28.json).
+
+
+## Registro histórico: publicación de etapa 3B y esquema 0006
 
 Esta entrega local **sí requiere 0006_supervision.sql antes del push**. Sustituye la indicación de “sin SQL nuevo” que era válida para b24403d. No aplicar 0005. Conservar DB, catálogo, ciclo y cuentas existentes. [Pasos de preparación, preflight, push y rollback](etapa-3b.md#publicación-manual-y-reversión). No se aplicó SQL remoto ni se publicó aquí. No ejecutar build/push como sustituto de preparar D1.
 

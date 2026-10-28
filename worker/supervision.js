@@ -1,9 +1,9 @@
+import { validQuantity, validCountStatus } from './count-contract.js';
+import { permissionsSQL } from './authorization.js';
 import { cyclesEnabled, warningData } from './inventory-cycles.js';
 import { cycleItemsSQL } from './inventory-sql.js';
 // Operational inventory supervision, separate from technical usage metrics.
-const actor = `WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id
- WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.deleted_at IS NULL AND u.must_change=0 AND u.role IN ('admin','service_lead')),
- allowed AS (SELECT p.scope_id FROM inventory_permissions p JOIN actor a ON a.id=p.user_id) `;
+const actor = permissionsSQL({ supervisor: true });
 const inventory = cycleItemsSQL();
 const parse = value => value ? JSON.parse(value) : null;
 export function historyDTO(h) {
@@ -42,7 +42,7 @@ export async function supervisionRequest(req, db, url, {u,hash,metadataRevision=
     }else{
       if(['itemId','locationId'].some(k=>typeof b[k]!=='string'||!b[k]||b[k].length>150)||!Number.isSafeInteger(b.expectedVersion)||b.expectedVersion<0) fail(400,'INVALID_ITEM');
       if(b.kind==='activation'&&(typeof b.active!=='boolean'||('expectedActivityRevision' in b && (!Number.isSafeInteger(b.expectedActivityRevision)||b.expectedActivityRevision<0))))fail(400,'INVALID_COMMAND');
-      if(b.kind==='rectify' && (typeof b.quantity!=='number'||!Number.isFinite(b.quantity)||b.quantity<0||b.quantity>1000000||Math.abs(b.quantity*1000-Math.round(b.quantity*1000))>1e-6||!['counted','partial'].includes(b.status)||typeof b.note!=='string'||b.note.length>1000||typeof b.outOfStock!=='boolean'||(b.outOfStock&&(b.quantity!==0||b.status!=='counted'))))fail(400,'INVALID_COUNT');
+      if(b.kind==='rectify' && (!validQuantity(b.quantity)||!validCountStatus(b.status)||typeof b.note!=='string'||b.note.length>1000||typeof b.outOfStock!=='boolean'||(b.outOfStock&&(b.quantity!==0||b.status!=='counted'))))fail(400,'INVALID_COUNT');
     }
     const fingerprint=await digest(JSON.stringify(('allowIncomplete' in b||'completionRevision' in b?keys:'confirmWarnings' in b||'confirmationRevision' in b?oldKeys:'expectedActivityRevision' in b?[...legacyKeys,'expectedActivityRevision']:legacyKeys).map(k=>b[k]??null)));
     const modernCycles=await cyclesEnabled(db);

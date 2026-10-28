@@ -35,7 +35,8 @@
     "profile:local": "node scripts/profile-local.mjs",
     "verify:public": "node scripts/verify-public.mjs",
     "preflight": "node scripts/preflight.mjs",
-    "test:security:isolated": "node scripts/test-security-isolated.mjs"
+    "test:security:isolated": "node scripts/test-security-isolated.mjs",
+    "verify:excel-template": "python3 scripts/verify-excel-template.py"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

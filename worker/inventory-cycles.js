@@ -1,7 +1,8 @@
+import { permissionsSQL } from './authorization.js';
 import { defaultCycle } from '../shared/cycles.js';
 // Readiness must fail closed if a partial/manual schema is missing transactional guards.
 export const cycleSchemaSQL = ` AND (SELECT count(*) FROM sqlite_schema WHERE type='trigger' AND name IN('guard_inventory_cycle','apply_inventory_cycle','lifecycle_operation','lifecycle_supervision','cycle_registry_insert','cycle_registry_update','cycle_registry_delete','lifecycle_reopen_warning','cycle_registry_scope_insert','cycle_registry_scope_update','cycle_registry_scope_delete'))=11`;
-const actor=`WITH actor AS (SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.hash=?1 AND s.expires>unixepoch() AND u.active=1 AND u.deleted_at IS NULL AND u.must_change=0), allowed AS (SELECT p.scope_id FROM inventory_permissions p JOIN actor a ON a.id=p.user_id) `;
+const actor = permissionsSQL();
 export async function cyclesEnabled(db) {
  return !!await db.prepare("SELECT 1 ok FROM sqlite_schema WHERE type='table' AND name='inventory_cycle_commands'").first();
 }

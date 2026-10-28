@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-28",
+  "scope": "4A backend contracts and template fidelity groundwork",
+  "baseCommit": "2d94cf5f31cdaf13825841ebb91a4913f2e1dfae",
+  "remoteChanges": false,
+  "databaseMigrations": false,
+  "tests": {
+    "node": {
+      "passed": 123,
+      "failed": 0
+    },
+    "excelBoundary": {
+      "passed": 6,
+      "failed": 0
+    },
+    "workbookRows": 1151,
+    "vitrinaReferences": 41,
+    "pagesBuild": "passed",
+    "packageAllowlist": "passed",
+    "nativeRuntime": {
+      "startedAt": "2026-10-28T04:08:04.398Z",
+      "runs": [
+        {
+          "script": "scripts/prepare-tests.mjs",
+          "passed": true,
+          "ms": 19135
+        },
+        {
+          "script": "scripts/preflight.mjs",
+          "passed": true,
+          "ms": 1632
+        },
+        {
+          "script": "tests/shared/integration.mjs",
+          "passed": true,
+          "ms": 12298
+        },
+        {
+          "script": "tests/shared/security-live.mjs",
+          "passed": true,
+          "ms": 1880
+        },
+        {
+          "script": "tests/shared/supervision-live.mjs",
+          "passed": true,
+          "ms": 1332
+        }
+      ],
+      "isolated": true,
+      "remote": false,
+      "passed": true,
+      "finishedAt": "2026-10-28T04:08:43.732Z"
+    }
+  },
+  "visualQA": {
+    "passed": true,
+    "scope": "isolated fixture using the exact modified styles; no real inventory data",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "components": [
+      "shared-dialog",
+      "modal-backdrop"
+    ],
+    "backdropAlpha": {
+      "light": 0.16,
+      "dark": 0.22
+    },
+    "blurPx": 8,
+    "shadowAlpha": {
+      "light": 0.08,
+      "dark": 0.12
+    },
+    "nativeEscapeClosed": true,
+    "limitations": [
+      "Not a full app flow or physical phone acceptance",
+      "Reduced-transparency rule inspected in CSS; OS preference not changed"
+    ]
+  },
+  "decisions": {
+    "finalizedOnly": true,
+    "service": "sum-counted-only",
+    "inactive": "exclude",
+    "cocinaC74": "replace original stock formula only; explicit user authorization"
+  },
+  "limits": [
+    "No generated production Excel",
+    "CPU/quota and runtime behavior not certified by unit tests"
+  ],
+  "preliminaryFailures": [
+    "First generated SQL fragment had an escaped newline syntax issue, fixed before application.",
+    "First template boundary run found the previously missed cocina!C74 formula. User approved a single stock-formula exception.",
+    "First whole-cell byte matcher was slow; replaced with a linear opening-tag scan and reran affected tests.",
+    "Initial browser process launch and file URL were blocked; visual QA completed on a loopback server restricted to fictional fixture and CSS."
+  ]
+}

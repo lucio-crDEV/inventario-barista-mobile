@@ -200,6 +200,8 @@ html[data-theme="dark"] .modal-icon {
   --ui-ring: #007f9d;
   --ui-primary: #08c2d2;
   --ui-shadow: 0 8px 24px rgb(50 43 32 / 6%);
+  --ui-dialog-backdrop: rgb(17 19 21 / 16%);
+  --ui-dialog-shadow: 0 8px 24px rgb(50 43 32 / 8%);
   --ui-progress: #07bfd0;
   color: var(--ui-text);
   background: #faf8f3;
@@ -215,6 +217,8 @@ html[data-theme="dark"] {
   --ui-ring: #66e4ef;
   --ui-primary: #19c7d8;
   --ui-shadow: 0 8px 24px rgb(0 0 0 / 16%);
+  --ui-dialog-backdrop: rgb(0 0 0 / 22%);
+  --ui-dialog-shadow: 0 8px 24px rgb(0 0 0 / 12%);
   --ui-progress: #1bc9d9;
   color: var(--ui-text);
   background: #111315;
@@ -995,7 +999,8 @@ html[data-theme="dark"] .count-actions .button-out-of-stock { background: #d53e5
 html[data-theme="dark"] .count-actions .button-secondary { background: #f7c76c; color: #513400; }
 .count-actions .button-primary,
 html[data-theme="dark"] .count-actions .button-primary { background: #20c1aa; color: #052f3a; }
-.modal-backdrop { background: rgb(11 29 41 / 52%); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.modal-backdrop { background: var(--ui-dialog-backdrop); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.modal, html[data-theme="dark"] .modal { box-shadow: var(--ui-dialog-shadow); }
 .modal-icon, html[data-theme="dark"] .modal-icon { background: rgb(245 175 47 / 17%); color: #e99a00; }
 .modal-actions .button-secondary { order: 2; }
 .modal-actions .button-danger { order: 1; }
