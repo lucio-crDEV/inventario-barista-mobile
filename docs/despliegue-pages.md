@@ -1,3 +1,9 @@
+# Publicación vigente de etapa 4D
+
+La preparación remota de 0014/0015, los objetos privados EXPORTS/PASSWORDS, la plantilla R2 y sus bindings está registrada en [4D](etapa-4d-exportacion.md). No repetir migraciones ni inicialización. El push del usuario a inventory-v3 ejecuta `npm run build:pages` y publica `dist`; después comprobar el flujo real. CI valida en paralelo y no es por sí solo una barrera del despliegue Git de Pages. Dependabot queda pendiente.
+
+El resto de esta guía conserva los pasos iniciales/históricos; sus estados de preparación no sustituyen la evidencia vigente.
+
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
 ## Publicación vigente: etapas 4B/4C — 28-10-2026

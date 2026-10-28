@@ -1,0 +1,383 @@
+{
+  "date": "2026-10-28",
+  "baseCommit": "11d9c12",
+  "scope": "4D, browser delivery, backend capabilities and private bcrypt",
+  "pushPerformed": false,
+  "pagesDeploymentPerformed": false,
+  "decisions": {
+    "plan": "Free",
+    "dependabot": "pending by user decision",
+    "recalculateNewCopies": true,
+    "precisionDecimals": 3,
+    "originalWorkbookModified": false
+  },
+  "tests": {
+    "javascriptFullLastRun": 182,
+    "python": 14,
+    "isolatedSuites": {
+      "passed": 25,
+      "failed": 0,
+      "runs": [
+        {
+          "script": "scripts/build-pages.mjs",
+          "passed": true
+        },
+        {
+          "script": "scripts/prepare-tests.mjs",
+          "passed": true
+        },
+        {
+          "script": "scripts/preflight.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/preflight-negative.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/integration.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/extended.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/load.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/sync.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/backoff.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service-browser.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/security-live.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-live.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-browser.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/revision-browser.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/ux.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/refresh.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/admin-layout.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/browser.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/views.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/migration-service.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/operations.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/package-security.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/export-ui.mjs",
+          "passed": true
+        },
+        {
+          "script": "tests/shared/pages.mjs",
+          "passed": true
+        }
+      ]
+    },
+    "ui": {
+      "passed": true,
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "widths": [
+        320,
+        390,
+        1024
+      ],
+      "synthetic": true,
+      "checks": [
+        "admin-only",
+        "uncertain command reuse",
+        "download",
+        "history",
+        "blockers",
+        "HTML escaping",
+        "permanent error disabled",
+        "optional chunk failure preserves profile",
+        "no horizontal overflow"
+      ]
+    },
+    "nativeExport": {
+      "passed": true,
+      "runtime": "local workerd, SQLite DO, D1, private R2",
+      "simultaneousStarts": 5,
+      "realAlarmRecovery": true,
+      "stableRedownload": true,
+      "outboundRequests": 0,
+      "recalculateOnOpen": true,
+      "independentPythonFidelity": true
+    },
+    "nativePassword": {
+      "passed": true,
+      "bcryptCost": 12,
+      "completeHttpLogin": true,
+      "invalidPasswordDenied": true,
+      "algorithmChanged": false
+    },
+    "audit": {
+      "revokedActorDuringSourceQuery": "fixed and regression tested",
+      "scheduledCleanupScope": "verified with real SQLite",
+      "remainingBlockers": []
+    },
+    "canonicalRepositoryVerified": true
+  },
+  "performance": {
+    "home": {
+      "initialJS": 5,
+      "CSS": 1,
+      "modulepreloads": 3
+    },
+    "inventory": {
+      "initialJS": 6,
+      "CSS": 1,
+      "modulepreloads": 4
+    },
+    "hashedAssets": 17,
+    "routeExcludes": [
+      "/assets/*"
+    ],
+    "assetCache": "public,max-age=31536000,immutable",
+    "htmlCache": "no-store",
+    "unauthenticatedHtmlRedirect": "before assets/DB lookup when no cookie"
+  },
+  "productionPreparation": {
+    "migration0014": true,
+    "migration0015": true,
+    "preflight": {
+      "ready": true,
+      "readOnly": true,
+      "cycle": "piloto-v3-servicio",
+      "schemaContract": "runtime-capabilities-0015",
+      "telemetryRequired": false,
+      "exportSnapshotsReady": true,
+      "note": "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU."
+    },
+    "recoveryBookmarkBefore0014": "000000e0-00000000-00005112-8698d01d5477776490601a53679f65d2",
+    "privateWorker": "inventory-exports",
+    "privateWorkerVersion": "3ce2e483-54a7-4193-994e-d5dd245ecd88",
+    "privateClasses": [
+      "InventoryExport",
+      "PasswordWork"
+    ],
+    "pagesBindings": [
+      "EXPORTS",
+      "PASSWORDS",
+      "REALTIME"
+    ],
+    "passwordWorkRequired": "1",
+    "pagesDeploymentUnchanged": "ef18460f-b4cc-40f7-8b50-6264d207dd70",
+    "bucket": "inventario-exports",
+    "publicR2Access": false,
+    "customDomains": [],
+    "templateSha256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9",
+    "remoteTemplateHashMatches": true,
+    "authCleanupCronUTC": "43 5 * * *",
+    "backupCadenceDaysUnchanged": 90
+  },
+  "correctedDuringVerification": [
+    "Native D1 extended-constraint error framing",
+    "Test-only imports after browser bundling",
+    "Revocation/source-read recovery race",
+    "Preserving a permanent failure disabled button",
+    "Rebuild before UI verification after changes"
+  ],
+  "limits": [
+    "No Pages push or deployment performed",
+    "GitHub Actions first remote execution pending push",
+    "No production CPU certification",
+    "No authenticated production export yet",
+    "No physical phone or Microsoft Excel acceptance yet",
+    "Pending catalog data can correctly block an export",
+    "External 1102 alerts and optional security/offline proposals remain undecided"
+  ],
+  "verifiedSourceFiles": [
+    {
+      "path": "worker/inventory-cycles.js",
+      "sha256": "b9c17928416a9b21899f6209b1a92cc4ca2fe753cb1d0b6abe3127f0b2448f12"
+    },
+    {
+      "path": "worker/db-errors.js",
+      "sha256": "67981af4a03f2768108999610cb2fc66bc62d7b75a748d1fd219239f0ac388d2"
+    },
+    {
+      "path": "worker/password-service.js",
+      "sha256": "b57905545c0e9d9a3409aac390d508e1e096677c2429bc7e54fca0ec3fc39a1e"
+    },
+    {
+      "path": "worker/session.js",
+      "sha256": "b8795acd322838eeb00d2f000996c2786972b4bbf882990037e097b72163cd5e"
+    },
+    {
+      "path": "worker/catalog.js",
+      "sha256": "51888587f7f12fff7cdf6af48ab31ba0676a6386d88abbe3e98892735c4b851c"
+    },
+    {
+      "path": "worker/export-jobs.js",
+      "sha256": "2df6d56fa48c97e6c71a54c89a89b4c65dea0f38b0d1c91ec394ff7182f5ecf0"
+    },
+    {
+      "path": "worker/accounts.js",
+      "sha256": "6112bf999ff864d81fd84099770103118bea095a7b56da2d7e61a2c375574a03"
+    },
+    {
+      "path": "worker/index.js",
+      "sha256": "fa11abbf6ee3365509e51a0ac7a239c55eb78412487d3ec7a14ce448e2d75d6a"
+    },
+    {
+      "path": "worker/deployment-contract.js",
+      "sha256": "df64d09fdda7f5c298a244450b7709138a139bc042aa7a1af129d1641057b705"
+    },
+    {
+      "path": "worker/readiness.js",
+      "sha256": "5d0f305d1562c8a2cc0ac8826422eed76a8a1f159f44bf9c8e6ee10ea35b00e0"
+    },
+    {
+      "path": "worker/counts.js",
+      "sha256": "de90208562494f0b6d63341f66462df48c94d43fbf901ae3970f31d1fcb0499f"
+    },
+    {
+      "path": "worker/runtime-readiness.js",
+      "sha256": "23a8d735572f829b2bd3a94bb6c0a77bd402ed128e0f5c18f00d3318e78d4881"
+    },
+    {
+      "path": "worker/supervision.js",
+      "sha256": "9094e6d7999d3a8882b9d801dc6f256ea41e52832073b75272baf8b3c4db0eca"
+    },
+    {
+      "path": "worker/export-plan.js",
+      "sha256": "8d39f8541e00551fec86ed589d02709f79783b334d44ff77d538aaf398827748"
+    },
+    {
+      "path": "worker/inventory-queries.js",
+      "sha256": "2ba15e6090c5cd83f3e7e85fa075b70dfca321ace8cedc41706d711d80d3a8e7"
+    },
+    {
+      "path": "worker/http.js",
+      "sha256": "d0e1db0fa0950d6c430da554f2121f9d1606871cbd235bb96585a6fc5689c286"
+    },
+    {
+      "path": "worker/export-snapshots.js",
+      "sha256": "362220759db78f0844421b22d7651812423d44803c5e89dc97bbf7320d2af310"
+    },
+    {
+      "path": "shared/html.js",
+      "sha256": "5aae14e4c9c76fc4d13b025d6ab9224bde956ee7d197868ade1d2e2a3ca5b233"
+    },
+    {
+      "path": "shared/client.js",
+      "sha256": "dba9b9a1535bf48bc85aa711e4fc59fe2749d7c056a29ab4e2a0c963b64a7a7d"
+    },
+    {
+      "path": "shared/deployment-domain.js",
+      "sha256": "7d2b3ac99840e1d7e5bdda989c4e44c20164059aa344fc61483cc2c8459fcf9c"
+    },
+    {
+      "path": "pages/cuenta/index.html",
+      "sha256": "2e623e50d04579e1e19973aace3fe08f1741eca124d0e90cebb035d3a1eafefc"
+    },
+    {
+      "path": "pages/cuenta/exports.js",
+      "sha256": "1f06efd59fbe70cb7fea3bad52f9392d485c0ce6c9b752db26396b75dbf0b8f1"
+    },
+    {
+      "path": "pages/cuenta/cuenta.js",
+      "sha256": "326b79828d4b2dfebe236fd216d72eb299aeaf950f4d1edb102e59fc5adf8105"
+    },
+    {
+      "path": "pages/cuenta/exports.css",
+      "sha256": "3eb7e5983d7088b3f1903cb0c2bd87a4ddd8734331ab7e5bc3791fbcbfaa373e"
+    },
+    {
+      "path": "pages/inventario/inventario.js",
+      "sha256": "74dbe62a1675a5d995d45568f3baa0b8f0154a071649a935287c270ceb1d817d"
+    },
+    {
+      "path": "scripts/verify-excel-template.py",
+      "sha256": "a2299eb5dc77e8c0a1cd40baf36f3f9048776dda84ba08e8a870d97e1afdfeba"
+    },
+    {
+      "path": "scripts/preflight.mjs",
+      "sha256": "54f661b9016df800fd92f0cb5ee33c795e512408b80bf5f62ba60ddbe7b47f22"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "6f55ee4d2325c0ed07010169905f52305cc0b6695606581d7cc4d247faef81a6"
+    },
+    {
+      "path": "scripts/test-security-isolated.mjs",
+      "sha256": "63230c4c80441df6ef7f557dcb002d6d012557dea80d24e64f5e4d83b2fae0f4"
+    },
+    {
+      "path": "scripts/build-pages.mjs",
+      "sha256": "b33caa94aba2cd3dcd46d0daba2afab25a6e68c12684a1f3303b904865004b91"
+    },
+    {
+      "path": "migrations/0015_runtime_capabilities_and_area_index.sql",
+      "sha256": "c66d9c842bf8f580c89f5d8e73d19705de72a19321e52d59076e473bc2dae43c"
+    },
+    {
+      "path": "operations/auth-worker/password-work.js",
+      "sha256": "7b7e991cd5f6ea9ad84722714fe0b83c2fc4392bd317273fedfe31f11d45b893"
+    },
+    {
+      "path": "operations/export-worker/index.js",
+      "sha256": "e05b7bfe6777a4145d9637b0c2322fd62301a99f0b9a4fdf8b1f2848ccf381b3"
+    },
+    {
+      "path": "operations/export-worker/entry.js",
+      "sha256": "d3a09a37ecb56d342833178aa23858dfc9cbb7e64d04dca2597b3770cf3404a8"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "e94266cc2f145eee100a4f9217bc296ed1051c9588252e467c0122603bdf58e5"
+    }
+  ],
+  "implementationCommit": "0bd49ec"
+}

@@ -1,8 +1,6 @@
 # Etapas 4B y 4C: capturas y generación fiel del Excel
 
-Estado: implementación local del 28-10-2026, sobre inventory-v3 / 48e28ec.
-No se aplicó la migración a producción ni se hizo push o despliegue.
-La integración del botón, descarga y almacenamiento de archivos corresponde a 4D.
+Este documento conserva el contrato de 4B/4C y la evidencia de su entrega original. La continuación vigente es [4D](etapa-4d-exportacion.md): captura y motor integrados, 0014/0015 aplicadas remotamente, almacenamiento privado preparado y publicación de Pages pendiente del push. La autorización posterior de recálculo se describe allí; prevalece sobre la política inicial indicada más abajo.
 
 ## Qué queda implementado
 

@@ -132,3 +132,8 @@ El icono del encabezado tiene cuatro cuadros rellenos con esquinas redondeadas y
 En ingreso y cambio de contraseña, el candado queda a la izquierda y a su derecha la etiqueta personal y el título en dos niveles. Se retira la explicación «Usa tu cuenta…» y se centra la ayuda para contactar al administrador. El ojo SVG muestra/oculta cada contraseña y actualiza su icono, nombre accesible y estado. Cuenta y Administración usan la flecha superior izquierda para regresar, sin enlaces de regreso ni cierre de sesión duplicados bajo el formulario. El cambio obligatorio mantiene su restricción de navegación.
 
 Por decisión del usuario, las nuevas contraseñas requieren **8 caracteres**; la ayuda de pantalla dice «Al menos 8 caracteres», sin unidades técnicas. El servidor y el generador del primer administrador conservan el máximo técnico de 72 bytes UTF-8, bcrypt coste 12 y rechazo sin truncamiento. La publicación no requiere migraciones ni cambia credenciales existentes.
+
+
+## Exportación en Mi perfil
+
+Solo Administración ve una tarjeta compacta debajo del perfil. Reutiliza superficies, botones y radios existentes. Un selector y Revisar Excel preparan la captura; la revisión concentra conteos/blancos y solo muestra advertencias aplicables. Los productos bloqueantes y las copias anteriores son plegables. Generación y descarga tienen una acción clara y mensajes breves, sin detalles internos. Controles de 44–48 px, texto de entrada de 16 px y foco suave. La tarjeta funciona en 320 px y en ambos temas sin ampliar sombras ni oscurecer fondos.

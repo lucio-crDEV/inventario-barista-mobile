@@ -1,7 +1,7 @@
 # Excepción de STOCK: Cocina C74
 
 Autorización expresa de Lucio: 28-10-2026.
-Estado: contrato, verificador y generador local implementados; captura y generación documentadas en etapa-4bc-exportacion.md. El original sigue intacto.
+Estado: contrato, verificador, generador e integración de perfil implementados; ver [4D](etapa-4d-exportacion.md). El original sigue intacto.
 
 ## Alcance exacto
 
@@ -23,7 +23,7 @@ Fragmento original:
 
 Se autorizó sustituir exclusivamente esta fórmula de STOCK por el nuevo conteo en la copia exportada. Si la política de conteo da blanco, la celda debe quedar en blanco. Se conserva la celda, la fila, su estilo y el resto del libro. No se altera el archivo original, los conteos guardados ni su historial.
 
-Esta excepción no autoriza reemplazar otras fórmulas ni cambiar caches o configuración de cálculo del resto del libro. No es una conversión de unidades.
+Esta excepción no autoriza reemplazar otras fórmulas ni cambiar sus caches. No es una conversión de unidades. Por una autorización independiente del mismo día, las nuevas copias solicitan recálculo al abrir mediante dos opciones de calcPr; el original y las fórmulas permanecen intactos. Ver la política de 4D.
 
 La revisión exhaustiva de las 1.151 celdas de destino detectó una fórmula: C74. Esto corrige la afirmación demasiado amplia del diagnóstico inicial que describía todos los destinos STOCK como valores sin fórmulas.
 
@@ -44,6 +44,6 @@ Para recuperar la referencia original basta consultar el libro inmutable con su 
 - Sustitución de C74 por número o blanco permitida con autorización.
 - Sustitución rechazada al retirar la autorización.
 - Cambio de formato o incorporación de una fórmula nueva rechazados.
-- El resto de partes, fórmulas, caches y configuración permanece sin alteraciones.
+- El resto de partes, fórmulas y caches permanece sin alteraciones. La única variación adicional autorizada son las dos opciones de recálculo al abrir.
 
-Estas verificaciones comprueban fidelidad y alcance; todavía no certifican un archivo generado, corrección de cantidades ni recálculo en Excel.
+Las pruebas verifican archivos generados y su correspondencia con el plan de conteos. No certifican el recálculo realizado por una versión concreta de Microsoft Excel: esa comprobación operativa sigue pendiente.
