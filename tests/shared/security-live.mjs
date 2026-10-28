@@ -21,8 +21,11 @@ assert.equal(costly.status, 429); assert.equal(costly.headers.get("retry-after")
 assert.equal(db.prepare("SELECT count(*) n FROM users").get().n, beforeUsers);
 db.prepare("DELETE FROM attempts WHERE key=?").run("admin-password:" + admin.user.id);
 // Authenticated cost limiting is separate from NAT/IP login limits.
-const statuses = [];
-for (let i = 0; i < 65; i++) statuses.push((await worker.request("/api/bootstrap")).status);
+const statuses = [], burstStarted = performance.now();
+// A fixed minute window may reset during the burst. More than 2*60 requests
+// within less than one minute must hit the limit even across that boundary.
+for (let i = 0; i < 125; i++) statuses.push((await worker.request("/api/bootstrap")).status);
+assert.ok(performance.now() - burstStarted < 60000, "Burst exceeded two fixed windows; timing cannot prove the limit");
 assert.ok(statuses.includes(429));
 assert.ok(statuses.every(x => [200, 429].includes(x)));
 assert.equal((await worker.request("/api/logout", {})).status, 200);

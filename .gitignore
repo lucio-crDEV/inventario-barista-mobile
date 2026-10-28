@@ -16,3 +16,6 @@ __pycache__/
 
 # Metadatos de Finder: nunca forman parte de la entrega.
 .DS_Store
+
+# Private export captures and generated workbooks.
+.exports/

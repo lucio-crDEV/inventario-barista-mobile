@@ -1,0 +1,175 @@
+{
+  "date": "2026-10-28",
+  "baseCommit": "48e28ec",
+  "scope": "4B immutable snapshots and 4C faithful generation",
+  "localOnly": true,
+  "productionMigrationApplied": false,
+  "pushPerformed": false,
+  "tests": {
+    "javascript": {
+      "passed": 147,
+      "failed": 0
+    },
+    "python": {
+      "passed": 13,
+      "failed": 0
+    },
+    "strengthenedMigrationSuite": {
+      "passed": 8,
+      "failed": 0
+    },
+    "templateRows": 1151,
+    "vitrinaReferences": 41,
+    "pagesBuild": true,
+    "publicAllowlist": true,
+    "nativeCapturePipeline": {
+      "passed": true,
+      "catalogItems": 1268,
+      "snapshotBytes": 322004,
+      "chunks": 40,
+      "checks": [
+        "native D1 trigger with immutable chunks",
+        "two simultaneous sessions share one snapshot",
+        "API close with pending confirmation",
+        "admin-only capture and source read",
+        "exact accepted retry",
+        "complete native capture to independently verified XLSX",
+        "history unchanged after reopen/new count",
+        "logout revokes source access"
+      ]
+    },
+    "recovery": {
+      "checks": [
+        "Exportación D1 real con manifiesto SHA-256, carpeta 0700, archivos 0600 y rechazo de sobrescritura",
+        "Captura 0014: cabecera, comandos y fragmentos idénticos tras recuperar; integridad, firma e inmutabilidad conservadas sin revivir sesiones",
+        "Migración 0013: firma DDL exacta y contrato de lectura válidos tras exportar/restaurar, contadores de catálogo conservados e invalidación de sesiones transaccional",
+        "Restauración en otra D1 local: datos, permisos, catálogo, conteo, historial y deduplicación idénticos; integridad y claves foráneas válidas",
+        "Todas las sesiones restauradas quedan revocadas y el destino existente se protege",
+        "Los triggers restaurados aceptan una nueva edición y un reintento previo no duplica ni restaura un valor antiguo",
+        "Recupera actividad persistente por área, estado de Servicio y comandos auditados 3B; reintento con sesión nueva no duplica ni cambia revisión",
+        "Un respaldo alterado se rechaza antes de crear el destino",
+        "Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda",
+        "Retención: consulta sin cambios, limpieza limitada a 1000 filas por tabla, conserva sesiones recientes, cuota vigente, auditoría e IDs de operación",
+        "Consulta y limpieza sobre esquema operativo 0007 sin tabla de telemetría funcionan y conservan datos",
+        "Se rechazan opciones remotas incompletas; restauración automatizada exclusivamente local"
+      ]
+    },
+    "generatorRuntime": [
+      {
+        "runtime": "v24.21.0",
+        "measurement": "local Node process; not Cloudflare CPU",
+        "wallMs": 159.83,
+        "processCpuMs": 197.37,
+        "maxRssMiB": 81.89,
+        "templateBytes": 688802,
+        "outputBytes": 591648,
+        "stockDestinations": 1151,
+        "changedStockCells": 1006,
+        "sha256": "2d24ff8db83d591d84ecf628d744228a615195f5c8bbf19e9b60e2ab5e594972",
+        "recalculateOnOpen": false
+      },
+      {
+        "runtime": "isolated local workerd test",
+        "recalculate": false,
+        "outputBytes": 590462,
+        "changedStockCells": 1006,
+        "sha256": "f9ce15d576a7225e0d77b64df8d7219c64d1c5c8b2aae5f807d2460de934c8d4"
+      },
+      {
+        "runtime": "isolated local workerd test",
+        "recalculate": true,
+        "outputBytes": 590430,
+        "changedStockCells": 1006,
+        "sha256": "92ea4de47902ef49d0925b9b94f96508b93e349b60fb96975f0fe3ed52d853c2"
+      }
+    ],
+    "preflightExports": {
+      "ready": true,
+      "readOnly": true,
+      "cycle": "prueba-compartida",
+      "schemaContract": "export-snapshots-0014",
+      "telemetryRequired": false,
+      "exportSnapshotsReady": true,
+      "note": "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU."
+    }
+  },
+  "initialNativeRuns": [
+    {
+      "script": "scripts/prepare-tests.mjs",
+      "passed": true,
+      "ms": 20778
+    },
+    {
+      "script": "scripts/preflight.mjs",
+      "passed": true,
+      "ms": 3059
+    },
+    {
+      "script": "tests/shared/export-snapshots-native.mjs",
+      "passed": true,
+      "ms": 2905
+    },
+    {
+      "script": "tests/shared/integration.mjs",
+      "passed": true,
+      "ms": 11137
+    },
+    {
+      "script": "tests/shared/security-live.mjs",
+      "passed": false,
+      "ms": 1542
+    }
+  ],
+  "resumedNativeRuns": [
+    {
+      "script": "tests/shared/security-live.mjs",
+      "passed": true,
+      "ms": 2321
+    },
+    {
+      "script": "tests/shared/supervision-live.mjs",
+      "passed": true,
+      "ms": 1358
+    },
+    {
+      "script": "tests/shared/operations.mjs",
+      "passed": false,
+      "ms": 5581
+    }
+  ],
+  "resolvedTestIssues": [
+    "Fixed-minute rate-limit test could split its 65 requests across a minute boundary. Uses 125 requests within less than 60 seconds; production limit unchanged.",
+    "Recovery comparison now orders the new WITHOUT ROWID chunk table by its composite key.",
+    "Synthetic rounding test uses two fractional contributions before final rounding."
+  ],
+  "decisions": {
+    "finalizedOnly": true,
+    "partial": "sum-counted",
+    "inactive": "exclude",
+    "decimalPlaces": 3,
+    "rounding": "half-up after exact rational consolidation",
+    "recalculateOnOpen": false,
+    "cocinaC74": "authorized replacement"
+  },
+  "limits": [
+    "No production data used or exported.",
+    "No button, download endpoint or R2 artifact storage yet.",
+    "Native Excel recalculation/printing acceptance pending; formula caches and calcPr remain original in active policy.",
+    "Node process CPU/RSS and workerd wall time are local observations, not Cloudflare billed CPU or Free capacity certification.",
+    "Unresolved counted units/conversions/destinations block file generation.",
+    "ZIP bytes may differ across runtimes while all decompressed parts match."
+  ],
+  "nativeFinal": {
+    "passed": true,
+    "checks": [
+      "capture and XLSX pipeline",
+      "concurrent sessions",
+      "existing integration",
+      "security after fixed-window test correction",
+      "supervision",
+      "backup and recovery including immutable chunks",
+      "generator in workerd 2026-10-01",
+      "preflight --exports"
+    ]
+  }
+}

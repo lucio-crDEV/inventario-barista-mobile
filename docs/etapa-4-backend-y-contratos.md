@@ -1,3 +1,5 @@
+Actualización 28/10: [4B/4C implementadas localmente](etapa-4bc-exportacion.md), requieren 0014. Las descripciones siguientes registran la entrega 4A; el generador ya tiene implementación técnica y 4D sigue pendiente.
+
 # Etapa 4: backend y contratos de exportación
 
 Estado vigente: 28-10-2026. Primera entrega local, sin publicación ni cambios de D1.

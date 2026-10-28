@@ -1,3 +1,4 @@
+import { exportSnapshotRequest } from './export-snapshots.js';
 import { observeRequest, receiveTelemetry } from './observability.js';
 import { requestMetrics } from './request-metrics.js';
 import { supervisionRequest, historyDTO, workerHistoryDTO } from "./supervision.js";
@@ -83,6 +84,8 @@ async function api(req, env, url, event) {
   }
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
+  if (p === '/api/admin/export-snapshots' || p.startsWith('/api/admin/export-snapshots/'))
+    return exportSnapshotRequest(req,db,url,{u,hash});
   if (modernCycles && (p === '/api/cycles' || p === '/api/admin/cycles' || p === '/api/admin/cycles/command' || p === '/api/admin/supervision/cycles'))
     return inventoryCyclesRequest(req,db,url,{u,hash},{json,fail,body,userDTO,digest},catalogVersion);
   if (p === "/api/admin/supervision" || p.startsWith("/api/admin/supervision/"))

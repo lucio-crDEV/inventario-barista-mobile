@@ -1,3 +1,5 @@
+Etapas 4B/4C — 28/10: [capturas y generación fiel](etapa-4bc-exportacion.md). Implementación local; requiere 0014 para la captura. No se aplicó a producción. UI/descarga/R2 quedan en 4D.
+
 Estado vigente de etapa 4 (28/10): [backend y contratos](etapa-4-backend-y-contratos.md). Primera entrega local, sin migraciones ni publicación. El estado productivo más reciente sigue en [verificación del 27/10](verificacion-produccion-2026-10-27.md). Las notas fechadas anteriores son evidencia histórica y no instrucciones para repetir migraciones.
 
 Estado vigente 27/10: [preparación remota completada](consumo-activacion-2026-10-27.md). 0013 aplicada y preflight remoto aprobado; Workers privados publicados y REALTIME preparado en Pages. Entrega incluida en un commit local; push por SSH reservado al usuario. Pages se publica con ese push. No repetir migraciones. Verificación pública bloqueada por Cloudflare1010; comprobación funcional posterior al push pendiente. Esta nota sustituye estados anteriores que decían que no había cambios remotos.

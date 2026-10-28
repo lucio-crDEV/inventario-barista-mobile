@@ -94,6 +94,9 @@ try {
   const activation=db.prepare("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,active,reason) VALUES('ops-activation','ops-fingerprint','admin-ops',?,1,'ops-cycle',1,'activation',?,?,0,0,'Exclusión de ensayo')");
   activation.run('admin-session-ops',extraItem.id,extraItem.location_id);
   db.exec("INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,scope_id,new_state,reason) VALUES('ops-review','review-fingerprint','admin-ops','admin-session-ops',1,'ops-cycle',2,'state','servicio','review','Revisión de ensayo'); INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,scope_id,new_state,reason) VALUES('ops-reopen','reopen-fingerprint','admin-ops','admin-session-ops',1,'ops-cycle',3,'state','servicio','open','Reapertura de ensayo')");
+  db.exec("INSERT INTO cycles(id,name,catalog_version,state) VALUES('ops-export-cycle','Synthetic export recovery','inventory-v2-2026-10-21','closed')");
+  db.exec("INSERT INTO export_snapshot_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,expected_completion_revision,template_id,template_sha256,policy_id) VALUES('ops-export-snapshot','ops-export-fingerprint','admin-ops','admin-session-ops',1,'ops-export-cycle',1,1,'totalizado-11-10-v1','9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9','stock-v1-3dp-preserve-calc')");
+  assert.ok(db.prepare("SELECT count(*) n FROM export_snapshot_chunks").get().n>1);
   const tables = [
     "users",
     "grants",
@@ -110,6 +113,9 @@ try {
     "supervision_commands",
     "item_activity",
     "item_activity_events",
+    "export_snapshot_commands",
+    "export_snapshots",
+    "export_snapshot_chunks",
   ];
   const catalogIntegrityBefore = db.prepare("SELECT * FROM catalog_integrity ORDER BY version").all();
   const contractBefore = db.prepare("SELECT * FROM runtime_contract WHERE id=1").get();
@@ -119,7 +125,7 @@ try {
   const snapshot = Object.fromEntries(
     tables.map((t) => [
       t,
-      JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()),
+      JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY ${t === "export_snapshot_chunks" ? "snapshot_id,part" : "rowid"}`).all()),
     ]),
   );
   for (const forbidden of [
@@ -160,7 +166,7 @@ try {
   assert.deepEqual(copy.prepare("PRAGMA foreign_key_check").all(), []);
   for (const t of tables)
     assert.equal(
-      JSON.stringify(copy.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()),
+      JSON.stringify(copy.prepare(`SELECT * FROM ${t} ORDER BY ${t === "export_snapshot_chunks" ? "snapshot_id,part" : "rowid"}`).all()),
       snapshot[t],
       t,
     );
@@ -173,6 +179,9 @@ try {
   assert.equal(contractAfter.users_metadata_revision, contractBefore.users_metadata_revision + revokedSessionCount, "session revocation transactionally invalidates metadata revision");
   assert.equal(copy.prepare(runtimeReadinessSQL).get('', '').ready, 1, "restored application passes hot readiness contract");
   assert.deepEqual(copy.prepare("SELECT c.version,c.row_count,c.expected_count,count(ci.id) actual FROM catalog_integrity c JOIN catalog_items ci ON ci.version=c.version GROUP BY c.version ORDER BY c.version").all().map(row=>[row.row_count,row.expected_count,row.actual]), [[1227,1227,1227],[1268,1268,1268]]);
+  assert.throws(()=>copy.prepare('UPDATE export_snapshots SET policy_id=policy_id').run(),/IMMUTABLE_EXPORT_SNAPSHOT/);
+  assert.throws(()=>copy.prepare('DELETE FROM export_snapshot_chunks').run(),/IMMUTABLE_EXPORT_SNAPSHOT/);
+  checks.push("Captura 0014: cabecera, comandos y fragmentos idénticos tras recuperar; integridad, firma e inmutabilidad conservadas sin revivir sesiones");
   checks.push("Migración 0013: firma DDL exacta y contrato de lectura válidos tras exportar/restaurar, contadores de catálogo conservados e invalidación de sesiones transaccional");
   assert.equal(copy.prepare("SELECT count(*) n FROM sqlite_schema WHERE name='activity_hourly'").get().n, 0);
   assert.equal(
@@ -273,7 +282,7 @@ try {
   checks.push("Mantenimiento sin dependencia de telemetría; tabla opcional existente no se consulta ni poda");
   for (const t of tables)
     assert.equal(
-      JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()),
+      JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY ${t === "export_snapshot_chunks" ? "snapshot_id,part" : "rowid"}`).all()),
       snapshot[t],
       t,
     );
@@ -293,7 +302,7 @@ try {
   const cleanedWithoutUsage = JSON.parse(run("maintenance", ["--local", "--state", state, "--apply"]));
   assert.equal(cleanedWithoutUsage.remaining.expired_attempt_keys, 0);
   assert.equal(db.prepare("SELECT count(*) n FROM sessions").get().n, 3);
-  for (const t of tables) assert.equal(JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY rowid`).all()), snapshot[t], t);
+  for (const t of tables) assert.equal(JSON.stringify(db.prepare(`SELECT * FROM ${t} ORDER BY ${t === "export_snapshot_chunks" ? "snapshot_id,part" : "rowid"}`).all()), snapshot[t], t);
   checks.push("Consulta y limpieza sobre esquema operativo 0007 sin tabla de telemetría funcionan y conservan datos");
   for (const script of ["backup", "restore-local", "maintenance"]) {
     const denied = spawnSync(

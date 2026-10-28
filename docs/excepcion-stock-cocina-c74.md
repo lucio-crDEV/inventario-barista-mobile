@@ -1,7 +1,7 @@
 # Excepción de STOCK: Cocina C74
 
 Autorización expresa de Lucio: 28-10-2026.
-Estado: contrato y verificador locales preparados; el generador todavía no está implementado.
+Estado: contrato, verificador y generador local implementados; captura y generación documentadas en etapa-4bc-exportacion.md. El original sigue intacto.
 
 ## Alcance exacto
 
@@ -33,7 +33,7 @@ El permiso vive en replaceableStockFormulaCells de data/inventario/export-templa
 
 1. Retirar C74 de replaceableStockFormulaCells y registrar fecha y motivo de la nueva decisión. No cambiar stockFormulaCells ni el hash del original.
 2. Ejecutar las pruebas de plantilla. El caso de sustitución debe pasar a esperar PROTECTED_STOCK_FORMULA; las pruebas de protección del original y del resto de fórmulas deben seguir pasando.
-3. En el futuro generador, bloquear la exportación de esa fila hasta resolver cómo representar el conteo actual conservando la fórmula. No volver a usar silenciosamente la suma del inventario antiguo.
+3. En el generador, bloquear la exportación de esa fila hasta resolver cómo representar el conteo actual conservando la fórmula. No volver a usar silenciosamente la suma del inventario antiguo.
 4. Si existen archivos ya exportados, conservar su versión e identidad. Retirar la excepción afecta generaciones futuras; no modifica archivos descargados ni datos históricos.
 
 Para recuperar la referencia original basta consultar el libro inmutable con su hash verificado. Restaurar esa fórmula en un archivo de comparación recupera también una suma antigua: no demuestra que sea el stock del inventario actual. Una corrección de un archivo operativo requiere identificar el inventario y validar su resultado.

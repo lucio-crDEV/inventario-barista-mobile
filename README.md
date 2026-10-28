@@ -1,3 +1,5 @@
+4B/4C implementadas localmente: [captura y generador Excel](docs/etapa-4bc-exportacion.md). Requieren 0014; perfil, almacenamiento y descarga pendientes de 4D.
+
 Etapa 4 iniciada: [backend, contratos y decisiones vigentes](docs/etapa-4-backend-y-contratos.md). Primera entrega local de estructura y verificación de plantilla; exportación aún pendiente.
 
 # inventory-v3

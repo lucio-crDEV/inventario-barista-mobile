@@ -36,7 +36,9 @@
     "verify:public": "node scripts/verify-public.mjs",
     "preflight": "node scripts/preflight.mjs",
     "test:security:isolated": "node scripts/test-security-isolated.mjs",
-    "verify:excel-template": "python3 scripts/verify-excel-template.py"
+    "verify:excel-template": "python3 scripts/verify-excel-template.py",
+    "export:local": "node scripts/export-excel.mjs",
+    "test:export:runtime": "node tests/shared/excel-generator-runtime.mjs"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

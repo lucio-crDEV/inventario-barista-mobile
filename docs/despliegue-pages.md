@@ -1,6 +1,11 @@
 # inventory-v3 en Cloudflare Pages — despliegue automático
 
-## Publicación vigente: etapa 4A — 28-10-2026
+## Publicación vigente: etapas 4B/4C — 28-10-2026
+
+Esta entrega requiere 0014_export_snapshots.sql después de 0013 para habilitar las capturas. Revisar recuperación, listado de migraciones y preflight --exports según [la guía de 4B/4C](etapa-4bc-exportacion.md#publicación-de-esta-entrega) antes del push. No hay variables ni bindings nuevos. La descarga en la app sigue en 4D.
+
+
+## Registro histórico: publicación de etapa 4A — 28-10-2026
 
 Esta entrega conserva el esquema 0013 y la configuración ya usada por 2d94cf5. No añade migraciones, bindings, variables, dependencias ni recursos remotos. Los pasos de instalación y migración de las secciones históricas no deben repetirse para publicarla.
 

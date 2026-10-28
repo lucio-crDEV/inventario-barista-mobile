@@ -1,3 +1,7 @@
+Verificación 4B/4C — 28/10: 147 pruebas JavaScript y 13 Python aprobadas; ocho casos de captura/migración reforzados aprobados. D1 nativa con dos sesiones concurrentes, Excel contrastado con el plan y el verificador independiente, recuperación de capturas con sesiones revocadas y workerd con compatibilidad 2026-10-01 aprobados. [Resultados y límites](etapa-4bc-verificacion-2026-10-28.json). No hay migración ni publicación remotas.
+
+Etapas 4B/4C — 28/10: [capturas y generación fiel](etapa-4bc-exportacion.md). Implementación local; requiere 0014 para la captura. No se aplicó a producción. UI/descarga/R2 quedan en 4D.
+
 Comprobación final etapa 4A — 28/10: 123/123 pruebas Node, 6/6 pruebas de fidelidad y reversión de C74, contrato de 1.151 filas y 41 referencias Vitrina, build/allowlist y tres suites del servidor D1/workerd aislado aprobados. Revisión visual de ambos tipos de diálogo en claro/oscuro a 390×844; fixture con estilos reales y datos ficticios, no aceptación completa de la app. Sin migraciones ni publicación. [Resultados y límites](etapa-4-verificacion-2026-10-28.json).
 
 Etapa 4A local — 28/10: backend separado por responsabilidades y contratos centralizados. [Estado y alcance](etapa-4-backend-y-contratos.md), [excepción reversible de Cocina C74](excepcion-stock-cocina-c74.md) y [evidencia](etapa-4-verificacion-2026-10-28.json). Sin migración ni publicación. El detalle de pruebas y límites se registra en la evidencia; los resultados locales no equivalen a aceptación productiva.
