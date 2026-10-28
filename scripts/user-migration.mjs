@@ -1,12 +1,18 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from 'node:fs/promises';
 // Generate a new migration; never rewrite the already applied core migration.
-const core = await readFile(new URL("../migrations/0001_core.sql", import.meta.url), "utf8");
-const view = core.slice(core.indexOf("CREATE VIEW count_records"), core.indexOf("CREATE TRIGGER accept_operation"));
-const apply = core.slice(core.indexOf("CREATE TRIGGER apply_operation"));
-let accept = core.slice(core.indexOf("CREATE TRIGGER accept_operation"), core.indexOf("CREATE TRIGGER apply_operation"));
+const core = await readFile(new URL('../migrations/0001_core.sql', import.meta.url), 'utf8');
+const view = core.slice(
+  core.indexOf('CREATE VIEW count_records'),
+  core.indexOf('CREATE TRIGGER accept_operation'),
+);
+const apply = core.slice(core.indexOf('CREATE TRIGGER apply_operation'));
+let accept = core.slice(
+  core.indexOf('CREATE TRIGGER accept_operation'),
+  core.indexOf('CREATE TRIGGER apply_operation'),
+);
 accept = accept.replace(
   "AND (u.role='admin' OR EXISTS(SELECT 1 FROM grants g JOIN scope_closure sc ON sc.ancestor=g.scope_id WHERE g.user_id=u.id AND sc.descendant=NEW.location_id))",
-  "AND u.deleted_at IS NULL AND EXISTS(SELECT 1 FROM inventory_permissions p WHERE p.user_id=u.id AND p.scope_id=NEW.location_id)",
+  'AND u.deleted_at IS NULL AND EXISTS(SELECT 1 FROM inventory_permissions p WHERE p.user_id=u.id AND p.scope_id=NEW.location_id)',
 );
 const sql = `-- Usuarios personales: nuevo rol, eliminación irreversible e identidad estable.
 -- D1 aplica la migración como transacción; preservar claves de todos los hijos.
@@ -49,5 +55,5 @@ CREATE VIEW inventory_permissions AS
 ${view}${accept}${apply}
 PRAGMA defer_foreign_keys=OFF;
 `;
-if (!accept.includes("inventory_permissions")) throw Error("Guardia de permisos no generada");
-await writeFile(new URL("../migrations/0003_users_service.sql", import.meta.url), sql);
+if (!accept.includes('inventory_permissions')) throw Error('Guardia de permisos no generada');
+await writeFile(new URL('../migrations/0003_users_service.sql', import.meta.url), sql);

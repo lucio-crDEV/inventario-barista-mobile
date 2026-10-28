@@ -1,16 +1,16 @@
-import { writeFile } from "node:fs/promises";
-import { hashPassword, checkPassword } from "../worker/password.js";
+import { writeFile } from 'node:fs/promises';
+import { hashPassword, checkPassword } from '../worker/password.js';
 // Measure the exact password library/parameters, without accounts, requests or DB.
 // Node process CPU is an indication, never Cloudflare's billed CPU measurement.
 const samples = [];
 let hash;
 for (let round = 0; round < 3; round++) {
-  for (const operation of ["hash", "verify"]) {
+  for (const operation of ['hash', 'verify']) {
     const before = process.cpuUsage(),
       start = performance.now();
-    if (operation === "hash") hash = await hashPassword("Solo-pruebas-2026");
-    else if (!(await checkPassword("Solo-pruebas-2026", hash)))
-      throw Error("No se verificó la contraseña ficticia.");
+    if (operation === 'hash') hash = await hashPassword('Solo-pruebas-2026');
+    else if (!(await checkPassword('Solo-pruebas-2026', hash)))
+      throw Error('No se verificó la contraseña ficticia.');
     const cpu = process.cpuUsage(before);
     samples.push({
       operation,
@@ -25,11 +25,8 @@ const report = {
   bcryptCost: 12,
   productionBillingMeasurement: false,
   warning:
-    "CPU del proceso Node local. No equivale a CPU facturada de Workers, no incluye D1 y no certifica compatibilidad con el plan Free.",
+    'CPU del proceso Node local. No equivale a CPU facturada de Workers, no incluye D1 y no certifica compatibilidad con el plan Free.',
   samples,
 };
-await writeFile(
-  "docs/perfil-local-3a.json",
-  JSON.stringify(report, null, 2) + "\n",
-);
+await writeFile('docs/perfil-local-3a.json', JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));

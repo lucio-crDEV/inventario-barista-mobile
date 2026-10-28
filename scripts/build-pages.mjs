@@ -14,5 +14,8 @@ await build({
 });
 // Only the directory produced by the browser bundler bypasses the API Worker.
 // HTML, unknown paths, private sources and APIs retain routing/security guards.
-await writeFile('dist/_routes.json', JSON.stringify({ version: 1, include: ['/*'], exclude: ['/assets/*'] }, null, 2) + '\n');
+await writeFile(
+  'dist/_routes.json',
+  JSON.stringify({ version: 1, include: ['/*'], exclude: ['/assets/*'] }, null, 2) + '\n',
+);
 console.log('Pages: Worker preparado; /assets/* se sirve sin invocarlo.');

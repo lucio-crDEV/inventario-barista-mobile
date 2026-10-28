@@ -13,21 +13,23 @@ export function refreshLimit(userId) {
   const run = async (check) => {
     const retryAfter = remaining();
     if (retryAfter)
-      throw Object.assign(Error("Espera antes de volver a comprobar."), {
-        code: "REFRESH_COOLDOWN", retryAfter,
+      throw Object.assign(Error('Espera antes de volver a comprobar.'), {
+        code: 'REFRESH_COOLDOWN',
+        retryAfter,
       });
     next = Date.now() + REFRESH_COOLDOWN_MS;
-    try { localStorage.setItem(key, String(next)); } catch {}
+    try {
+      localStorage.setItem(key, String(next));
+    } catch {}
     // Failed attempts also consume the cooldown; no automatic retry is queued.
     return check();
   };
   return {
-    key, remaining,
+    key,
+    remaining,
     run(check) {
       // Serializes simultaneous taps from tabs on the same secure origin.
-      return navigator.locks
-        ? navigator.locks.request(key, () => run(check))
-        : run(check);
+      return navigator.locks ? navigator.locks.request(key, () => run(check)) : run(check);
     },
   };
 }

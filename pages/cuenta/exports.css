@@ -1,1 +1,125 @@
-.export-card{margin-top:16px}.export-card h2{margin:0 0 16px}.export-form{display:grid;gap:12px}.export-form label{display:grid;gap:7px}.export-form select{width:100%;min-width:0;min-height:48px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ui-text);background:var(--ui-control-bg,var(--ui-surface));border:0;border-radius:12px}.export-feedback:empty,.export-actions:empty{display:none}.export-feedback{font-size:14px;margin:14px 0 0}.export-feedback[data-tone=error]{color:var(--ui-danger,#bd4343)}.export-review:not(:empty){margin-top:16px}.export-totals{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;color:var(--ui-muted)}.export-totals strong{color:var(--ui-text);font-size:20px;display:block}.export-warning{font-size:14px;color:var(--ui-text);padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-solid))}.export-actions{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}.export-card details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;font-size:14px}.export-card details summary::before{content:'›';display:inline-block;margin-right:9px}.export-card details[open]>summary::before{transform:rotate(90deg)}.export-history{margin-top:18px;border-top:1px solid var(--ui-border)}.export-history-item{font:inherit;text-align:left;background:transparent;color:var(--ui-text);border:0;border-radius:10px;padding:10px 4px;width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:10px}.export-history-item span:first-child{min-width:0;overflow-wrap:anywhere}.export-history-item small,.export-issues small{display:block;color:var(--ui-muted);font-size:12px;margin-top:4px}.export-issues{padding-left:20px;font-size:14px;max-height:240px;overflow:auto}.export-issues li{margin-bottom:10px}.export-card :is(button,select,summary):focus-visible{outline:0;filter:brightness(.92);background-color:color-mix(in srgb,var(--ui-accent) 8%,var(--ui-solid))}
+.export-card {
+  margin-top: 16px;
+}
+.export-card h2 {
+  margin: 0 0 16px;
+}
+.export-form {
+  display: grid;
+  gap: 12px;
+}
+.export-form label {
+  display: grid;
+  gap: 7px;
+}
+.export-form select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ui-text);
+  background: var(--ui-control-bg, var(--ui-surface));
+  border: 0;
+  border-radius: 12px;
+}
+.export-feedback:empty,
+.export-actions:empty {
+  display: none;
+}
+.export-feedback {
+  font-size: 14px;
+  margin: 14px 0 0;
+}
+.export-feedback[data-tone='error'] {
+  color: var(--ui-danger, #bd4343);
+}
+.export-review:not(:empty) {
+  margin-top: 16px;
+}
+.export-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 14px;
+  color: var(--ui-muted);
+}
+.export-totals strong {
+  color: var(--ui-text);
+  font-size: 20px;
+  display: block;
+}
+.export-warning {
+  font-size: 14px;
+  color: var(--ui-text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-solid));
+}
+.export-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.export-card details summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+.export-card details summary::before {
+  content: '›';
+  display: inline-block;
+  margin-right: 9px;
+}
+.export-card details[open] > summary::before {
+  transform: rotate(90deg);
+}
+.export-history {
+  margin-top: 18px;
+  border-top: 1px solid var(--ui-border);
+}
+.export-history-item {
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  color: var(--ui-text);
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 4px;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.export-history-item span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.export-history-item small,
+.export-issues small {
+  display: block;
+  color: var(--ui-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.export-issues {
+  padding-left: 20px;
+  font-size: 14px;
+  max-height: 240px;
+  overflow: auto;
+}
+.export-issues li {
+  margin-bottom: 10px;
+}
+.export-card :is(button, select, summary):focus-visible {
+  outline: 0;
+  filter: brightness(0.92);
+  background-color: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-solid));
+}

@@ -6,13 +6,12 @@
   box-sizing: border-box;
 }
 
-
 :root {
   font-family:
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     sans-serif;
 
   color: #222;
@@ -22,11 +21,9 @@
   -webkit-text-size-adjust: 100%;
 }
 
-
 html {
   min-height: 100%;
 }
-
 
 body {
   min-height: 100dvh;
@@ -36,7 +33,6 @@ body {
   background: #f5f5f5;
 }
 
-
 body.modal-open {
   overflow: hidden;
 }
@@ -45,7 +41,6 @@ body.item-drawer-open {
   overflow: hidden;
 }
 
-
 button,
 input,
 textarea,
@@ -53,16 +48,13 @@ select {
   font: inherit;
 }
 
-
 button {
   cursor: pointer;
 
   touch-action: manipulation;
 
-  -webkit-tap-highlight-color:
-    transparent;
+  -webkit-tap-highlight-color: transparent;
 }
-
 
 button:disabled {
   cursor: not-allowed;
@@ -70,26 +62,17 @@ button:disabled {
   opacity: 0.45;
 }
 
-
 /* ============================================================
    APP
    ============================================================ */
 
 .app {
-  width:
-    min(
-      calc(100% - 20px),
-      680px
-    );
+  width: min(calc(100% - 20px), 680px);
 
   margin: 0 auto;
 
-  padding:
-    calc(14px + env(safe-area-inset-top))
-    0
-    calc(28px + env(safe-area-inset-bottom));
+  padding: calc(14px + env(safe-area-inset-top)) 0 calc(28px + env(safe-area-inset-bottom));
 }
-
 
 /* ============================================================
    HEADER
@@ -100,7 +83,6 @@ button:disabled {
 
   text-align: center;
 }
-
 
 .app-title-row {
   position: relative;
@@ -114,20 +96,13 @@ button:disabled {
   min-height: 44px;
 }
 
-
 .app-header h1 {
   margin: 0;
 
-  font-size:
-    clamp(
-      1.25rem,
-      4.5vw,
-      1.5rem
-    );
+  font-size: clamp(1.25rem, 4.5vw, 1.5rem);
 
   line-height: 1.2;
 }
-
 
 #progress-text {
   margin: 7px 0 0;
@@ -138,7 +113,6 @@ button:disabled {
 
   text-align: right;
 }
-
 
 .header-back-button {
   position: absolute;
@@ -159,8 +133,7 @@ button:disabled {
 
   padding: 6px 0;
 
-  transform:
-    translateY(-50%);
+  transform: translateY(-50%);
 
   border: 0;
 
@@ -177,11 +150,9 @@ button:disabled {
   white-space: nowrap;
 }
 
-
 .header-back-button[hidden] {
   display: none;
 }
-
 
 /* ============================================================
    PROGRESO
@@ -203,7 +174,6 @@ button:disabled {
   border-radius: 999px;
 }
 
-
 .progress-bar {
   position: absolute;
 
@@ -224,7 +194,6 @@ button:disabled {
     width 0.25s ease;
 }
 
-
 .progress-bar-partial {
   background: #e5b52b;
 
@@ -232,7 +201,6 @@ button:disabled {
     left 0.25s ease,
     width 0.25s ease;
 }
-
 
 /* ============================================================
    CATEGORÍAS
@@ -244,18 +212,11 @@ button:disabled {
   gap: 14px;
 }
 
-
 .categories-heading h2 {
   margin: 0;
 
-  font-size:
-    clamp(
-      1.2rem,
-      4.8vw,
-      1.4rem
-    );
+  font-size: clamp(1.2rem, 4.8vw, 1.4rem);
 }
-
 
 .categories-heading p {
   margin: 4px 0 0;
@@ -265,19 +226,13 @@ button:disabled {
   font-size: 0.84rem;
 }
 
-
 .category-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      2,
-      minmax(0, 1fr)
-    );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
   gap: 10px;
 }
-
 
 .category-card {
   display: flex;
@@ -290,8 +245,7 @@ button:disabled {
 
   padding: 14px;
 
-  border:
-    1px solid #ddd;
+  border: 1px solid #ddd;
 
   border-radius: 14px;
 
@@ -308,7 +262,6 @@ button:disabled {
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
-
 
 .scope-card {
   min-height: 88px;
@@ -331,7 +284,6 @@ button:disabled {
   line-height: 1.2;
 }
 
-
 .category-card-progress {
   align-self: end;
 
@@ -343,7 +295,6 @@ button:disabled {
 
   line-height: 1.35;
 }
-
 
 .category-progress-bar {
   position: relative;
@@ -363,7 +314,6 @@ button:disabled {
   background: #e5e5e5;
 }
 
-
 .category-progress-value {
   position: absolute;
 
@@ -379,10 +329,8 @@ button:disabled {
 
   background: #1d6b2f;
 
-  transition:
-    width 0.25s ease;
+  transition: width 0.25s ease;
 }
-
 
 .category-progress-partial {
   position: absolute;
@@ -399,7 +347,6 @@ button:disabled {
     left 0.25s ease,
     width 0.25s ease;
 }
-
 
 .back-button {
   width: fit-content;
@@ -421,7 +368,6 @@ button:disabled {
   text-align: left;
 }
 
-
 .back-arrow {
   flex-shrink: 0;
 
@@ -430,17 +376,13 @@ button:disabled {
   padding-left: 0.75rem;
 }
 
-
 .category-card:focus-visible,
 .back-button:focus-visible,
 .header-back-button:focus-visible {
-  outline:
-    3px solid
-    rgb(0 0 0 / 18%);
+  outline: 3px solid rgb(0 0 0 / 18%);
 
   outline-offset: 2px;
 }
-
 
 /* ============================================================
    CONTEO
@@ -452,11 +394,9 @@ button:disabled {
   gap: 16px;
 }
 
-
 .item-navigation-top {
   display: block;
 }
-
 
 .item-drawer-trigger {
   display: flex;
@@ -531,9 +471,11 @@ button:disabled {
   background: rgb(184 184 184 / 52%);
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
-  box-shadow: 0 6px 18px rgb(0 0 0 / 10%), inset 0 1px rgb(255 255 255 / 42%);
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 10%),
+    inset 0 1px rgb(255 255 255 / 42%);
   transform: translateX(-105%);
-  transition: transform 0.34s cubic-bezier(.22, 1, .36, 1);
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
   outline: none;
 }
 
@@ -621,7 +563,7 @@ button:disabled {
 }
 
 .item-drawer-group-toggle::after {
-  content: "›";
+  content: '›';
   margin-left: 10px;
   color: #555;
   font-size: 1.4rem;
@@ -630,7 +572,7 @@ button:disabled {
 }
 
 .item-drawer-group[open] > .item-drawer-group-toggle::after {
-  content: "⌄";
+  content: '⌄';
 }
 
 .item-drawer-group-toggle:focus-visible {
@@ -684,9 +626,15 @@ button:disabled {
   border-radius: 50%;
 }
 
-.status-dot-pending { background: #cb514c; }
-.status-dot-partial { background: #dda637; }
-.status-dot-counted { background: #45a573; }
+.status-dot-pending {
+  background: #cb514c;
+}
+.status-dot-partial {
+  background: #dda637;
+}
+.status-dot-counted {
+  background: #45a573;
+}
 
 .item-drawer-empty {
   padding: 24px 6px;
@@ -699,16 +647,10 @@ button:disabled {
   display: none !important;
 }
 
-
 .item-card {
   min-width: 0;
 
-  padding:
-    clamp(
-      17px,
-      3.5vw,
-      21px
-    );
+  padding: clamp(17px, 3.5vw, 21px);
 
   background: #fff;
 
@@ -717,7 +659,6 @@ button:disabled {
   border: 1px solid #e7e7e7;
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
 }
-
 
 .item-header {
   display: flex;
@@ -729,11 +670,9 @@ button:disabled {
   gap: 14px;
 }
 
-
 .item-heading {
   min-width: 0;
 }
-
 
 .item-category {
   display: block;
@@ -749,22 +688,15 @@ button:disabled {
   letter-spacing: 0.04em;
 }
 
-
 .item-card h2 {
   margin: 0;
 
-  font-size:
-    clamp(
-      1.1rem,
-      4.5vw,
-      1.3rem
-    );
+  font-size: clamp(1.1rem, 4.5vw, 1.3rem);
 
   line-height: 1.2;
 
   overflow-wrap: anywhere;
 }
-
 
 .item-area {
   margin: 7px 0 0;
@@ -774,7 +706,6 @@ button:disabled {
   font-size: 0.86rem;
 }
 
-
 /* ============================================================
    ESTADOS
    ============================================================ */
@@ -782,8 +713,7 @@ button:disabled {
 .status-badge {
   flex-shrink: 0;
 
-  padding:
-    5px 8px;
+  padding: 5px 8px;
 
   border-radius: 999px;
 
@@ -794,13 +724,11 @@ button:disabled {
   white-space: nowrap;
 }
 
-
 .status-pending {
   background: #fce8e8;
 
   color: #a61b1b;
 }
-
 
 .status-partial {
   background: #fff1d6;
@@ -808,13 +736,11 @@ button:disabled {
   color: #8a5b00;
 }
 
-
 .status-counted {
   background: #e5f4e8;
 
   color: #1d6b2f;
 }
-
 
 /* ============================================================
    FORMULARIOS
@@ -828,20 +754,17 @@ button:disabled {
   margin-top: 18px;
 }
 
-
 .field label {
   font-size: 0.88rem;
 
   font-weight: 650;
 }
 
-
 .field input,
 .field textarea {
   width: 100%;
 
-  border:
-    1px solid #ccc;
+  border: 1px solid #ccc;
 
   border-radius: 10px;
 
@@ -856,26 +779,21 @@ button:disabled {
     box-shadow 0.15s ease;
 }
 
-
 .field input {
   min-height: 50px;
 
-  padding:
-    10px 12px;
+  padding: 10px 12px;
 
   font-size: 1.1rem;
 }
 
-
 .field textarea {
   min-height: 76px;
 
-  padding:
-    10px 12px;
+  padding: 10px 12px;
 
   resize: vertical;
 }
-
 
 .field input:focus,
 .field textarea:focus,
@@ -885,9 +803,7 @@ button:disabled {
 .item-drawer-search:focus {
   border-color: #222;
 
-  box-shadow:
-    0 0 0 3px
-    rgb(0 0 0 / 7%);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 7%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -898,13 +814,11 @@ button:disabled {
   }
 }
 
-
 .field small {
   color: #777;
 
   font-size: 0.76rem;
 }
-
 
 /* ============================================================
    ACCIONES
@@ -913,20 +827,17 @@ button:disabled {
 .count-actions {
   display: grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 
   gap: 10px;
 }
-
 
 .button {
   width: 100%;
 
   min-height: 46px;
 
-  padding:
-    10px 13px;
+  padding: 10px 13px;
 
   border-radius: 11px;
 
@@ -939,8 +850,6 @@ button:disabled {
     opacity 0.2s ease;
 }
 
-
-
 .button-primary {
   border: 0;
 
@@ -949,26 +858,21 @@ button:disabled {
   color: #fff;
 }
 
-
 .button-secondary {
-  border:
-    1px solid #ccc;
+  border: 1px solid #ccc;
 
   background: #fff;
 
   color: #222;
 }
 
-
 .button-ghost {
-  border:
-    1px solid transparent;
+  border: 1px solid transparent;
 
   background: transparent;
 
   color: #555;
 }
-
 
 .button-danger {
   border: 0;
@@ -977,7 +881,6 @@ button:disabled {
 
   color: #fff;
 }
-
 
 /* ============================================================
    FEEDBACK
@@ -993,16 +896,13 @@ button:disabled {
   font-size: 0.82rem;
 }
 
-
 .feedback-success {
   color: #1d6b2f;
 }
 
-
 .feedback-error {
   color: #a61b1b;
 }
-
 
 /* ============================================================
    RESUMEN
@@ -1014,23 +914,15 @@ button:disabled {
   gap: 13px;
 }
 
-
 .summary-header {
   padding-bottom: 2px;
 }
 
-
 .summary-header h2 {
   margin: 0;
 
-  font-size:
-    clamp(
-      1.2rem,
-      4.8vw,
-      1.4rem
-    );
+  font-size: clamp(1.2rem, 4.8vw, 1.4rem);
 }
-
 
 .summary-header p {
   margin: 4px 0 0;
@@ -1040,7 +932,6 @@ button:disabled {
   font-size: 0.84rem;
 }
 
-
 /* ============================================================
    ESTADÍSTICAS
    ============================================================ */
@@ -1048,21 +939,15 @@ button:disabled {
 .stats-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 
   gap: 7px;
 }
 
-
 .stat-card {
   min-width: 0;
 
-  padding:
-    11px 8px;
+  padding: 11px 8px;
 
   border: 0;
 
@@ -1077,14 +962,11 @@ button:disabled {
   text-align: center;
 }
 
-
 .stat-card:focus-visible {
-  outline:
-    2px solid #397b4b;
+  outline: 2px solid #397b4b;
 
   outline-offset: 2px;
 }
-
 
 .stat-card strong {
   display: block;
@@ -1093,7 +975,6 @@ button:disabled {
 
   line-height: 1.1;
 }
-
 
 .stat-card span {
   display: block;
@@ -1105,21 +986,17 @@ button:disabled {
   white-space: nowrap;
 }
 
-
 .stat-pending span {
   color: #a61b1b;
 }
-
 
 .stat-partial span {
   color: #8a5b00;
 }
 
-
 .stat-counted span {
   color: #1d6b2f;
 }
-
 
 /* ============================================================
    ACORDEONES
@@ -1131,7 +1008,6 @@ button:disabled {
   gap: 7px;
 }
 
-
 .accordion {
   overflow: hidden;
 
@@ -1139,7 +1015,6 @@ button:disabled {
 
   border-radius: 11px;
 }
-
 
 .accordion summary {
   display: flex;
@@ -1152,8 +1027,7 @@ button:disabled {
 
   min-height: 46px;
 
-  padding:
-    11px 13px;
+  padding: 11px 13px;
 
   cursor: pointer;
 
@@ -1163,32 +1037,24 @@ button:disabled {
 
   font-weight: 650;
 
-  -webkit-tap-highlight-color:
-    transparent;
+  -webkit-tap-highlight-color: transparent;
 }
-
 
 .accordion summary::-webkit-details-marker {
   display: none;
 }
 
-
 .accordion summary::after {
-  content: "▸";
+  content: '▸';
 
   color: #888;
 
-  transition:
-    transform 0.15s ease;
+  transition: transform 0.15s ease;
 }
 
-
-.accordion[open]
-  summary::after {
-  transform:
-    rotate(90deg);
+.accordion[open] summary::after {
+  transform: rotate(90deg);
 }
-
 
 .section-count {
   margin-left: auto;
@@ -1200,14 +1066,11 @@ button:disabled {
   font-weight: 500;
 }
 
-
 .accordion-content {
   display: grid;
 
-  border-top:
-    1px solid #eee;
+  border-top: 1px solid #eee;
 }
-
 
 /* ============================================================
    ITEMS DEL RESUMEN
@@ -1226,13 +1089,11 @@ button:disabled {
 
   min-height: 50px;
 
-  padding:
-    9px 13px;
+  padding: 9px 13px;
 
   border: 0;
 
-  border-bottom:
-    1px solid #eee;
+  border-bottom: 1px solid #eee;
 
   background: #fff;
 
@@ -1241,17 +1102,13 @@ button:disabled {
   text-align: left;
 }
 
-
 .summary-item-button:last-child {
   border-bottom: 0;
 }
 
-
-
 .summary-item-main {
   min-width: 0;
 }
-
 
 .summary-item-main strong {
   display: block;
@@ -1260,7 +1117,6 @@ button:disabled {
 
   font-size: 0.84rem;
 }
-
 
 .summary-item-main small {
   display: block;
@@ -1271,7 +1127,6 @@ button:disabled {
 
   font-size: 0.7rem;
 }
-
 
 .summary-item-value {
   display: flex;
@@ -1291,46 +1146,39 @@ button:disabled {
   text-align: right;
 }
 
-
 .summary-arrow {
   color: #999;
 
   font-size: 0.85rem;
 }
 
-
 .summary-empty {
   margin: 0;
 
-  padding:
-    11px 13px;
+  padding: 11px 13px;
 
   color: #888;
 
   font-size: 0.75rem;
 }
 
-
 /* ============================================================
    RESPONSABLE
    ============================================================ */
 
 .responsible-section {
-  padding:
-    13px;
+  padding: 13px;
 
   background: #fff;
 
   border-radius: 11px;
 }
 
-
 .section-heading h3 {
   margin: 0;
 
   font-size: 0.9rem;
 }
-
 
 .section-heading p {
   margin: 3px 0 0;
@@ -1340,7 +1188,6 @@ button:disabled {
   font-size: 0.75rem;
 }
 
-
 /* ============================================================
    ACCIONES DEL RESUMEN
    ============================================================ */
@@ -1348,20 +1195,17 @@ button:disabled {
 .summary-actions {
   display: grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 
   gap: 8px;
 }
-
 
 /* ============================================================
    EMPTY
    ============================================================ */
 
 .empty-state {
-  padding:
-    25px 18px;
+  padding: 25px 18px;
 
   background: #fff;
 
@@ -1370,20 +1214,17 @@ button:disabled {
   text-align: center;
 }
 
-
 .empty-state h2 {
   margin-top: 0;
 
   font-size: 1.1rem;
 }
 
-
 .empty-state p {
   color: #666;
 
   font-size: 0.85rem;
 }
-
 
 /* ============================================================
    MODAL
@@ -1400,36 +1241,19 @@ button:disabled {
 
   place-items: center;
 
-  padding:
-    calc(
-      14px +
-      env(safe-area-inset-top)
-    )
-    14px
-    calc(
-      14px +
-      env(safe-area-inset-bottom)
-    );
+  padding: calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
 
-  background:
-    rgb(0 0 0 / 45%);
+  background: rgb(0 0 0 / 45%);
 }
-
 
 .modal-backdrop[hidden] {
   display: none;
 }
 
-
 .modal {
-  width:
-    min(
-      100%,
-      420px
-    );
+  width: min(100%, 420px);
 
-  padding:
-    20px;
+  padding: 20px;
 
   background: #fff;
 
@@ -1437,7 +1261,6 @@ button:disabled {
 
   box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
 }
-
 
 .modal-icon {
   display: grid;
@@ -1448,8 +1271,7 @@ button:disabled {
 
   height: 42px;
 
-  margin:
-    0 auto 10px;
+  margin: 0 auto 10px;
 
   border-radius: 50%;
 
@@ -1462,17 +1284,14 @@ button:disabled {
   font-weight: 800;
 }
 
-
 .modal h2 {
   margin: 0;
 
   font-size: 1.15rem;
 }
 
-
 .modal p {
-  margin:
-    9px 0 0;
+  margin: 9px 0 0;
 
   color: #555;
 
@@ -1481,7 +1300,6 @@ button:disabled {
   line-height: 1.45;
 }
 
-
 .modal-actions {
   display: grid;
 
@@ -1489,7 +1307,6 @@ button:disabled {
 
   margin-top: 18px;
 }
-
 
 /* ============================================================
    PANTALLAS PEQUEÑAS
@@ -1549,51 +1366,78 @@ button:disabled {
   .status-badge {
     align-self: flex-start;
   }
-
 }
 
 @media (max-width: 380px) {
   .count-actions {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
   }
-
 
   .summary-item-value {
     max-width: 38%;
   }
-
 }
-
 
 /* ============================================================
    PANTALLAS GRANDES
    ============================================================ */
 
 @media (min-width: 700px) {
-
   .app {
     padding-top: 24px;
   }
 
-
   .summary-actions {
-    grid-template-columns:
-      repeat(
-        2,
-        1fr
-      );
+    grid-template-columns: repeat(2, 1fr);
   }
-
 }
 
 /* Compact metadata row leaves the product name the full card width. */
-.count-view .item-header { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 6px 8px; }
-.count-view .item-heading { display: contents; }
-.count-view .item-category { grid-column: 1; grid-row: 1; margin: 4px 0 0; line-height: 1.4; }
-.count-view .status-badge { grid-column: 2; grid-row: 1; align-self: start; padding: 4px 7px; font-size: 11px; }
-.count-view .item-heading h2 { grid-column: 1 / -1; grid-row: 2; margin-top: 3px; }
-.count-view .count-actions { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
-.count-actions .button { min-width: 0; padding-inline: 7px; }
-.count-actions.above-keyboard { position: fixed; z-index: 50; left: 12px; right: 12px; padding: 8px; border-radius: 12px; background: var(--ui-solid); border: 1px solid var(--ui-border); }
-.count-view:has(.above-keyboard) { padding-bottom: var(--keyboard-space,72px); }
+.count-view .item-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 8px;
+}
+.count-view .item-heading {
+  display: contents;
+}
+.count-view .item-category {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+.count-view .status-badge {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+.count-view .item-heading h2 {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 3px;
+}
+.count-view .count-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+.count-actions .button {
+  min-width: 0;
+  padding-inline: 7px;
+}
+.count-actions.above-keyboard {
+  position: fixed;
+  z-index: 50;
+  left: 12px;
+  right: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--ui-solid);
+  border: 1px solid var(--ui-border);
+}
+.count-view:has(.above-keyboard) {
+  padding-bottom: var(--keyboard-space, 72px);
+}

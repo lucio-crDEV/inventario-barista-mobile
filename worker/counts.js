@@ -6,12 +6,11 @@ import { current, allowedItem } from './inventory-queries.js';
 import { countFields, validCountCommand } from './count-contract.js';
 const actorCTE = permissionsSQL({ column: 'id' });
 export async function saveCount(req, db, { u, hash }, event) {
-
-  if (req.headers.get("X-Inventory-User") !== u.id)
+  if (req.headers.get('X-Inventory-User') !== u.id)
     fail(
       409,
-      "IDENTITY_CHANGED",
-      "La cuenta cambió. Inicia sesión de nuevo; el borrador permanece aislado.",
+      'IDENTITY_CHANGED',
+      'La cuenta cambió. Inicia sesión de nuevo; el borrador permanece aislado.',
     );
   const b = await body(req);
   const keys = countFields;
@@ -24,7 +23,7 @@ export async function saveCount(req, db, { u, hash }, event) {
   try {
     await db
       .prepare(
-        "INSERT INTO operations(id,fingerprint,user_id,session_hash,cycle_id,item_id,location_id,expected_version,action,q,unit,status,note,out_of_stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        'INSERT INTO operations(id,fingerprint,user_id,session_hash,cycle_id,item_id,location_id,expected_version,action,q,unit,status,note,out_of_stock) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       )
       .bind(
         b.id,
@@ -45,21 +44,21 @@ export async function saveCount(req, db, { u, hash }, event) {
       .run();
   } catch (e) {
     const code = databaseErrorCode(e, [
-      "FORBIDDEN",
-      "ID_REUSED",
-      "CYCLE_CLOSED",
-      "INVALID_ITEM_UNIT",
-      "STALE",
-      "FOREIGN_RECORD",
-      "INVALID_ZERO",
-      "QUANTITY_LIMIT",
-      "ITEM_INACTIVE",
+      'FORBIDDEN',
+      'ID_REUSED',
+      'CYCLE_CLOSED',
+      'INVALID_ITEM_UNIT',
+      'STALE',
+      'FOREIGN_RECORD',
+      'INVALID_ZERO',
+      'QUANTITY_LIMIT',
+      'ITEM_INACTIVE',
     ]);
     if (code)
       fail(
-        code === "FORBIDDEN"
+        code === 'FORBIDDEN'
           ? 403
-          : ["STALE", "FOREIGN_RECORD", "ID_REUSED"].includes(code)
+          : ['STALE', 'FOREIGN_RECORD', 'ID_REUSED'].includes(code)
             ? 409
             : 400,
         code,
@@ -77,6 +76,6 @@ export async function saveCount(req, db, { u, hash }, event) {
     )
     .bind(hash, b.id)
     .first();
-  if (!result) fail(403, "FORBIDDEN");
+  if (!result) fail(403, 'FORBIDDEN');
   return json({ operationId: b.id, record: JSON.parse(result.result) });
 }

@@ -1,1 +1,1 @@
-import "./accounts-view.js";
+import './accounts-view.js';

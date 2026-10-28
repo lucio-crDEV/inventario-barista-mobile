@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.wrangler/
+.backups/
+.exports/
+data/
+migrations/
+inventarios_og/
+sources/
+docs/
+package-lock.json

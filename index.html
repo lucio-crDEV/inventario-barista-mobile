@@ -1,42 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#faf8f3">
-  <title>Inventario</title>
-  <script src="./theme.js"></script>
-  <style>
-    * { box-sizing: border-box; }
-    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #222; background: #f5f5f5; }
-    body { margin: 0; min-height: 100dvh; }
-    main { width: min(100% - 32px, 720px); margin: 0 auto; padding: calc(32px + env(safe-area-inset-top)) 0 calc(32px + env(safe-area-inset-bottom)); }
-    h1 { margin: 8px 0 6px; text-align: center; font-size: 1.65rem; }
-    p { margin: 0 0 26px; text-align: center; color: #666; }
-    nav { display: grid; gap: 12px; }
-    a { display: flex; align-items: center; justify-content: space-between; min-height: 74px; padding: 16px 20px; border: 1px solid #ddd; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 4%); color: inherit; text-decoration: none; font-size: 1.08rem; font-weight: 700; -webkit-tap-highlight-color: transparent; }
-    a:focus-visible { outline: 3px solid #777; outline-offset: 2px; }
-    .arrow { color: #777; font-size: 1.4rem; }
-  </style>
-  <link rel="stylesheet" href="./theme.css">
-  <link rel="stylesheet" href="/shared/shared.css">
-    <link rel="stylesheet" href="/shared/revision.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#faf8f3" />
+    <title>Inventario</title>
+    <script src="./theme.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #222; background: #f5f5f5; }
+      body { margin: 0; min-height: 100dvh; }
+      main { width: min(100% - 32px, 720px); margin: 0 auto; padding: calc(32px + env(safe-area-inset-top)) 0 calc(32px + env(safe-area-inset-bottom)); }
+      h1 { margin: 8px 0 6px; text-align: center; font-size: 1.65rem; }
+      p { margin: 0 0 26px; text-align: center; color: #666; }
+      nav { display: grid; gap: 12px; }
+      a { display: flex; align-items: center; justify-content: space-between; min-height: 74px; padding: 16px 20px; border: 1px solid #ddd; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 4%); color: inherit; text-decoration: none; font-size: 1.08rem; font-weight: 700; -webkit-tap-highlight-color: transparent; }
+      a:focus-visible { outline: 3px solid #777; outline-offset: 2px; }
+      .arrow { color: #777; font-size: 1.4rem; }
+    </style>
+    <link rel="stylesheet" href="./theme.css" />
+    <link rel="stylesheet" href="/shared/shared.css" />
+    <link rel="stylesheet" href="/shared/revision.css" />
   </head>
-<body>
-  <main>
-    <div class="home-header">
-      <h1>Inventario</h1>
-      <button class="theme-toggle settings-toggle" type="button" data-settings-toggle aria-label="Abrir menú de cuenta y ajustes" aria-controls="settings-drawer" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg></button>
-    </div>
-    <section id="home-loading" aria-busy="true"><div class="loading-state loading-navigation"><p class="loading-label" role="status">Cargando tus áreas…<small data-loading-hint></small></p><div class="skeleton-stack" aria-hidden="true"><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div></div></div></section>
-    <nav hidden class="area-nav" aria-label="Áreas de inventario">
-      <a class="area-link area-principal" href="./pages/inventario/?area=principal"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 14 16 5l12 9v13H4zM10 27V17h12v10M4 14h24M13 21h6M13 24h6"/></svg></span><span class="area-name">Bodega / Principal</span><span class="arrow" aria-hidden="true">›</span></a>
-      <a class="area-link area-cocina" href="./pages/inventario/?area=cocina"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 21a6 6 0 0 1-2-10 6 6 0 0 1 10-5 6 6 0 0 1 10 5 6 6 0 0 1-2 10v6H8zM8 20h16"/></svg></span><span class="area-name">Cocina</span><span class="arrow" aria-hidden="true">›</span></a>
-      <a class="area-link area-panaderia" href="./pages/inventario/?area=panaderia"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 23c-3-4-1-10 5-13 6-4 13-2 16 3 3 5-1 12-7 14-6 2-11 1-14-4ZM11 13l4 5m2-8 4 5"/></svg></span><span class="area-name">Panadería</span><span class="arrow" aria-hidden="true">›</span></a>
-      <a class="area-link area-pasteleria" href="./pages/inventario/?area=pasteleria"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 16h22v11H5zM5 21c3 2 5 2 8 0 3 2 5 2 8 0 2 2 4 2 6 0M10 16c-2-4 0-7 5-7 1-4 7-4 8 0 5 0 7 3 5 7"/></svg></span><span class="area-name">Pastelería</span><span class="arrow" aria-hidden="true">›</span></a>
-      <a class="area-link area-servicio" href="./pages/inventario/?area=servicio"><span class="area-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 9h18v10a9 9 0 0 1-18 0zM23 11h4a4 4 0 0 1 0 8h-4M4 27h22"/></svg></span><span class="area-name">Servicio</span><span class="arrow" aria-hidden="true">›</span></a>
-    </nav>
-  </main>
-  <script type="module" src="/shared/home.js"></script>
-</body>
+  <body>
+    <main>
+      <div class="home-header">
+        <h1>Inventario</h1>
+        <button
+          class="theme-toggle settings-toggle"
+          type="button"
+          data-settings-toggle
+          aria-label="Abrir menú de cuenta y ajustes"
+          aria-controls="settings-drawer"
+          aria-expanded="false"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="3" width="7.5" height="7.5" rx="2" />
+            <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" />
+            <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" />
+            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" />
+          </svg>
+        </button>
+      </div>
+      <section id="home-loading" aria-busy="true">
+        <div class="loading-state loading-navigation">
+          <p class="loading-label" role="status">
+            Cargando tus áreas…<small data-loading-hint></small>
+          </p>
+          <div class="skeleton-stack" aria-hidden="true">
+            <div class="skeleton-card">
+              <span class="skeleton skeleton-line"></span
+              ><span class="skeleton skeleton-field"></span>
+            </div>
+            <div class="skeleton-card">
+              <span class="skeleton skeleton-line"></span
+              ><span class="skeleton skeleton-field"></span>
+            </div>
+            <div class="skeleton-card">
+              <span class="skeleton skeleton-line"></span
+              ><span class="skeleton skeleton-field"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <nav hidden class="area-nav" aria-label="Áreas de inventario">
+        <a class="area-link area-principal" href="./pages/inventario/?area=principal"
+          ><span class="area-icon" aria-hidden="true"
+            ><svg viewBox="0 0 32 32">
+              <path d="M4 14 16 5l12 9v13H4zM10 27V17h12v10M4 14h24M13 21h6M13 24h6" /></svg></span
+          ><span class="area-name">Bodega / Principal</span
+          ><span class="arrow" aria-hidden="true">›</span></a
+        >
+        <a class="area-link area-cocina" href="./pages/inventario/?area=cocina"
+          ><span class="area-icon" aria-hidden="true"
+            ><svg viewBox="0 0 32 32">
+              <path
+                d="M8 21a6 6 0 0 1-2-10 6 6 0 0 1 10-5 6 6 0 0 1 10 5 6 6 0 0 1-2 10v6H8zM8 20h16"
+              /></svg></span
+          ><span class="area-name">Cocina</span><span class="arrow" aria-hidden="true">›</span></a
+        >
+        <a class="area-link area-panaderia" href="./pages/inventario/?area=panaderia"
+          ><span class="area-icon" aria-hidden="true"
+            ><svg viewBox="0 0 32 32">
+              <path
+                d="M6 23c-3-4-1-10 5-13 6-4 13-2 16 3 3 5-1 12-7 14-6 2-11 1-14-4ZM11 13l4 5m2-8 4 5"
+              /></svg></span
+          ><span class="area-name">Panadería</span
+          ><span class="arrow" aria-hidden="true">›</span></a
+        >
+        <a class="area-link area-pasteleria" href="./pages/inventario/?area=pasteleria"
+          ><span class="area-icon" aria-hidden="true"
+            ><svg viewBox="0 0 32 32">
+              <path
+                d="M5 16h22v11H5zM5 21c3 2 5 2 8 0 3 2 5 2 8 0 2 2 4 2 6 0M10 16c-2-4 0-7 5-7 1-4 7-4 8 0 5 0 7 3 5 7"
+              /></svg></span
+          ><span class="area-name">Pastelería</span
+          ><span class="arrow" aria-hidden="true">›</span></a
+        >
+        <a class="area-link area-servicio" href="./pages/inventario/?area=servicio"
+          ><span class="area-icon" aria-hidden="true"
+            ><svg viewBox="0 0 32 32">
+              <path d="M5 9h18v10a9 9 0 0 1-18 0zM23 11h4a4 4 0 0 1 0 8h-4M4 27h22" /></svg></span
+          ><span class="area-name">Servicio</span><span class="arrow" aria-hidden="true">›</span></a
+        >
+      </nav>
+    </main>
+    <script type="module" src="/shared/home.js"></script>
+  </body>
 </html>

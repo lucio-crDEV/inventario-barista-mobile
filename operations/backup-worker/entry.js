@@ -3,7 +3,12 @@
 import { DurableObject } from 'cloudflare:workers';
 import worker, { BackupJob as BackupJobHandler } from './index.js';
 export class BackupJob extends DurableObject {
-  constructor(state,env) { super(state,env); this.job = new BackupJobHandler(state,env); }
-  fetch(request) { return this.job.fetch(request); }
+  constructor(state, env) {
+    super(state, env);
+    this.job = new BackupJobHandler(state, env);
+  }
+  fetch(request) {
+    return this.job.fetch(request);
+  }
 }
 export default worker;
