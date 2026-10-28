@@ -12,8 +12,9 @@ try {
   assert.ok(output.includes("_worker.js")); assert.ok(output.includes("_routes.json"));
   const routes=JSON.parse(readFileSync('dist/_routes.json','utf8'));
   assert.deepEqual(routes.include,['/*']);assert.ok(routes.exclude.length>0&&routes.exclude.length+1<=100);
-  for(const path of routes.exclude){assert.ok(/\.(?:js|css)$/.test(path));assert.ok(output.includes(path.slice(1)));assert.ok(!path.includes('*'));}
+  assert.deepEqual(routes.exclude, ['/assets/*']);
+  for(const path of output.filter(p=>p.startsWith('assets/')))assert.match(path,/^assets\/[\w.-]+-[A-Z0-9]{8}\.(?:js|css)$/);
   for(const path of ['/api/me','/pages/admin/','/index.html','/_worker.js','/worker/index.js'])assert.ok(!routes.exclude.includes(path));
   const headers=readFileSync('dist/_headers','utf8');assert.ok(headers.includes('nosniff'));assert.ok(headers.includes('must-revalidate'));
-  console.log('PASS package allowlist and exact public asset bypass; APIs/HTML/unknown paths still use Worker; static security/cache headers present');
+  console.log('PASS package allowlist and hashed public asset bypass; APIs/HTML/unknown paths still use Worker; static security/cache headers present');
 } finally { for (const file of files) unlinkSync(file); }

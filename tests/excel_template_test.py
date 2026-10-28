@@ -36,6 +36,20 @@ class ExcelBoundary(unittest.TestCase):
             return updated
         return {name:change}
 
+    def test_recalculation_requires_explicit_approval_and_only_two_flags(self):
+        def recalc(xml):
+            return re.sub(rb'(<calcPr\b[^>]*)(/>)', rb'\1 fullCalcOnLoad="1" forceFullCalc="1"\2', xml, count=1)
+        with tempfile.TemporaryDirectory() as directory:
+            candidate = self.candidate(directory, {'xl/workbook.xml': recalc})
+            with self.assertRaisesRegex(ValueError, 'UNAUTHORIZED_PART_CHANGED'):
+                guard.verify_copy(self.original, candidate, self.contract)
+            self.assertEqual(guard.verify_copy(self.original, candidate, self.contract, True), 0)
+            candidate = self.candidate(directory, {'xl/workbook.xml': lambda xml: recalc(xml).replace(b'fullCalcOnLoad="1"', b'fullCalcOnLoad="0"')})
+            with self.assertRaisesRegex(ValueError, 'UNAUTHORIZED_CALCULATION_CHANGE'):
+                guard.verify_copy(self.original, candidate, self.contract, True)
+            with self.assertRaisesRegex(ValueError, 'UNAUTHORIZED_CALCULATION_CHANGE'):
+                guard.verify_copy(self.original, self.original, self.contract, True)
+
     def test_original_identity_and_destinations(self):
         self.assertEqual(len(guard.check_original(self.original,self.contract)),10)
         self.assertEqual(sum(map(len,self.contract['sheets'].values())),1151)

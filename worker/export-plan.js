@@ -1,11 +1,11 @@
+import { catalogCardinalities as cardinalities } from '../shared/deployment-domain.js';
 import { excelRows } from '../data/inventario/items/catalogo-excel.js';
 import { excelTemplate } from '../data/inventario/export-template.js';
 
 export const exportPolicy = Object.freeze({
-  id:'stock-v1-3dp-preserve-calc',decimals:3,partial:'sum-counted',
-  excludeInactive:true,recalculateOnOpen:false,
+  id:'stock-v1-3dp-recalc-on-open',decimals:3,partial:'sum-counted',
+  excludeInactive:true,recalculateOnOpen:true,
 });
-const cardinalities = Object.freeze({'inventory-v2-2026-10-21':1227,'inventory-v3-2026-10-22':1268});
 const normalize = value => String(value || '').trim().toUpperCase();
 const key = (sheet,cell) => sheet+':'+cell;
 const referenceRows = new Map(Object.entries(excelRows).flatMap(([sheet,rows]) =>

@@ -6,14 +6,8 @@ import { mountInventoryContext } from "./inventory-context.js";
 import { settingsAccount } from "./settings.js";
 import { refreshLimit } from "./refresh-limit.js";
 import { roleNames, managesUsers } from "./roles.js";
-export const escapeHtml = (value) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
-      ],
-  );
+import { escapeHtml } from './html.js';
+export { escapeHtml } from './html.js';
 export const api = createAPI();
 export function loginRedirect() {
   location.replace("/pages/cuenta/");

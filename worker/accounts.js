@@ -1,5 +1,6 @@
+import { databaseErrorCode } from './db-errors.js';
 import { actorSQL as authorizedActorSQL } from './authorization.js';
-import { hashPassword, validPassword } from "./password.js";
+import { hashPassword as localHashPassword, validPassword } from "./password.js";
 
 const serviceGrant = (alias) => `EXISTS(SELECT 1 FROM grants g JOIN scope_closure c ON c.descendant=g.scope_id WHERE g.user_id=${alias}.id AND c.ancestor='servicio')`;
 const externalGrant = (alias) => `EXISTS(SELECT 1 FROM grants g WHERE g.user_id=${alias}.id AND NOT EXISTS(SELECT 1 FROM scope_closure c WHERE c.ancestor='servicio' AND c.descendant=g.scope_id))`;
@@ -10,7 +11,7 @@ const roles = ["worker", "service_lead", "admin"];
 const validUsername = value => typeof value === "string" && /^[a-z0-9._-]{3,40}$/.test(value);
 
 export async function accountRequest(req, db, path, { u, hash }, helpers) {
-  const { body, fail, json, userDTO, quota, event } = helpers;
+  const { body, fail, json, userDTO, quota, event, hashPassword=localHashPassword } = helpers;
   const guard = (target, revision, mode = "account", createRole = "worker", createGrants = []) => {
     let condition;
     if (mode === "profile") condition = `a.id=?2 AND a.revision=?3`;
@@ -38,7 +39,7 @@ export async function accountRequest(req, db, path, { u, hash }, helpers) {
           (action === "update-user" && detail.after.username !== undefined && (detail.before.username !== detail.after.username || !detail.after.active)))
         event.sessionsRevoked = true;
     } catch (e) {
-      if (/CHECK constraint failed: value=1/.test(e.message))
+      if (databaseErrorCode(e, ['ACCOUNT_CHANGED']))
         fail(409, "ACCOUNT_CHANGED", "La cuenta o tus permisos cambiaron. Recarga y revisa antes de guardar.");
       throw e;
     }

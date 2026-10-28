@@ -5,6 +5,7 @@
   "vars": {
     "APP_ENV": "production",
     "METRICS_ENABLED": "1",
+    "PASSWORD_WORK_REQUIRED":"1",
     "APP_ORIGIN": "https://inventario-login.pages.dev",
     "ACTIVE_CYCLE_ID": "piloto-v3-servicio"
   },
@@ -18,6 +19,8 @@
   ],
   "durable_objects": {
     "bindings": [
+      {"name":"PASSWORDS","class_name":"PasswordWork","script_name":"inventory-exports"},
+      {"name":"EXPORTS","class_name":"InventoryExport","script_name":"inventory-exports"},
       {
         "name": "REALTIME",
         "class_name": "InventoryRealtime",

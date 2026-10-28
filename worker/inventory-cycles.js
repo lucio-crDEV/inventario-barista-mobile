@@ -1,3 +1,4 @@
+import { databaseErrorCode } from './db-errors.js';
 import { permissionsSQL } from './authorization.js';
 import { defaultCycle } from '../shared/cycles.js';
 // Readiness must fail closed if a partial/manual schema is missing transactional guards.
@@ -61,7 +62,7 @@ export async function inventoryCyclesRequest(req,db,url,{u,hash},{json,fail,body
  try {
   await db.prepare(`INSERT INTO inventory_cycle_commands(id,fingerprint,user_id,session_hash,user_revision,kind,cycle_id,expected_revision,name,type,period,catalog_version,activate,confirm_warnings,confirmation_revision,confirmed_delete) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).bind(b.id,fingerprint,u.id,hash,u.revision,b.kind,b.cycleId,b.expectedRevision||0,b.kind==='create'?b.name.trim():b.kind==='activate'?openingDay.split('-').reverse().join('/'):'',intent.type||'both',intent.period||'',catalogVersion,b.activate===false?0:1,b.confirmWarnings===true?1:0,b.confirmationRevision??-1,b.confirm===true?1:0).run();
  }catch(e) {
-  const code=['FORBIDDEN','ID_REUSED','CYCLE_EXISTS','CYCLE_CHANGED','INVALID_TRANSITION','CATALOG_REQUIRED','DELETE_CONFIRMATION_REQUIRED','CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED'].find(c=>e.message.includes(c));
+  const code=databaseErrorCode(e, ['FORBIDDEN','ID_REUSED','CYCLE_EXISTS','CYCLE_CHANGED','INVALID_TRANSITION','CATALOG_REQUIRED','DELETE_CONFIRMATION_REQUIRED','CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED']);
   if(code)fail(code==='FORBIDDEN'?403:409,code,({CONFIRMATION_REQUIRED:'Revisa los avisos y confirma antes de continuar.',CONFIRMATION_CHANGED:'La lista de inventarios cambió. Revisa los avisos nuevamente.',CYCLE_CHANGED:'El inventario cambió. Actualiza antes de continuar.'})[code]||'No se pudo aplicar el cambio.',code.startsWith('CONFIRMATION_')?await warningData(db,intent):{});
   throw e;
  }

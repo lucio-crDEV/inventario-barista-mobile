@@ -1,3 +1,6 @@
+import {hashPasswordWithService} from './password-service.js';
+import { allowedArea } from '../shared/deployment-domain.js';
+import { exportJobRequest, exportJobPath } from './export-jobs.js';
 import { exportSnapshotRequest } from './export-snapshots.js';
 import { observeRequest, receiveTelemetry } from './observability.js';
 import { requestMetrics } from './request-metrics.js';
@@ -9,7 +12,7 @@ import { resolveCycle, inventoryCyclesRequest } from "./inventory-cycles.js";
 import { json, fail, body, secured, errorResponse } from './http.js';
 import { auth, login, logout, changePassword, userDTO, quota, digest } from './session.js';
 import { permissionsSQL } from './authorization.js';
-import { boot, current, allowedItem } from './inventory-queries.js';
+import { boot, current, allowedItem, searchItems, summarizeItems } from './inventory-queries.js';
 import { saveCount } from './counts.js';
 const actorCTE = permissionsSQL({ column: 'id' });
 async function api(req, env, url, event) {
@@ -84,6 +87,8 @@ async function api(req, env, url, event) {
   }
   if ((p.startsWith("/api/admin/") || p === "/api/profile") && req.method === "POST" && req.headers.get("X-Inventory-User") !== u.id)
     fail(409, "IDENTITY_CHANGED", "La cuenta de esta pestaña cambió. Recarga antes de guardar.");
+  if (p === '/api/admin/exports' || exportJobPath.test(p))
+    return exportJobRequest(req,env,url,{u,hash});
   if (p === '/api/admin/export-snapshots' || p.startsWith('/api/admin/export-snapshots/'))
     return exportSnapshotRequest(req,db,url,{u,hash});
   if (modernCycles && (p === '/api/cycles' || p === '/api/admin/cycles' || p === '/api/admin/cycles/command' || p === '/api/admin/supervision/cycles'))
@@ -91,7 +96,7 @@ async function api(req, env, url, event) {
   if (p === "/api/admin/supervision" || p.startsWith("/api/admin/supervision/"))
     return supervisionRequest(req,db,url,{u,hash,metadataRevision},{json:p==='/api/admin/supervision'&&req.method==='GET'?(data,status,headers)=>json({...data,realtime:!!env.REALTIME},status,headers):json,fail,body,userDTO,digest});
   if (p.startsWith("/api/admin/") || p === "/api/profile")
-    return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event });
+    return accountRequest(req, db, p, { u, hash }, { body, fail, json, userDTO, quota, event, hashPassword:async value=>hashPasswordWithService(env,value,await digest(u.id)) });
   if(p==='/api/realtime') {
     if(!env.REALTIME)fail(503,'REALTIME_UNAVAILABLE');
     if(req.method!=='GET'||req.headers.get('upgrade')?.toLowerCase()!=='websocket')fail(426,'WEBSOCKET_REQUIRED');
@@ -105,7 +110,7 @@ async function api(req, env, url, event) {
   const cycle = selectedCycle || "";
   if (p === "/api/bootstrap" && req.method === "GET") {
     const area=url.searchParams.get("area")||"";
-    if(area&&!['principal','cocina','panaderia','pasteleria','servicio'].includes(area))fail(400,'INVALID_AREA');
+    if(area&&!allowedArea(area))fail(400,'INVALID_AREA');
     const data = await boot(db, hash, cycle,area);
     event.scope = [...new Set(data.items.map(x => x.areaId))].sort().join(",") || "none";
     return json({ ...data, user: userDTO(u),realtime:!!env.REALTIME });
@@ -126,28 +131,12 @@ async function api(req, env, url, event) {
     });
   }
   if ((p === "/api/search" || p === "/api/summary") && req.method === "GET") {
-    const data = await boot(db, hash, cycle),
-      scope = url.searchParams.get("scope");
-    if (scope && !data.scopes.some((x) => x.id === scope))
-      fail(403, "FORBIDDEN");
-    const items = data.items.filter(
-      (x) =>
-        (x.active && (!scope ||
-          x.locationId === scope ||
-          x.locationId.startsWith(scope + ":"))) &&
-        x.name
-          .toLocaleLowerCase()
-          .includes((url.searchParams.get("q") || "").toLocaleLowerCase()),
-    );
-    if (p === "/api/search") return json({ items });
-    const ids = new Set(items.map((x) => x.id));
-    return json({
-      total: items.length,
-      counted: data.counts.filter(
-        (c) => ids.has(c.itemId) && c.status === "counted",
-      ).length,
-    });
+    const options = {scope:url.searchParams.get('scope') || '',query:url.searchParams.get('q') || ''};
+    return json(p === '/api/search'
+      ? {items:await searchItems(db,hash,cycle,options)}
+      : await summarizeItems(db,hash,cycle,options));
   }
+
   if ((p === "/api/record" || p === "/api/history") && req.method === "GET") {
     const item = url.searchParams.get("item"),
       location = url.searchParams.get("location");
@@ -197,12 +186,27 @@ export default {
       if (url.pathname === '/api/telemetry') res = await receiveTelemetry(req,env);
       else if (url.pathname.startsWith("/api/")) res = await api(req, event.measure ? {...env,DB:event.measure.DB} : env, url, event);
       else if (
-        !/^\/(?:$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
+        !/^\/(?:assets\/[\w.-]+\.(?:css|js)$|$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,
         )
       )
         res = json({ code: "NOT_FOUND" }, 404);
-      else res = await env.ASSETS.fetch(req);
+      else {
+        const protectedHTML = /^(?:\/(?:index\.html)?|\/pages\/(?:inventario|admin)(?:\/(?:[\w.-]+\.html|supervision)?)?)$/.test(url.pathname);
+        if (protectedHTML) {
+          let identity;
+          try { identity = await auth(req, env); }
+          catch (error) { if (error.status !== 401) throw error; }
+          if (!identity || identity.u.must_change) {
+            res = new Response(null, {status: 302, headers: {Location: '/pages/cuenta/', 'Cache-Control': 'no-store'}});
+          }
+        }
+        if (!res) res = await env.ASSETS.fetch(req);
+        if (res.headers.get('content-type')?.includes('text/html')) {
+          res = new Response(res.body, res);
+          res.headers.set('Cache-Control', 'no-store');
+        }
+      }
       return finish(res);
     } catch (e) {
       event.errorCode = e.status ? e.code : e.name;

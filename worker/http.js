@@ -1,3 +1,4 @@
+import { databaseErrorCode } from './db-errors.js';
 export const json = (data, status = 200, headers = {}) =>
   Response.json(data, {
     status,
@@ -52,11 +53,11 @@ export function secured(res, req) {
 }
 
 export function errorResponse(e) {
-  const known = e.status || /LAST_ADMIN|UNIQUE constraint/.test(e.message);
+  const databaseCode = databaseErrorCode(e, ['LAST_ADMIN','DUPLICATE']);
+  const known = e.status || databaseCode;
   return json({
-    code: e.code || (/LAST_ADMIN/.test(e.message) ? 'LAST_ADMIN' :
-      /UNIQUE constraint/.test(e.message) ? 'DUPLICATE' : 'SERVER_ERROR'),
-    message: e.status ? e.message : /LAST_ADMIN/.test(e.message)
+    code: e.code || databaseCode || 'SERVER_ERROR',
+    message: e.status ? e.message : databaseCode === 'LAST_ADMIN'
       ? 'Debe quedar un administrador activo.' : 'No se pudo completar la operación.',
     ...(e.current !== undefined ? { current: e.current } : {}),
     ...(e.completion !== undefined ? {

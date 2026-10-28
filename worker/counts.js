@@ -1,3 +1,4 @@
+import { databaseErrorCode } from './db-errors.js';
 import { body, fail, json } from './http.js';
 import { digest } from './session.js';
 import { permissionsSQL } from './authorization.js';
@@ -43,7 +44,7 @@ export async function saveCount(req, db, { u, hash }, event) {
       )
       .run();
   } catch (e) {
-    const code = [
+    const code = databaseErrorCode(e, [
       "FORBIDDEN",
       "ID_REUSED",
       "CYCLE_CLOSED",
@@ -53,7 +54,7 @@ export async function saveCount(req, db, { u, hash }, event) {
       "INVALID_ZERO",
       "QUANTITY_LIMIT",
       "ITEM_INACTIVE",
-    ].find((c) => e.message.includes(c));
+    ]);
     if (code)
       fail(
         code === "FORBIDDEN"

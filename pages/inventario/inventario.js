@@ -1,3 +1,4 @@
+import { escapeHtml } from '/shared/html.js';
 import { createSummaryState, renderSummaryView } from "./summary-view.js";
 import { showNotice, transitionItem } from "/shared/notices.js";
 import { SharedInventory } from "/shared/inventory.js";
@@ -442,32 +443,6 @@ function getStats() {
 // ============================================================
 // HTML SEGURO
 // ============================================================
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-}
-
 
 // ============================================================
 // CANTIDADES

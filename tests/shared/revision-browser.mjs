@@ -1,3 +1,4 @@
+import {testModule} from './bundled-test-module.mjs';
 import { chromium, expect } from '@playwright/test';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -46,7 +47,8 @@ try{
  await expect(admin.page.locator('.summary-progress-card')).toBeVisible();
  checks.push('Resumen agregado Servicio permite abrir producto; Administrador ve secuencia y anula por el mismo comando sin motivo obligatorio');
  // Exercise keyboard visual viewport geometry through the browser-provided interface seam.
- await page.evaluate(async()=>{window.noticeModule=await import('/shared/notices.js');const vv=new EventTarget();Object.assign(vv,{offsetTop:210,offsetLeft:0,width:390,height:330});Object.defineProperty(window,'visualViewport',{configurable:true,value:vv});window.noticeModule.showNotice('Listo. Conteo guardado.');});
+ await testModule(page,'notices','shared/notices.js');
+ await page.evaluate(async()=>{window.noticeModule=await import('/__test__/notices.js');const vv=new EventTarget();Object.assign(vv,{offsetTop:210,offsetLeft:0,width:390,height:330});Object.defineProperty(window,'visualViewport',{configurable:true,value:vv});window.noticeModule.showNotice('Listo. Conteo guardado.');});
  const notice=page.locator('.inventory-notice');await expect(notice).toBeVisible();const box=await notice.boundingBox();assert.ok(box.y>=210&&box.y<300,JSON.stringify(box));
  await page.evaluate(()=>{visualViewport.offsetTop=280;visualViewport.dispatchEvent(new Event('scroll'));});assert.ok((await notice.boundingBox()).y>=280);
  const swipe=await notice.boundingBox();await page.mouse.move(swipe.x+30,swipe.y+30);await page.mouse.down();await page.mouse.move(swipe.x+30,swipe.y-20,{steps:5});await page.mouse.up();await expect(notice).toHaveCount(0);

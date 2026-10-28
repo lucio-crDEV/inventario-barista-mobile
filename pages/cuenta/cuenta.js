@@ -36,6 +36,14 @@ if (unavailable) {
   identityBar(user);
   document.querySelector("#account-back").hidden = false;
   content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${esc(user.username)}</p><h2>Mi perfil</h2></div></div><form><label>Nombre visible<input name="name" value="${esc(user.name)}" required maxlength="80" autocomplete="name"></label><p class="field-hint">Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo ${esc(user.username)}.</p><button class="button button-primary" type="submit">Guardar nombre visible</button></form><a class="profile-password-link" href="/pages/cuenta/?change=1">Cambiar contraseña<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></section>`;
+  if (user.role === 'admin') {
+    // Loading the optional export screen must not prevent editing the profile.
+    import('./exports.js').then(({mountExports})=>mountExports(content,user)).catch(()=>{
+      const fallback=document.createElement('section');fallback.className='account-card export-card';
+      fallback.innerHTML='<h2>Exportar Excel</h2><p class="field-hint">No pudimos cargar la exportación.</p><button class="button" type="button">Reintentar exportación</button>';
+      fallback.querySelector('button').onclick=()=>location.reload();content.append(fallback);
+    });
+  }
   content.querySelector("form").onsubmit = async e => {
     e.preventDefault();
     const form = e.target, button = form.querySelector("button"), restore = pendingButton(button,"Guardando nombre…");

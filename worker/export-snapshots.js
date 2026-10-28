@@ -1,3 +1,4 @@
+import { databaseErrorCode } from './db-errors.js';
 import { body,fail,json } from './http.js';
 import { actorSQL } from './authorization.js';
 import { digest } from './session.js';
@@ -29,7 +30,7 @@ export async function exportSnapshotRequest(req,db,url,{u,hash}) {
       await db.prepare('INSERT INTO export_snapshot_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,expected_completion_revision,template_id,template_sha256,policy_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .bind(data.id,fingerprint,u.id,hash,u.revision,data.cycleId,data.expectedRevision,data.expectedCompletionRevision,excelTemplate.id,excelTemplate.sha256,exportPolicy.id).run();
     } catch(error) {
-      const code=['FORBIDDEN','ID_REUSED','INVENTORY_NOT_FINALIZED','EXPORT_SOURCE_CHANGED','CATALOG_REQUIRED','EXPORT_POLICY_UNSUPPORTED','EXPORT_CAPTURE_FAILED','EXPORT_SNAPSHOT_TOO_LARGE','EXPORT_RATE_LIMIT'].find(code=>error.message.includes(code));
+      const code=databaseErrorCode(error, ['FORBIDDEN','ID_REUSED','INVENTORY_NOT_FINALIZED','EXPORT_SOURCE_CHANGED','CATALOG_REQUIRED','EXPORT_POLICY_UNSUPPORTED','EXPORT_CAPTURE_FAILED','EXPORT_SNAPSHOT_TOO_LARGE','EXPORT_RATE_LIMIT']);
       if(code) fail(code==='FORBIDDEN'?403:code==='EXPORT_RATE_LIMIT'?429:409,code,({
         EXPORT_RATE_LIMIT:'Espera un minuto antes de preparar otra captura.',
         INVENTORY_NOT_FINALIZED:'Finaliza el inventario completo antes de exportar.',

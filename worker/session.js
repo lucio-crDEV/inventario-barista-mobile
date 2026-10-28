@@ -1,4 +1,5 @@
-import { hashPassword, checkPassword, validPassword, dummyHash } from './password.js';
+import { validPassword, dummyHash } from './password.js';
+import {checkPasswordWithService,hashPasswordWithService} from './password-service.js';
 import { json, fail, body } from './http.js';
 import { permissionsSQL } from './authorization.js';
 import { resolveCycle } from './inventory-cycles.js';
@@ -57,6 +58,7 @@ export async function quota(db, key, max) {
     .first();
   if (r.n > max)
     fail(429, "RATE_LIMIT", "Demasiados intentos. Espera 15 minutos.", { retryAfter: 900 });
+  return window;
 }
 
 export async function login(req, env, event, modernCycles) {
@@ -65,12 +67,12 @@ export async function login(req, env, event, modernCycles) {
   const b = await body(req);
   const username =
     typeof b.username === "string" ? b.username.toLowerCase().trim() : "";
-  await quota(
-    db,
-    "ip:" + (await digest(req.headers.get("cf-connecting-ip") || "local")),
-    100,
-  );
-  await quota(db, "user:" + (await digest(username)), 10);
+  // Reserve durable budgets before expensive bcrypt verification. A username
+  // alone must never let other networks lock an account globally.
+  const ipKey = "ip:" + await digest(req.headers.get("cf-connecting-ip") || "local");
+  const accountKey = "login-ip-user:" + await digest(ipKey + "\0" + username);
+  const ipWindow = await quota(db, ipKey, 100);
+  const accountWindow = await quota(db, accountKey, 10);
   const u = await db
     .prepare("SELECT * FROM users WHERE username=? AND deleted_at IS NULL")
     .bind(username)
@@ -78,9 +80,9 @@ export async function login(req, env, event, modernCycles) {
   const valid =
     typeof b.password === "string" &&
     new TextEncoder().encode(b.password).length <= 72;
-  const match = await checkPassword(
+  const match = await checkPasswordWithService(env,
     valid ? b.password : "invalid-password",
-    u?.password_hash || dummyHash,
+    u?.password_hash || dummyHash, ipKey.slice(3),
   );
   if (!u || !match || !u.active || !valid)
     fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
@@ -95,6 +97,11 @@ export async function login(req, env, event, modernCycles) {
     .run();
   if (!inserted.meta.changes)
     fail(401, "INVALID_LOGIN", "Usuario o contraseña incorrectos.");
+  // Successful use does not consume the failed-login budget. Release exactly
+  // this request's reservations, without erasing concurrent failures or reducing
+  // a new time window if verification crossed the fifteen-minute boundary.
+  await db.prepare("UPDATE attempts SET n=MAX(0,n-1) WHERE (key=? AND window=?) OR (key=? AND window=?)")
+    .bind(ipKey, ipWindow, accountKey, accountWindow).run();
   event.actor = u.id;
   event.measure?.phase("cycle");
   const loginCycle = await resolveCycle(db, hash, null, env.ACTIVE_CYCLE_ID,modernCycles);
@@ -123,10 +130,10 @@ export async function changePassword(req, db, env, { u, hash }, event) {
   if (
     typeof b.currentPassword !== "string" ||
     new TextEncoder().encode(b.currentPassword).length > 72 ||
-    !(await checkPassword(b.currentPassword, u.password_hash))
+    !(await checkPasswordWithService(env,b.currentPassword,u.password_hash,await digest(u.id)))
   )
     fail(400, "INVALID_PASSWORD", "Contraseña actual incorrecta.");
-  const h = await hashPassword(b.newPassword);
+  const h = await hashPasswordWithService(env,b.newPassword,await digest(u.id));
   const result = await db
     .prepare(
       "UPDATE users SET password_hash=?,must_change=0,revision=revision+1 WHERE id=? AND password_hash=? AND active=1 AND EXISTS(SELECT 1 FROM sessions WHERE hash=? AND expires>unixepoch())",

@@ -1,3 +1,4 @@
+import { catalogCountSQL, catalogVersionsSQL } from '../shared/deployment-domain.js';
 // Read-only deployment contract; legacy cycles remain intentionally supported.
 const schemaSQL = `AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='item_activity')
  AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='item_activity_events')
@@ -10,12 +11,12 @@ const schemaSQL = `AND EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND
  (type='view' AND name IN ('inventory_permissions','count_records')) OR
  (type='trigger' AND name IN ('accept_operation','apply_operation','revoke_sessions','last_admin_update','deleted_user_immutable')))=7`;
 export const readinessSQL = `SELECT 1 ready FROM cycles c WHERE c.id=?
- AND (c.catalog_version='inventory-v2-2026-10-21' AND (SELECT count(*) FROM catalog_items ci WHERE ci.version=c.catalog_version)=1227
- OR c.catalog_version='inventory-v3-2026-10-22' AND (SELECT count(*) FROM catalog_items ci WHERE ci.version=c.catalog_version)=1268)
+ AND (SELECT count(*) FROM catalog_items ci WHERE ci.version=c.catalog_version)=${catalogCountSQL('c.catalog_version')}
+ AND ${catalogCountSQL('c.catalog_version')}>0
  ${schemaSQL}`;
 // Polls/writes avoid scanning every catalog row; entry/bootstrap and preflight
 // perform full cardinality validation. Neither variant caches session/permissions.
 export const fastReadinessSQL = `SELECT 1 ready FROM cycles c WHERE c.id=?
- AND c.catalog_version IN ('inventory-v2-2026-10-21','inventory-v3-2026-10-22')
+ AND c.catalog_version IN (${catalogVersionsSQL})
  AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version)
  ${schemaSQL}`;

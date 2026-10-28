@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import worker from '../worker/index.js';
-import {deploymentState,runtimeReadinessSQL,runtimeSchemaSQL} from '../worker/runtime-readiness.js';
+import {deploymentState,runtimeReadinessSQL,legacyRuntimeReadinessSQL,runtimeSchemaSQL} from '../worker/runtime-readiness.js';
 import {listCycles,resolveCycle} from '../worker/inventory-cycles.js';
 import {defaultCycle} from '../shared/cycles.js';
 import {preflightDiscoverySQL,preflightSQL} from '../scripts/preflight.mjs';
@@ -44,7 +44,7 @@ test('0013 readiness and /me execute two SQL statements without catalog scans or
     t.diagnostic(JSON.stringify(f.db.sqlite.prepare("SELECT (SELECT count(*) FROM sqlite_schema WHERE substr(name,1,4)!='_cf_' AND substr(name,1,7)!='sqlite_') schemaObjects,length(schema_signature) signatureBytes FROM runtime_contract").get()));
     for(let i=0;i<3;i++){
       f.queries.length=0;const response=await f.call();assert.equal(response.status,200);assert.equal(response.data.user.id,f.identities.admin.id);
-      assert.equal(f.queries.length,2);assert.equal(f.queries[0],runtimeReadinessSQL);
+      assert.equal(f.queries.length,i===0?3:2);assert.equal(f.queries[i===0?1:0],legacyRuntimeReadinessSQL);
       assert.ok(!f.queries.some(sql=>/FROM catalog_items|pragma_table_info/i.test(sql)));
     }
     assert.equal(f.db.sqlite.prepare('SELECT total_changes() n').get().n,before);
@@ -75,7 +75,7 @@ test('runtime counters follow catalog deletion/restoration and reject corrupt or
 
 test('schema changes and removed guards fail closed; preflight verifies actual counts and never restamps DDL',async()=>{
   const f=fixture();try{
-    const discovery=plain(f.db.sqlite.prepare(preflightDiscoverySQL).get());assert.deepEqual(discovery,{runtime_tables:2,cycles:1});
+    const discovery=plain(f.db.sqlite.prepare(preflightDiscoverySQL).get());assert.deepEqual(discovery,{runtime_tables:2,cycles:1,capabilities:0});
     const sql=preflightSQL('target',{runtime:true,cycles:true});
     const changes=f.db.sqlite.prepare('SELECT total_changes() n').get().n;
     assert.equal(f.db.sqlite.prepare(sql).get().ready,1);assert.equal(f.db.sqlite.prepare('SELECT total_changes() n').get().n,changes);

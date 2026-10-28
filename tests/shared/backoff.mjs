@@ -1,3 +1,4 @@
+import {testModule} from './bundled-test-module.mjs';
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { origin, password } from "./helpers.mjs";
@@ -16,8 +17,9 @@ try {
     reads++;
     return route.fulfill({ status: 429, headers: { "Content-Type": "application/json", "Retry-After": "60" }, body: JSON.stringify({ code: "RATE_LIMIT", message: "Espera un minuto." }) });
   });
+  await testModule(page,'inventory','shared/inventory.js');
   const result = await page.evaluate(async () => {
-    const { SharedInventory } = await import("/shared/inventory.js");
+    const { SharedInventory } = await import("/__test__/inventory.js");
     const data = await (await fetch("/api/bootstrap")).json();
     const inventory = new SharedInventory(data.user, data);
     window.testInventory = inventory;

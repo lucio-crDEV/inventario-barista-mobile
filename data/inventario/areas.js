@@ -1,11 +1,5 @@
 // Áreas de salida del inventario totalizado.
-export const areas = [
-  { id: "cocina", name: "Cocina", order: 1, active: true },
-  { id: "panaderia", name: "Panadería", order: 2, active: true },
-  { id: "pasteleria", name: "Pastelería", order: 3, active: true },
-  { id: "servicio", name: "Servicio", order: 4, active: true },
-  { id: "principal", name: "Bodega / Principal", order: 5, active: true },
-];
+export { areas } from '../../shared/deployment-domain.js';
 
 // Sectores de trabajo que se consolidan en la hoja «servicio».
 export const serviceSectors = [

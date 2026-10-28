@@ -1,3 +1,4 @@
+import { databaseErrorCode } from './db-errors.js';
 import { validQuantity, validCountStatus } from './count-contract.js';
 import { permissionsSQL } from './authorization.js';
 import { cyclesEnabled, warningData } from './inventory-cycles.js';
@@ -51,7 +52,7 @@ export async function supervisionRequest(req, db, url, {u,hash,metadataRevision=
     try{
       await db.prepare(`INSERT INTO supervision_commands(id,fingerprint,user_id,session_hash,user_revision,cycle_id,expected_revision,kind,item_id,location_id,expected_version,q,status,note,out_of_stock,active,new_state,scope_id,reason,expected_activity_revision${modernCycles?',confirm_warnings,confirmation_revision':''}${completionEnabled?',allow_incomplete,completion_revision':''}) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?${modernCycles?',?,?':''}${completionEnabled?',?,?':''})`).bind(b.id,fingerprint,u.id,hash,u.revision,b.cycleId,b.expectedRevision,b.kind,b.itemId||'',b.locationId||'',b.expectedVersion||0,b.kind==='rectify'?Math.round(b.quantity*1000):0,b.kind==='rectify'?b.status:'counted',b.kind==='rectify'?b.note:'',b.kind==='rectify'&&b.outOfStock?1:0,b.active===false?0:1,b.state||'',b.scope||'',reason,b.expectedActivityRevision??-1,...(modernCycles?[b.confirmWarnings===true?1:0,b.confirmationRevision??-1]:[]),...(completionEnabled?[b.allowIncomplete===true?1:0,b.completionRevision??-1]:[])).run();
     }catch(e){
-      const code=['COMPLETION_CHANGED','CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED','FORBIDDEN','ADMIN_REOPEN_REQUIRED','REASON_REQUIRED','ID_REUSED','CYCLE_CHANGED','ACTIVITY_CHANGED','STALE','CYCLE_CLOSED','ITEM_INACTIVE','INVALID_TRANSITION','PENDING_ITEMS','INVALID_SCOPE'].find(c=>e.message.includes(c));
+      const code=databaseErrorCode(e, ['COMPLETION_CHANGED','CONFIRMATION_REQUIRED','CONFIRMATION_CHANGED','FORBIDDEN','ADMIN_REOPEN_REQUIRED','REASON_REQUIRED','ID_REUSED','CYCLE_CHANGED','ACTIVITY_CHANGED','STALE','CYCLE_CLOSED','ITEM_INACTIVE','INVALID_TRANSITION','PENDING_ITEMS','INVALID_SCOPE']);
       if(['PENDING_ITEMS','COMPLETION_CHANGED'].includes(code)&&completionEnabled){
         const counts=await db.prepare(`SELECT sum(active=1 AND status='pending') pending,sum(active=1 AND status='partial') partial FROM ${cycleItemsSQL({cycle:'?1'})} WHERE (?2='' OR location_id IN(SELECT descendant FROM scope_closure WHERE ancestor=?3))`).bind(b.cycleId,b.scope||'',b.scope||'').first();
         const current=await db.prepare('SELECT completion_revision FROM cycles WHERE id=?').bind(b.cycleId).first();

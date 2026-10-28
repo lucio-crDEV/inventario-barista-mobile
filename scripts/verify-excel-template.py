@@ -1,4 +1,4 @@
-"""Read-only guard for the approved template and the scope of a future XLSX copy.
+"""Read-only guard for the approved template and the scope of an XLSX copy.
 
 This verifies preservation, not stock correctness or Excel recalculation.
 """
@@ -93,7 +93,7 @@ def mask_stock(xml, allowed):
     pieces.append(xml[cursor:])
     return b''.join(pieces)
 
-def verify_copy(original, candidate, contract):
+def verify_copy(original, candidate, contract, recalculate=False):
     paths = check_original(original, contract)
     if candidate.stat().st_size > 16 * 1024 * 1024:
         fail('COPY_SIZE')
@@ -106,6 +106,15 @@ def verify_copy(original, candidate, contract):
         changed = 0
         for name in a.namelist():
             before, after = a.read(name), b.read(name)
+            if recalculate and name == 'xl/workbook.xml':
+                tags = list(re.finditer(rb'<calcPr\b[^>]*/>', before))
+                if len(tags) != 1 or re.search(rb'\b(?:fullCalcOnLoad|forceFullCalc)=', tags[0].group()):
+                    fail('INVALID_TEMPLATE_CALCULATION')
+                tag = tags[0]
+                expected = before[:tag.start()] + tag.group()[:-2] + b' fullCalcOnLoad="1" forceFullCalc="1"/>' + before[tag.end():]
+                if after != expected:
+                    fail('UNAUTHORIZED_CALCULATION_CHANGE')
+                continue
             if name not in allowed_paths:
                 if before != after:
                     fail('UNAUTHORIZED_PART_CHANGED')
@@ -150,14 +159,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--original', type=Path)
     parser.add_argument('--candidate', type=Path)
+    parser.add_argument('--recalculate-on-open', action='store_true')
     args = parser.parse_args()
     contract = registry()
     original = args.original or ROOT/contract['path']
     paths = check_original(original, contract)
-    changed = verify_copy(original, args.candidate, contract) if args.candidate else None
+    changed = verify_copy(original, args.candidate, contract, args.recalculate_on_open) if args.candidate else None
     print(json.dumps({'template':contract['id'],'sha256':contract['sha256'],
         'sheets':len(paths),'authorizedStockCells':sum(map(len,contract['sheets'].values())),
-        'changedStockCells':changed,'readOnly':True}))
+        'changedStockCells':changed,'recalculateOnOpen':args.recalculate_on_open,'readOnly':True}))
 if __name__ == '__main__':
     try:
         main()

@@ -4,8 +4,7 @@ import {
   serviceSectors,
   garzonZones,
 } from "../data/inventario/areas.js";
-export const legacyCatalogVersion = "inventory-v2-2026-10-21";
-export const catalogVersion = "inventory-v3-2026-10-22";
+export { legacyCatalogVersion, catalogVersion } from '../shared/deployment-domain.js';
 export const scopes = [
   ...areas.map((x) => ({ ...x, parent: null })),
   ...serviceSectors.map((x) => ({

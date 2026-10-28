@@ -59,6 +59,7 @@ try {
   run("tests/shared/migration-service.mjs");
   run("tests/shared/operations.mjs");
   run("tests/shared/package-security.mjs");
+  run("tests/shared/export-ui.mjs");
   server = spawn(process.execPath, ["node_modules/wrangler/bin/wrangler.js", "pages", "dev", "dist", "--port", "8991", "--ip", "127.0.0.1", "--inspector-port", "9431", "--persist-to", ".wrangler/pages-test-state", "--d1", "DB=00000000-0000-0000-0000-000000000001", "--binding", "APP_ENV=production", "--binding", "APP_ORIGIN=https://127.0.0.1:8991", "--binding", "ACTIVE_CYCLE_ID=prueba-compartida", "--local-protocol", "https"], { cwd: root, stdio: ["ignore", "pipe", "pipe"] });
   const pagesLogs = [];
   server.stdout.on("data", c => pagesLogs.push(c)); server.stderr.on("data", c => pagesLogs.push(c));

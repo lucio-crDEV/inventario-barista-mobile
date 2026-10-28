@@ -40,7 +40,7 @@ try {
  await writeFile(input,JSON.stringify(source),{mode:0o600});
  const generated=spawnSync(process.execPath,['scripts/export-excel.mjs','--snapshot',input,'--output',output],{encoding:'utf8'});
  assert.equal(generated.status,0,generated.stderr);
- const verified=spawnSync('python3',['scripts/verify-excel-template.py','--candidate',output],{encoding:'utf8'});
+ const verified=spawnSync('python3',['scripts/verify-excel-template.py','--candidate',output,'--recalculate-on-open'],{encoding:'utf8'});
  assert.equal(verified.status,0,verified.stderr);
  let reopen=command('open'),reopened=await admin.request('/api/admin/supervision/command',reopen);
  if(reopened.data.code==='CONFIRMATION_REQUIRED')reopened=await admin.request('/api/admin/supervision/command',{...reopen,confirmWarnings:true,confirmationRevision:reopened.data.confirmationRevision});

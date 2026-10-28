@@ -42,7 +42,7 @@ test('A real captured snapshot generates the independently verified Excel and ma
  try{
   const output=join(directory,'copy.xlsx'),plan=join(directory,'plan.json');
   await writeFile(output,made.bytes);await writeFile(plan,JSON.stringify(buildExportPlan(source.snapshot).cells));
-  const check=spawnSync('python3',['scripts/verify-excel-template.py','--candidate',output],{cwd:root,encoding:'utf8'});
+  const check=spawnSync('python3',['scripts/verify-excel-template.py','--candidate',output,'--recalculate-on-open'],{cwd:root,encoding:'utf8'});
   assert.equal(check.status,0,check.stderr);
   const values=spawnSync('python3',['-c',
    "import json,sys,zipfile,xml.etree.ElementTree as E\nns={'s':'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}\nparts={'principal':3,'cocina':4,'servicio':5,'panaderia':7,'pasteleria':8}\nwith zipfile.ZipFile(sys.argv[1]) as z:\n sheets={name:{c.attrib['r']:c for c in E.fromstring(z.read('xl/worksheets/sheet'+str(n)+'.xml')).findall('s:sheetData/s:row/s:c',ns)} for name,n in parts.items()}\n for p in json.load(open(sys.argv[2])):\n  c=sheets[p['sheet']][p['cell']];v=c.find('s:v',ns)\n  assert (None if v is None else v.text)==p['value'],p\n  assert c.find('s:f',ns) is None,p\n assert sheets['cocina']['C74'].find('s:v',ns).text=='17.5'\n",output,plan],{cwd:root,encoding:'utf8'});

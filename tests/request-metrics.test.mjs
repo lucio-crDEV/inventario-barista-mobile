@@ -39,7 +39,7 @@ test('missing D1 metadata remains explicit; phases accumulate and freeze at comp
 });
 
 test('HTTP timing headers are admin-only, opt-in, and no collector query is recursively metered',async()=>{
- const DB=sqliteDB(13),origin='https://example.test';
+ const DB=sqliteDB(15),origin='https://example.test';
  DB.sqlite.exec("INSERT INTO users(id,username,name,password_hash,role,must_change) VALUES('admin','admin','Admin','!hash','admin',0),('worker','worker','Worker','!hash','worker',0);INSERT INTO cycles(id,name,catalog_version,state) VALUES('test','Test','inventory-v3-2026-10-22','open');");
  const headers=id=>{const raw=(id==='admin'?'a':'b').repeat(64);DB.sqlite.prepare('INSERT INTO sessions VALUES(?,?,unixepoch()+3600)').run(createHash('sha256').update(raw).digest('hex'),id);return {cookie:`__Host-inventory_session=${raw}`};};
  const admin=headers('admin'),ordinary=headers('worker');
