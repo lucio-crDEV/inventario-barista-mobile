@@ -1,0 +1,556 @@
+{
+  "checkedAt": "2026-10-27T23:59:42.030806+00:00",
+  "deployment": {
+    "commit": "2d94cf5",
+    "version": "2d94cf5f31cd.20261027234331",
+    "production": "success"
+  },
+  "userReportedTest": {
+    "twoPhones": true,
+    "perceivedPropagationSeconds": "approximately 1 or less",
+    "source": "User report; not an instrumented latency percentile."
+  },
+  "latencies": [
+    {
+      "route": "count",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "count",
+        "status_class": "2",
+        "requests": 102,
+        "mean_ms": 1231
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "count",
+        "status_class": "2",
+        "requests": 23,
+        "mean_ms": 659.5
+      },
+      "observedMeanReductionPercent": 46.4
+    },
+    {
+      "route": "bootstrap",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "bootstrap",
+        "status_class": "2",
+        "requests": 11,
+        "mean_ms": 1484.1
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "bootstrap",
+        "status_class": "2",
+        "requests": 15,
+        "mean_ms": 630.4
+      },
+      "observedMeanReductionPercent": 57.5
+    },
+    {
+      "route": "sync",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "sync",
+        "status_class": "2",
+        "requests": 119,
+        "mean_ms": 1069.4
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "sync",
+        "status_class": "2",
+        "requests": 54,
+        "mean_ms": 494.6
+      },
+      "observedMeanReductionPercent": 53.7
+    },
+    {
+      "route": "supervision",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "supervision",
+        "status_class": "2",
+        "requests": 57,
+        "mean_ms": 1233.4
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "supervision",
+        "status_class": "2",
+        "requests": 9,
+        "mean_ms": 530.9
+      },
+      "observedMeanReductionPercent": 57.0
+    },
+    {
+      "route": "cycles",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "cycles",
+        "status_class": "2",
+        "requests": 34,
+        "mean_ms": 1078.9
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "cycles",
+        "status_class": "2",
+        "requests": 21,
+        "mean_ms": 369
+      },
+      "observedMeanReductionPercent": 65.8
+    },
+    {
+      "route": "navigation",
+      "previous": {
+        "version": "2f515a32c539.20261026154112",
+        "route": "navigation",
+        "status_class": "2",
+        "requests": 13,
+        "mean_ms": 979.9
+      },
+      "current": {
+        "version": "2d94cf5f31cd.20261027234331",
+        "route": "navigation",
+        "status_class": "2",
+        "requests": 21,
+        "mean_ms": 494.1
+      },
+      "observedMeanReductionPercent": 49.6
+    }
+  ],
+  "currentVersionOtherStatuses": [
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "bootstrap",
+      "status_class": "4",
+      "requests": 1,
+      "mean_ms": 117
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "status_class": "4",
+      "requests": 1,
+      "mean_ms": 631
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "inventory-management",
+      "status_class": "4",
+      "requests": 1,
+      "mean_ms": 499
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "login",
+      "status_class": "4",
+      "requests": 2,
+      "mean_ms": 554.5
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "me",
+      "status_class": "4",
+      "requests": 4,
+      "mean_ms": 120
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "navigation",
+      "status_class": "4",
+      "requests": 2,
+      "mean_ms": 154.5
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "realtime",
+      "status_class": "1",
+      "requests": 28,
+      "mean_ms": 736.5
+    }
+  ],
+  "currentVitals": [
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "mobile",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 1,
+      "total": 0
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "other",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 4,
+      "total": 42
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "mobile",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 88
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 4,
+      "total": 208
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "mobile",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 696
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "account",
+      "device": "other",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 4,
+      "total": 3156
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "admin-users",
+      "device": "other",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 1,
+      "total": 28
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "admin-users",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 16
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "admin-users",
+      "device": "other",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 332
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "mobile",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 3,
+      "total": 1719
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "other",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 11,
+      "total": 596
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "mobile",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 3,
+      "total": 248
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 9,
+      "total": 720
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "needs_improvement",
+      "samples": 1,
+      "total": 208
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "mobile",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 3,
+      "total": 4848
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "count",
+      "device": "other",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 11,
+      "total": 12244
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "mobile",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 2,
+      "total": 996
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "other",
+      "metric": "CLS",
+      "bucket": "good",
+      "samples": 11,
+      "total": 856
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "mobile",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 16
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 9,
+      "total": 672
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "mobile",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 2,
+      "total": 1764
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "home",
+      "device": "other",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 11,
+      "total": 13276
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "supervision",
+      "device": "other",
+      "metric": "CLS",
+      "bucket": "poor",
+      "samples": 1,
+      "total": 4136
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "supervision",
+      "device": "other",
+      "metric": "INP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 64
+    },
+    {
+      "version": "2d94cf5f31cd.20261027234331",
+      "route": "supervision",
+      "device": "other",
+      "metric": "LCP",
+      "bucket": "good",
+      "samples": 1,
+      "total": 368
+    }
+  ],
+  "health": {
+    "day": "2026-10-27",
+    "version": "2d94cf5f31cd.20261027234331",
+    "last_success_at": "2026-10-27T23:57:00.378Z",
+    "flushes": 28,
+    "recorded": 288,
+    "known_lost": 0,
+    "failed_flushes": 0,
+    "max_buffer_age_ms": 176761
+  },
+  "distribution": [
+    {
+      "route": "admin-users",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 1
+    },
+    {
+      "route": "bootstrap",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 15
+    },
+    {
+      "route": "bootstrap",
+      "status_class": "4",
+      "bucket": "300",
+      "n": 1
+    },
+    {
+      "route": "count",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 23
+    },
+    {
+      "route": "count",
+      "status_class": "4",
+      "bucket": "1000",
+      "n": 1
+    },
+    {
+      "route": "cycles",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 21
+    },
+    {
+      "route": "inventory-management",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 1
+    },
+    {
+      "route": "inventory-management",
+      "status_class": "4",
+      "bucket": "1000",
+      "n": 1
+    },
+    {
+      "route": "login",
+      "status_class": "2",
+      "bucket": "3000",
+      "n": 4
+    },
+    {
+      "route": "login",
+      "status_class": "4",
+      "bucket": "1000",
+      "n": 2
+    },
+    {
+      "route": "logout",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 1
+    },
+    {
+      "route": "me",
+      "status_class": "2",
+      "bucket": "300",
+      "n": 1
+    },
+    {
+      "route": "me",
+      "status_class": "4",
+      "bucket": "300",
+      "n": 4
+    },
+    {
+      "route": "navigation",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 21
+    },
+    {
+      "route": "navigation",
+      "status_class": "4",
+      "bucket": "300",
+      "n": 2
+    },
+    {
+      "route": "realtime",
+      "status_class": "1",
+      "bucket": "1000",
+      "n": 26
+    },
+    {
+      "route": "realtime",
+      "status_class": "1",
+      "bucket": "3000",
+      "n": 2
+    },
+    {
+      "route": "supervision",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 9
+    },
+    {
+      "route": "sync",
+      "status_class": "2",
+      "bucket": "1000",
+      "n": 54
+    }
+  ],
+  "providerAnalytics": {
+    "workerInvocationsSeriesEmpty": true,
+    "emptySeriesMeansZeroTraffic": false,
+    "schemaIntrospectionRateLimited": true,
+    "billingOrTotalD1RowsVerified": false
+  },
+  "backup": {
+    "lastSuccess": "2026-10-25T15:03:55.420Z",
+    "bytes": 157654,
+    "format": 1,
+    "dueAt": "2027-01-23T15:03:55.420000+00:00",
+    "cron": "17 5 * * *",
+    "privateBindingsAndSecretNamesVerified": true,
+    "freshBackupForced": false,
+    "updatedWorkerFirstScheduledRunVerified": false
+  },
+  "limitations": [
+    "Small current sample, different traffic/time windows; average comparisons are descriptive, not controlled experiments.",
+    "Telemetry buffered in isolates can lose unreported data; zero known losses is not proof of completeness.",
+    "0.1% D1/phase sampling has no observations yet; cannot estimate total billed rows from this snapshot.",
+    "54 sync requests may include change notifications, catchup and fallback; aggregates cannot prove every visible tab has polling paused.",
+    "One desktop supervision CLS sample0.4136 is poor; needs targeted investigation."
+  ],
+  "mutations": {
+    "inventoryData": false,
+    "accounts": false,
+    "cloudflareConfiguration": false,
+    "newDeployment": false
+  }
+}

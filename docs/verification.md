@@ -1,3 +1,5 @@
+Verificación productiva27/10 tras el push: [resultados y límites](verificacion-produccion-2026-10-27.md). Avisos101, métricas móviles reales y menores medias observadas; consumo facturable sin certificar y primer control de respaldo nuevo pendiente.
+
 Estado vigente 27/10: [preparación remota completada](consumo-activacion-2026-10-27.md). 0013 aplicada y preflight remoto aprobado; Workers privados publicados y REALTIME preparado en Pages. Entrega incluida en un commit local; push por SSH reservado al usuario. Pages se publica con ese push. No repetir migraciones. Verificación pública bloqueada por Cloudflare1010; comprobación funcional posterior al push pendiente. Esta nota sustituye estados anteriores que decían que no había cambios remotos.
 
 Verificación final 27/10: **123/123 pruebas unitarias y 24/24 suites aisladas aprobadas**, con repetición únicamente de suites afectadas. Workerd/D1 nativo, 30 WebSockets, respaldo multipart/recuperación, Web Vitals reales y dos simulaciones de despliegue aprobados. Sin operaciones remotas.
