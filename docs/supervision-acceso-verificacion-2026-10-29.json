@@ -23,11 +23,20 @@
       "detailedLogAvailable": false,
       "annotation": "ubuntu-latest migration to Ubuntu 26; Node 20 action-runtime warning",
       "preparedCorrection": "Pin ubuntu-24.04 for compatibility with the locked Playwright version",
-      "correctionSuccessVerified": false
+      "correctionSuccessVerified": false,
+      "rechecked": true
     },
     "pages": {
-      "verified": false,
-      "reason": "CLI DNS unavailable; browser navigation did not complete. No deployment success assumed."
+      "verified": true,
+      "verificationScope": "Public login page and effective frontend build; not authenticated API, dashboard state or binding audit",
+      "origin": "https://inventario-login.pages.dev",
+      "effectiveVersion": "879428b0080f.20261029171810",
+      "versionAsset": "/assets/shared-RZ2MYGHY.js",
+      "accountAsset": "/assets/account-4QWOUW4A.js",
+      "commit": "879428b0080f6b37dae838b174f743cc04e6f805",
+      "observedVia": "read-only in-app browser",
+      "authenticated": false,
+      "newCommitsPublished": false
     },
     "resourcesModified": false,
     "migrationsApplied": false,
@@ -131,9 +140,10 @@
     "originalWorkbookSHA256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9"
   },
   "remainingBeforeRelease": [
-    "In the original writable checkout, run full npm test and isolated battery including native thirty-person private binding and browser export suite.",
-    "Review then deploy the updated private inventory-exports Worker before publishing Pages; no new migration/class/secret/template.",
-    "User push, GitHub-hosted CI result and effective Pages revision/bindings need verification.",
+    "Import the recovered commits into the original writable checkout using a local fetch and fast-forward only; see docs/continuacion-local.md.",
+    "Run full npm test and isolated battery, including native thirty-person private binding, actual native queue/caller deadlines and browser export suite, outside the restricted session.",
+    "After native tests pass, deploy the updated private inventory-exports Worker before publishing Pages; no new migration/class/secret/template.",
+    "User push, GitHub-hosted CI result and new effective Pages revision/bindings need verification. The public frontend of baseline 879428b was verified separately.",
     "Physical phone and Microsoft Excel acceptance remain distinct from automated tests."
   ],
   "notPerformed": [
@@ -152,5 +162,65 @@
     "new password/inactivity policies",
     "close other sessions"
   ],
-  "productionCPUCertified": false
+  "productionCPUCertified": false,
+  "resumedAt": "2026-10-29T19:49:26.669Z",
+  "resumedValidation": {
+    "node": "24.21.0",
+    "unitSelection": {
+      "command": "node --test --test-skip-pattern='native local D1 rolls back|Native SQLite Durable Object hashes' tests/*.test.mjs tests/shared/production-config.mjs",
+      "passed": 208,
+      "failed": 0,
+      "durationMs": 8214,
+      "excluded": [
+        "native local D1 rolls back the full bounded import when its final statement fails",
+        "Native SQLite Durable Object hashes and verifies bcrypt12 while the public Worker stays closed"
+      ],
+      "reason": "Native listeners prohibited by this session; CI guards remain enabled unchanged"
+    },
+    "passwordCore": {
+      "runner": "in-process-private-core",
+      "people": 30,
+      "statuses": {
+        "200": 30
+      },
+      "burstMs": 8370,
+      "p50Ms": 4887,
+      "p95Ms": 8264,
+      "fixedLanesPerIP": 4,
+      "incorrectAndAbsentRejected": true,
+      "sharedIPAndPairQuotas": true,
+      "recovery": true,
+      "timeoutFailsClosed": true,
+      "disabledDuringVerificationRejected": true,
+      "productionCPUCertified": false
+    },
+    "nativeRuntime": {
+      "passed": false,
+      "attempted": true,
+      "blockedBeforeExecution": true,
+      "reason": "listen EPERM: operation not permitted 127.0.0.1",
+      "addedNativeChecks": [
+        "Saturation translated to generic 503 by production private caller",
+        "Actual eight-second queue expiry without clock substitution",
+        "Actual ten-second production caller timeout through native private binding",
+        "Queue drain and explicit recovery after expiry and timeout"
+      ],
+      "syntaxChecked": true,
+      "runtimeAcceptancePending": true
+    },
+    "browser": {
+      "passed": false,
+      "attempted": true,
+      "blockedBeforeExecution": true,
+      "reason": "Chromium bootstrap_check_in MachPortRendezvousServer: Permission denied (1100)",
+      "visualAcceptanceCertified": false
+    },
+    "isolatedBatteryRepeated": false,
+    "format": true,
+    "htmlLint": true,
+    "buildPages": true,
+    "publicHashedAssets": 17,
+    "independentTemplateGuard": true,
+    "originalWorkbookSHA256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9"
+  }
 }

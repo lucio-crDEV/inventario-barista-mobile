@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { passwordLoginScenario } from './password-login-scenario.mjs';
+import { digest } from '../../worker/session.js';
+import { checkPasswordWithService } from '../../worker/password-service.js';
 const bundled = await build({
   stdin: {
     contents: `
@@ -60,7 +62,8 @@ try {
   assert.match(hash, /^\$2[aby]\$12\$/);
   const result = await passwordLoginScenario(namespace, hash, password);
   // Exercise real interleaving/queue admission in a native private object.
-  const saturated = namespace.get(namespace.idFromName('synthetic-saturation'));
+  const saturationKey = await digest('synthetic-saturation');
+  const saturated = namespace.get(namespace.idFromName(saturationKey));
   const post = (path, input = {}) =>
     saturated.fetch('https://passwords.internal' + path, {
       method: 'POST',
@@ -80,21 +83,52 @@ try {
     const busy = await post('/verify', { password, hash });
     assert.equal(busy.status, 503);
     assert.equal((await busy.json()).code, 'PASSWORD_WORK_BUSY');
+    await assert.rejects(
+      checkPasswordWithService({ PASSWORDS: namespace }, password, hash, saturationKey),
+      (error) => error.status === 503 && error.code === 'PASSWORD_SERVICE_UNAVAILABLE',
+    );
+    // Exercise the real queue deadline in Workerd, without changing its clock.
+    // Expired jobs must leave the queue without spending bcrypt CPU on them.
+    await new Promise((resolve) => setTimeout(resolve, 8100));
   } finally {
     await post('/fixture/release');
   }
   for (const response of await Promise.all(waiting)) {
-    assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { match: false });
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, 'PASSWORD_WORK_EXPIRED');
   }
   assert.equal((await (await post('/fixture/status')).json()).pending, 0);
   const recovered = await post('/verify', { password, hash });
   assert.equal(recovered.status, 200);
   assert.deepEqual(await recovered.json(), { match: true });
+  // A real private fetch remains queued beyond the production caller deadline.
+  // This complements the HTTP admission/timeout test: no substituted binding or
+  // accelerated timer is used here. Always release the fixture, including on failure.
+  await post('/fixture/hold');
+  const timeoutStarted = performance.now();
+  try {
+    await assert.rejects(
+      checkPasswordWithService({ PASSWORDS: namespace }, password, hash, saturationKey),
+      (error) => error.status === 503 && error.code === 'PASSWORD_SERVICE_UNAVAILABLE',
+    );
+    assert.ok(performance.now() - timeoutStarted >= 9500, 'real caller deadline elapsed');
+  } finally {
+    await post('/fixture/release');
+  }
+  for (let i = 0; i < 100; i++) {
+    if ((await (await post('/fixture/status')).json()).pending === 0) break;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.equal((await (await post('/fixture/status')).json()).pending, 0);
+  const retry = await post('/verify', { password, hash });
+  assert.equal(retry.status, 200);
+  assert.deepEqual(await retry.json(), { match: true });
   assert.equal(outboundRequests, 0);
   console.log(
     JSON.stringify({
       nativeSaturationRecovery: true,
+      nativeQueueExpiry: true,
+      nativeCallerTimeoutRecovery: true,
       passed: true,
       runner: 'native-sqlite-durable-object',
       outboundRequests,

@@ -79,7 +79,7 @@ node scripts/preflight.mjs --remote --config wrangler.pages.production.jsonc --c
 
 No repetir primer administrador, fixtures ni migraciones ya aplicadas. Los informes fechados de etapas anteriores conservan resultados históricos, no pendientes vigentes; [índice](README.md).
 
-## Cierre de esta revisión
+## Cierre del 28-10 (antecedente)
 
 204 pruebas unitarias, 14 pruebas Python y 29 recorridos de la batería aislada aprobados; formato y lint aprobados. Las pruebas nativas cubren exportación privada, treinta conexiones de tiempo real y monitor con Analytics simulado, sin tocar datos productivos. El libro original conserva su SHA-256. Se corrigieron y cubrieron dos regresiones: estructura del panel de productos y errores de envío que el aviso offline ocultaba.
 
@@ -93,8 +93,14 @@ Exportar Excel se trasladó a Supervisión, exclusivamente para Administrador. E
 
 La corrección del ingreso está en [ingresos compartidos](ingresos-compartidos.md). `npm run test:login:runtime` ejecuta treinta ingresos por el servicio privado nativo, cuotas, errores, saturación y recuperación. La batería aislada lo incluye sin recibir credenciales productivas. `npm run test:login:core` permite verificar el handler, SQLite y bcrypt12 real en memoria cuando no se permiten servidores; no sustituye Workerd/Durable Objects.
 
-El workflow remoto de `879428b` aprobó `unit` y falló en la instalación de Chromium, antes de ejecutar la batería aislada. La vista pública no proporcionó el log detallado. GitHub avisó del cambio de `ubuntu-latest` a Ubuntu 26; se fija Ubuntu 24.04, compatible con la versión fijada de Playwright. Es una corrección del entorno basada en ese diagnóstico; su éxito remoto exige otro workflow tras el push. No se declara Pages publicado: la consulta no pudo completarse. No se modificaron recursos remotos, migraciones ni secretos.
+El workflow remoto de `879428b` aprobó `unit` y falló en la instalación de Chromium, antes de ejecutar la batería aislada. La vista pública no proporcionó el log detallado. GitHub avisó del cambio de `ubuntu-latest` a Ubuntu 26; se fija Ubuntu 24.04, compatible con la versión fijada de Playwright. Es una corrección del entorno basada en ese diagnóstico; su éxito remoto exige otro workflow tras el push.
+
+Al retomar se confirmó el ingreso público de Pages y la versión `879428b0080f.20261029171810` en `/assets/shared-RZ2MYGHY.js`, importado por la página de cuenta. Esto verifica los recursos efectivos de aquel push, aunque Actions haya fallado en paralelo. No verifica por sí solo el estado del panel de despliegues, todos los bindings ni una sesión autenticada. No se modificaron recursos remotos, migraciones ni secretos; los commits nuevos siguen sin publicar.
 
 Persisten las aceptaciones de teléfono físico y Microsoft Excel. Tampoco se certifica carga o CPU de Cloudflare. Consultar cifras, bloqueos de ejecución y próximos pasos exactos en la evidencia JSON del 29-10.
 
 Resultado en esta sesión restringida: la ejecución completa de unitarias tuvo 206 pruebas, 204 aprobadas y dos bloqueadas por `listen EPERM` (D1 nativa y contraseñas nativas). Las cuatro nuevas regresiones de contexto aprobaron; la ejecución dirigida posterior de contexto/empaquetado/capturas/trabajos aprobó 25/25. Python aprobó 14/14, al igual que formato, lint, build y guard independiente del original. El escenario privado en proceso aprobó 30/30 (8.374 ms de ráfaga, p95 8.279 ms), con cuotas, timeout y revocación durante verificación. No presentar estos números como aprobación de la batería nativa ni del navegador.
+
+Comprobación al retomar: 208 unitarias aprobadas al excluir explícitamente las dos pruebas nativas bloqueadas por la política de puertos. El núcleo privado volvió a aprobar 30/30 ingresos ficticios de una IP (8.370 ms, p95 8.264 ms), credenciales erróneas, cuotas, timeout y revocación; formato, lint, build y guard del original también aprobaron. Workerd volvió a fallar antes de ejecutar por `listen EPERM 127.0.0.1`; Chromium, por `MachPortRendezvousServer: Permission denied`. No se repitió la batería completa tras confirmar estos bloqueos.
+
+Se amplió el ensayo nativo para comprobar saturación, vencimiento real de ocho segundos, límite real de diez segundos del solicitante y recuperación por el binding privado, además de los treinta ingresos. Su sintaxis se comprobó; su ejecución continúa pendiente, sin sustituirla por el núcleo en proceso. Los pasos para incorporar los commits y ejecutar lo pendiente están en [continuación local](continuacion-local.md).

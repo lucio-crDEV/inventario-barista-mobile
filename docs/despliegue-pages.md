@@ -4,6 +4,8 @@ La preparación remota de 0014/0015, los objetos privados EXPORTS/PASSWORDS, la 
 
 El 29-10 se prepara la corrección del servicio PASSWORDS descrita en [ingresos compartidos](ingresos-compartidos.md). Hay que publicar el código revisado de `inventory-exports` antes de Pages para disponer también del vencimiento de cola. No aplicar otra migración ni volver a cargar plantilla/llaves. Esta entrega no publica recursos por cuenta del usuario.
 
+Comprobación pública al retomar el 29-10: la pantalla de ingreso sirve la versión `879428b0080f.20261029171810`; aquel push sí llegó a los recursos públicos de Pages. Actions aprobó unitarias y falló instalando Chromium. Este dato no valida los commits posteriores, sus bindings ni el ajuste de CI: siguen sin push. Ver [evidencia](supervision-acceso-verificacion-2026-10-29.json) y [continuación local](continuacion-local.md).
+
 El resto de esta guía conserva los pasos iniciales/históricos; sus estados de preparación no sustituyen la evidencia vigente.
 
 # inventory-v3 en Cloudflare Pages — despliegue automático
