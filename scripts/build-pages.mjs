@@ -16,6 +16,14 @@ await build({
 // HTML, unknown paths, private sources and APIs retain routing/security guards.
 await writeFile(
   'dist/_routes.json',
-  JSON.stringify({ version: 1, include: ['/*'], exclude: ['/assets/*'] }, null, 2) + '\n',
+  JSON.stringify(
+    {
+      version: 1,
+      include: ['/*'],
+      exclude: ['/assets/*', '/offline-shells/*', '/service-worker.js'],
+    },
+    null,
+    2,
+  ) + '\n',
 );
 console.log('Pages: Worker preparado; /assets/* se sirve sin invocarlo.');

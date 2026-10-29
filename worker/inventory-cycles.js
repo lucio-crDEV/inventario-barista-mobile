@@ -44,6 +44,18 @@ export async function listCycles(db, hash, includeDeleted = false) {
 export async function resolveCycle(db, hash, requested, legacyDefault, modern = undefined) {
   if (modern === undefined) modern = await cyclesEnabled(db);
   if (!modern) return requested || legacyDefault;
+  if (requested) {
+    const selected = await db
+      .prepare(
+        actor +
+          `SELECT c.id FROM cycles c WHERE c.id=?2
+      AND c.lifecycle!='deleted' AND (c.lifecycle!='prepared' OR EXISTS(SELECT 1 FROM actor WHERE role IN('admin','service_lead')))
+      AND EXISTS(SELECT 1 FROM catalog_items ci WHERE ci.version=c.catalog_version AND ci.location_id IN(SELECT scope_id FROM allowed))`,
+      )
+      .bind(hash, requested)
+      .first();
+    return selected?.id || null;
+  }
   const row = await db
     .prepare(
       actor +

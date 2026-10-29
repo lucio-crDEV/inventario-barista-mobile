@@ -7,7 +7,7 @@
     "dev": "npm run build && wrangler dev --env local --ip 127.0.0.1 --port 8787",
     "db:local": "wrangler d1 migrations apply DB --local --env local",
     "seed:local": "node scripts/seed-local.mjs",
-    "test": "node --test tests/*.test.mjs tests/shared/production-config.mjs",
+    "test": "npm run lint:html && node --test tests/*.test.mjs tests/shared/production-config.mjs",
     "test:integration": "node --test tests/shared/integration.mjs",
     "test:browser": "node tests/shared/browser.mjs",
     "test:load": "node tests/shared/load.mjs",
@@ -38,7 +38,13 @@
     "test:security:isolated": "node scripts/test-security-isolated.mjs",
     "verify:excel-template": "python3 scripts/verify-excel-template.py",
     "export:local": "node scripts/export-excel.mjs",
-    "test:export:runtime": "node tests/shared/excel-generator-runtime.mjs"
+    "test:export:runtime": "node tests/shared/excel-generator-runtime.mjs",
+    "lint:html": "node scripts/lint-html.mjs",
+    "format": "prettier --write \"worker/**/*.js\" \"shared/*.js\" \"pages/**/*.{js,css,html}\" \"operations/**/*.js\" \"scripts/**/*.mjs\" theme.js theme.css index.html",
+    "format:check": "prettier --check \"worker/**/*.js\" \"shared/*.js\" \"pages/**/*.{js,css,html}\" \"operations/**/*.js\" \"scripts/**/*.mjs\" theme.js theme.css index.html",
+    "resources:profile": "node tests/shared/free-capacity-profile.mjs",
+    "test:resource-monitor": "node tests/shared/resource-monitor-runtime.mjs",
+    "catalog:data": "node scripts/catalog-data.mjs"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

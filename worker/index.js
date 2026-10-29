@@ -50,6 +50,7 @@ async function api(req, env, url, event) {
   if (p === '/api/login' && req.method === 'POST') return login(req, env, event, modernCycles);
   const { u, hash } = await auth(req, env);
   event.actor = u.id;
+  Object.defineProperty(event, 'sessionExpires', { value: u.session_expires, configurable: true });
   event.measure?.phase('handler');
   if (event.measure) event.measure.admin = u.role === 'admin';
   if (p !== '/api/logout' && !allowRequest(u.id, event.route))
@@ -174,6 +175,7 @@ async function api(req, env, url, event) {
       expires: u.session_expires,
       cycleId: url.searchParams.has('cycle') ? selectedCycle || '' : '',
       scopeIds: scopes.results.map((row) => row.id),
+      ...(url.searchParams.get('v') === '2' ? { protocol: 2 } : {}),
     };
     const stub = env.REALTIME.get(env.REALTIME.idFromName('inventory'));
     return stub.fetch(
@@ -284,6 +286,8 @@ export default {
         );
       const response = secured(res, req);
       response.headers.set('X-Request-ID', event.requestId);
+      if (event.sessionExpires && res.status < 400)
+        response.headers.set('X-Inventory-Session-Expires', String(event.sessionExpires));
       // Expose request-local diagnostics only to an authenticated administrator.
       if (event.measure?.admin && res.status < 400)
         response.headers.set('Server-Timing', event.measure.serverTiming());
@@ -304,7 +308,7 @@ export default {
       else if (url.pathname.startsWith('/api/'))
         res = await api(req, event.measure ? { ...env, DB: event.measure.DB } : env, url, event);
       else if (
-        !/^\/(?:assets\/[\w.-]+\.(?:css|js)$|$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
+        !/^\/(?:service-worker\.js$|offline-shells\/[\w.-]+\.html$|assets\/[\w.-]+\.(?:css|js)$|$|pages\/admin\/supervision$|index\.html$|theme\.(?:css|js)$|shared\/[\w.-]+\.(?:js|css)$|pages\/(?:inventario|cuenta|admin)\/(?:[\w.-]+\.(?:html|css|js))?$)/.test(
           url.pathname,
         )
       )
@@ -329,6 +333,11 @@ export default {
           }
         }
         if (!res) res = await env.ASSETS.fetch(req);
+        if (url.pathname === '/service-worker.js') {
+          res = new Response(res.body, res);
+          res.headers.set('Cache-Control', 'no-store');
+          res.headers.set('Service-Worker-Allowed', '/');
+        }
         if (res.headers.get('content-type')?.includes('text/html')) {
           res = new Response(res.body, res);
           res.headers.set('Cache-Control', 'no-store');

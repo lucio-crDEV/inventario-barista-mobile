@@ -1,5 +1,6 @@
+import { html, setHTML, joinHTML } from './html.js';
 import { readCommand, submitCommand } from './supervision-command.js';
-import { api, dialog, escapeHtml as esc } from './client.js';
+import { api, dialog } from './client.js';
 import { loading, historyLoading } from './loading.js';
 import { absoluteTime, relativeTime, historyDay, movementLabel } from './history-display.js';
 
@@ -8,7 +9,12 @@ export async function openProductHistory(inventory, item) {
     cycle = inventory.cycleId;
   const el = dialog(
     'Historial del producto',
-    `<p class="history-product">${esc(item.name)} · ${esc(inventory.locationName(item))}</p><div class="history-content">${historyLoading()}</div><div class="dialog-actions"><button type="button" data-close>Cerrar</button>${managerial ? '<button type="button" data-annul class="button-danger" hidden>Anular conteo</button>' : ''}</div>`,
+    html`<p class="history-product">${item.name} · ${inventory.locationName(item)}</p>
+      <div class="history-content">${historyLoading()}</div>
+      <div class="dialog-actions">
+        <button type="button" data-close>Cerrar</button
+        >${managerial ? html`<button type="button" data-annul class="button-danger" hidden>Anular conteo</button>` : ''}
+      </div>`,
   );
   el.querySelector('[data-close]').onclick = () => el.close();
   const body = el.querySelector('.history-content'),
@@ -19,28 +25,49 @@ export async function openProductHistory(inventory, item) {
   function render() {
     if (!el.open) return;
     if (!history.length) {
-      body.innerHTML = '<p class="history-empty">Sin movimientos.</p>';
+      setHTML(body, html`<p class="history-empty">Sin movimientos.</p>`);
       return;
     }
     if (!managerial) {
-      body.innerHTML = `<ol class="history-list history-minimal">${history.map((h) => `<li><strong>${esc(h.authorName)}</strong><time datetime="${esc(h.createdAt)}" title="${esc(absoluteTime(h.createdAt))}" aria-label="${esc(absoluteTime(h.createdAt))}">${esc(relativeTime(h.createdAt))}</time><span>${h.quantity === null ? 'Pendiente' : `${esc(h.quantity)} ${esc(h.unit || item.unit)}`}</span></li>`).join('')}</ol>`;
+      setHTML(
+        body,
+        html`<ol class="history-list history-minimal">
+          ${joinHTML(history.map((h) => html`<li><strong>${h.authorName}</strong><time datetime="${h.createdAt}" title="${absoluteTime(h.createdAt)}" aria-label="${absoluteTime(h.createdAt)}">${relativeTime(h.createdAt)}</time><span>${h.quantity === null ? 'Pendiente' : `${h.quantity} ${h.unit || item.unit}`}</span></li>`))}
+        </ol>`,
+      );
       return;
     }
     let day = '';
-    const rows = [...history]
-      .sort((a, b) => a.seq - b.seq)
-      .map((h) => {
-        const date = historyDay(h.createdAt),
-          heading = date === day ? '' : `<h3 class="history-day">${esc(date)}</h3>`;
-        day = date;
-        return `${heading}<article class="history-movement"><div><strong>${esc(movementLabel(h, item.unit))} · ${esc(h.authorName || h.after?.authorName)}</strong><time datetime="${esc(h.createdAt)}">${esc(new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(h.createdAt)))}</time></div><p>Antes: ${h.before?.quantity === null || h.before?.quantity === undefined ? 'sin conteo' : esc(h.before.quantity)} / Después: ${h.after?.status === 'pending' ? 'pendiente' : esc(h.after?.quantity) + ' ' + esc(item.unit || '')}</p>${h.reason ? `<p class="history-note">${esc(h.reason)}</p>` : ''}${h.after?.note ? `<p class="history-note">${esc(h.after.note)}</p>` : ''}</article>`;
-      })
-      .join('');
-    body.innerHTML =
-      rows +
-      (cursor
-        ? '<button type="button" data-more class="button button-ghost">Ver movimientos anteriores</button>'
-        : '');
+    const rows = joinHTML(
+      [...history]
+        .sort((a, b) => a.seq - b.seq)
+        .map((h) => {
+          const date = historyDay(h.createdAt),
+            heading = date === day ? '' : html`<h3 class="history-day">${date}</h3>`;
+          day = date;
+          return html`${heading}
+            <article class="history-movement">
+              <div>
+                <strong
+                  >${movementLabel(h, item.unit)} · ${h.authorName || h.after?.authorName}</strong
+                ><time datetime="${h.createdAt}"
+                  >${new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(h.createdAt))}</time
+                >
+              </div>
+              <p>
+                Antes:
+                ${h.before?.quantity === null || h.before?.quantity === undefined ? 'sin conteo' : h.before.quantity}
+                / Después:
+                ${h.after?.status === 'pending' ? 'pendiente' : h.after?.quantity + ' ' + (item.unit || '')}
+              </p>
+              ${h.reason ? html`<p class="history-note">${h.reason}</p>` : ''}${h.after?.note ? html`<p class="history-note">${h.after.note}</p>` : ''}
+            </article>`;
+        }),
+    );
+    setHTML(
+      body,
+      html`${rows}${cursor ? html`<button type="button" data-more class="button button-ghost">Ver movimientos anteriores</button>` : ''}`,
+    );
     body.querySelector('[data-more]')?.addEventListener('click', () => load(cursor));
   }
   async function load(before) {
@@ -98,14 +125,34 @@ function confirmAnnul(inventory, item, revision, record, refresh) {
   ) {
     const notice = dialog(
       'Cambio pendiente',
-      '<p>Resuelve el cambio pendiente en el Panel de supervisión antes de anular otro producto.</p><button type="button">Cerrar</button>',
+      html`<p>
+          Resuelve el cambio pendiente en el Panel de supervisión antes de anular otro producto.
+        </p>
+        <button type="button">Cerrar</button>`,
     );
     notice.querySelector('button').onclick = () => notice.close();
     return;
   }
   const el = dialog(
     'Anular conteo',
-    `<p>${esc(item.name)} · ${esc(inventory.locationName(item))}</p><p>Este producto pasará de ${record.status === 'partial' ? 'avance' : 'contado'} a pendiente.</p><label>Motivo (opcional)<textarea name="reason" maxlength="500" placeholder="Por ejemplo: producto contado por error"></textarea></label><p data-result role="status"></p><div class="dialog-actions"><button type="button" data-cancel>Cancelar</button><button type="button" data-confirm class="button-danger">${saved ? 'Reintentar anulación pendiente' : 'Anular conteo'}</button></div>`,
+    html`<p>${item.name} · ${inventory.locationName(item)}</p>
+      <p>
+        Este producto pasará de ${record.status === 'partial' ? 'avance' : 'contado'} a pendiente.
+      </p>
+      <label
+        >Motivo (opcional)<textarea
+          name="reason"
+          maxlength="500"
+          placeholder="Por ejemplo: producto contado por error"
+        ></textarea>
+      </label>
+      <p data-result role="status"></p>
+      <div class="dialog-actions">
+        <button type="button" data-cancel>Cancelar</button
+        ><button type="button" data-confirm class="button-danger">
+          ${saved ? 'Reintentar anulación pendiente' : 'Anular conteo'}
+        </button>
+      </div>`,
   );
   el.querySelector('h2').after(el.querySelector('[data-result]'));
   const reason = el.querySelector('textarea');

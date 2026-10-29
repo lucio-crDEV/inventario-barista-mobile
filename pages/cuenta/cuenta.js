@@ -1,11 +1,14 @@
+import { html, setHTML } from '/shared/html.js';
 import { showNotice } from '/shared/notices.js';
 import { passwordField, bindPasswordFields } from '/shared/password-field.js';
 import { loading, reveal, pendingButton } from '/shared/loading.js';
-import { api, escapeHtml as esc, identityBar } from '/shared/client.js';
+import { api, identityBar } from '/shared/client.js';
 const content = document.querySelector('#account-content'),
   message = document.querySelector('#message');
-const lock =
-  '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="14" width="18" height="14" rx="4"/><path d="M11 14V9a5 5 0 0 1 10 0v5m-5 6v3"/></svg>';
+const lock = html`<svg viewBox="0 0 32 32" aria-hidden="true">
+  <rect x="7" y="14" width="18" height="14" rx="4" />
+  <path d="M11 14V9a5 5 0 0 1 10 0v5m-5 6v3" />
+</svg>`;
 function notify(text) {
   message.hidden = false;
   message.textContent = text;
@@ -30,12 +33,52 @@ try {
 }
 finishLoading();
 if (unavailable) {
-  content.innerHTML = `<section class="account-card"><div class="account-symbol">${lock}</div><h2>Inventario no disponible</h2><p>El acceso estará disponible cuando el administrador termine de habilitar el servicio.</p><button class="button button-primary" id="retry-service" type="button">Reintentar conexión</button></section>`;
+  setHTML(
+    content,
+    html`<section class="account-card">
+      <div class="account-symbol">${lock}</div>
+      <h2>Inventario no disponible</h2>
+      <p>El acceso estará disponible cuando el administrador termine de habilitar el servicio.</p>
+      <button class="button button-primary" id="retry-service" type="button">
+        Reintentar conexión
+      </button>
+    </section>`,
+  );
   document.querySelector('#retry-service').onclick = () => location.reload();
 } else if (user && !user.mustChange && new URLSearchParams(location.search).has('profile')) {
   identityBar(user);
   document.querySelector('#account-back').hidden = false;
-  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${esc(user.username)}</p><h2>Mi perfil</h2></div></div><form><label>Nombre visible<input name="name" value="${esc(user.name)}" required maxlength="80" autocomplete="name"></label><p class="field-hint">Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo ${esc(user.username)}.</p><button class="button button-primary" type="submit">Guardar nombre visible</button></form><a class="profile-password-link" href="/pages/cuenta/?change=1">Cambiar contraseña<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></section>`;
+  setHTML(
+    content,
+    html`<section class="account-card">
+      <div class="account-heading">
+        <div class="account-symbol">${lock}</div>
+        <div>
+          <p class="eyebrow">${user.username}</p>
+          <h2>Mi perfil</h2>
+        </div>
+      </div>
+      <form>
+        <label
+          >Nombre visible<input
+            name="name"
+            value="${user.name}"
+            required
+            maxlength="80"
+            autocomplete="name"
+        /></label>
+        <p class="field-hint">
+          Puedes cambiar cómo apareces en la app. Tu usuario de ingreso sigue siendo
+          ${user.username}.
+        </p>
+        <button class="button button-primary" type="submit">Guardar nombre visible</button>
+      </form>
+      <a class="profile-password-link" href="/pages/cuenta/?change=1"
+        >Cambiar contraseña<svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m9 5 7 7-7 7" /></svg
+      ></a>
+    </section>`,
+  );
   if (user.role === 'admin') {
     // Loading the optional export screen must not prevent editing the profile.
     import('./exports.js')
@@ -43,8 +86,12 @@ if (unavailable) {
       .catch(() => {
         const fallback = document.createElement('section');
         fallback.className = 'account-card export-card';
-        fallback.innerHTML =
-          '<h2>Exportar Excel</h2><p class="field-hint">No pudimos cargar la exportación.</p><button class="button" type="button">Reintentar exportación</button>';
+        setHTML(
+          fallback,
+          html`<h2>Exportar Excel</h2>
+            <p class="field-hint">No pudimos cargar la exportación.</p>
+            <button class="button" type="button">Reintentar exportación</button>`,
+        );
         fallback.querySelector('button').onclick = () => location.reload();
         content.append(fallback);
       });
@@ -73,7 +120,28 @@ if (unavailable) {
 } else {
   if (user) identityBar(user);
   document.querySelector('#account-back').hidden = !user || user.mustChange;
-  content.innerHTML = `<section class="account-card"><div class="account-heading"><div class="account-symbol">${lock}</div><div><p class="eyebrow">${user ? esc(user.name) : 'Acceso personal'}</p><h2>${user ? 'Cambiar contraseña' : 'Ingresar al inventario'}</h2></div></div>${user ? `<p class="view-intro">${user.mustChange ? 'Para continuar, reemplaza tu contraseña temporal.' : 'Al cambiarla, se cerrarán tus sesiones en todos los dispositivos.'}</p>` : ''}<form>${user ? passwordField('Contraseña actual', 'currentPassword', 'current-password', false) + passwordField('Nueva contraseña', 'newPassword', 'new-password') + passwordField('Repetir nueva contraseña', 'confirmPassword', 'new-password') : '<label>Usuario<input name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>' + passwordField('Contraseña', 'password', 'current-password', false)}<p class="field-hint ${user ? '' : 'login-help'}">${user ? 'Al menos 8 caracteres.' : '¿Necesitas una cuenta o restablecer tu contraseña? Contacta al administrador.'}</p><button class="button button-primary" type="submit">${user ? 'Guardar contraseña' : 'Ingresar'}</button></form></section>`;
+  setHTML(
+    content,
+    html`<section class="account-card">
+      <div class="account-heading">
+        <div class="account-symbol">${lock}</div>
+        <div>
+          <p class="eyebrow">${user ? user.name : 'Acceso personal'}</p>
+          <h2>${user ? 'Cambiar contraseña' : 'Ingresar al inventario'}</h2>
+        </div>
+      </div>
+      ${user ? html`<p class="view-intro">${user.mustChange ? 'Para continuar, reemplaza tu contraseña temporal.' : 'Al cambiarla, se cerrarán tus sesiones en todos los dispositivos.'}</p>` : ''}
+      <form>
+        ${user ? [passwordField('Contraseña actual', 'currentPassword', 'current-password', false), passwordField('Nueva contraseña', 'newPassword', 'new-password'), passwordField('Repetir nueva contraseña', 'confirmPassword', 'new-password')] : html`<label>Usuario<input name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required /></label>${passwordField('Contraseña', 'password', 'current-password', false)}`}
+        <p class="field-hint ${user ? '' : 'login-help'}">
+          ${user ? 'Al menos 8 caracteres.' : '¿Necesitas una cuenta o restablecer tu contraseña? Contacta al administrador.'}
+        </p>
+        <button class="button button-primary" type="submit">
+          ${user ? 'Guardar contraseña' : 'Ingresar'}
+        </button>
+      </form>
+    </section>`,
+  );
   bindPasswordFields(content);
   content.querySelector('form').onsubmit = async (e) => {
     e.preventDefault();

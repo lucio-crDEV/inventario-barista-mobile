@@ -29,7 +29,7 @@
 
 ## Implementación y diseño
 
-- KISS, HTML/CSS/JavaScript nativos. No añadir dependencias, infraestructura o animaciones por anticipado. Seguir módulos existentes; centralizar reglas reutilizadas y escapar contenido dinámico.
+- KISS, HTML/CSS/JavaScript nativos. No añadir dependencias, infraestructura o animaciones por anticipado. Usar `html`/`setHTML` de `shared/html.js` para contenido dinámico; no crear puntos de inserción HTML mediante cadenas ni omitir el lint. Mantener las vistas de inventario separadas y sus pruebas de foco, campos, borradores y navegación.
 - Móvil primero, diseño compacto y textos breves. Crema/carbón, cian, superficies uniformes, sin degradados ni efectos de hover/pulsación. Campos de 16 px y blancos táctiles de al menos 44 px.
 - Foco de teclado visible con fondo/luminosidad suaves, sin subrayados ni bordes añadidos al tocar. Respetar movimiento y transparencia reducidos. Los popups usan desenfoque y sombra leve.
 - Sin stock guarda cero contado y usa verde; pendiente rojo, avance ámbar, contado verde, siempre con texto. Conservar Anterior / Ver ítems / Siguiente, siguiente pendiente y contexto/posición del resumen.
@@ -41,7 +41,12 @@
 - Migraciones aditivas; no reescribir las históricas ni aplicar la propuesta `0005`. Nunca ejecutar fixtures/bootstrap en producción ni pruebas sobre el estado de desarrollo activo.
 - El contrato 15 comprueba capacidades ligeras por petición; el preflight completo verifica definiciones y cardinalidades antes de publicar. Sellar al final de la migración revisada, no aceptar DDL desconocido mediante un arreglo genérico.
 - Mantener respaldos privados cifrados cada 90 días. La purga acotada solo elimina metadatos de autenticación vencidos; no borrar inventarios, historial, comandos, capturas o XLSX por antigüedad sin otra decisión.
-- Dependabot, offline completo y nuevas políticas de acceso/TOTP siguen pendientes. No activar propuestas pendientes por inferencia.
+- Offline está implementado: el SW solo conserva estructura pública y estáticos; IndexedDB conserva una instantánea por persona, ciclo y área, como máximo hasta la sesión real o doce horas. No cachear API en el SW, exportaciones o credenciales; no usar instantáneas ante 401/403/503 ni enviar borradores automáticamente. Mantener borrado entre pestañas y cierre pendiente del servidor al salir sin red.
+- RTv2 entrega registros únicamente al conteo que opta por `v=2`; preservar clientes v1, ámbitos, versiones y cursores. Revalidar accesos en el primario después de esperar datos y verificar expiración antes de enviar. La recuperación usa la API autorizada; conservar el respaldo de treinta segundos cuando hay tiempo real y documentar su costo, sin prometer cuota Free para uso continuo de veinticuatro horas.
+- El importador `scripts/catalog-data.mjs` admite solo paquetes aprobados y validados. No reescribir catálogos históricos ni inventar referencias. El índice de `0016_catalog_lookup_index.sql` está aplicado en producción con preflight aprobado; no asumir que ya existe en otros entornos.
+- Dependabot, TOTP, nuevas políticas de acceso/inactividad y «Cerrar otras sesiones» siguen pendientes. No activarlos por inferencia. Mantener explícitos los límites de aceptación física en teléfono/Excel y los datos de catálogo pendientes.
 - Publicar únicamente `dist`; nunca la raíz, `.backups`, `.exports`, `.git`, dependencias ni secretos. Los IDs de configuración no son credenciales. No imprimir tokens, hashes de contraseñas, cookies ni datos de producción en evidencias.
 - No hacer commit, push, reset, limpieza destructiva o publicación sin autorización. En la entrega actual hay autorización para commits y preparación remota; el push/publicación de Pages queda al usuario.
-- Ejecutar pruebas pertinentes, revisar diff y registrar tanto resultados como límites. La simulación local no certifica CPU ni una descarga productiva posterior al push. Mantener README breve y documentación vigente sin repetir pilas de actualizaciones históricas.
+- Ejecutar pruebas pertinentes, revisar diff y registrar tanto resultados como límites. CI incluye formato, lint HTML, importador y las regresiones aisladas de HTML, offline y RTv2; no retirar sus guardas para hacer pasar una entrega. La simulación local no certifica CPU ni una descarga productiva posterior al push. Mantener README breve y documentación vigente sin repetir pilas de actualizaciones históricas.
+
+- Monitor privado: conservar muestreo cada quince minutos, datos agregados, secreto Analytics de solo lectura y logs automáticos de peticiones desactivados. No añadir telemetría personal ni afirmar que una muestra local certifica CPU/cuotas.

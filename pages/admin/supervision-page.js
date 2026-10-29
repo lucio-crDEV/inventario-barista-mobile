@@ -1,8 +1,9 @@
+import { html, setHTML, joinHTML } from '/shared/html.js';
 import { startPolling } from '/shared/polling.js';
 import { startRealtime } from '/shared/realtime.js';
 import { cycleLabel } from '/shared/cycles.js';
 import { inventoryDialog } from '/shared/inventory-context.js';
-import { authenticated, identityBar, escapeHtml as esc, dialog, setSync } from '/shared/client.js';
+import { authenticated, identityBar, dialog, setSync } from '/shared/client.js';
 import {
   readCommand,
   submitCommand as sendSupervisionCommand,
@@ -123,55 +124,154 @@ function restore(saved) {
 }
 function ring(group) {
   const p = progressParts(group);
-  return `<span class="supervision-ring" role="img" aria-label="${p.percent}% con registro: ${p.counted} contados, ${p.partial} con avance, ${p.total} activos"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-base" cx="22" cy="22" r="18" pathLength="100"/><circle class="ring-counted" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${p.countedPercent} 100"/><circle class="ring-partial" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${p.partialPercent} 100" stroke-dashoffset="-${p.countedPercent}"/></svg><span>${p.percent}%</span></span>`;
+  return html`<span
+    class="supervision-ring"
+    role="img"
+    aria-label="${p.percent}% con registro: ${p.counted} contados, ${p.partial} con avance, ${p.total} activos"
+    ><svg viewBox="0 0 44 44" aria-hidden="true">
+      <circle class="ring-base" cx="22" cy="22" r="18" pathLength="100" />
+      <circle
+        class="ring-counted"
+        cx="22"
+        cy="22"
+        r="18"
+        pathLength="100"
+        stroke-dasharray="${p.countedPercent} 100"
+      />
+      <circle
+        class="ring-partial"
+        cx="22"
+        cy="22"
+        r="18"
+        pathLength="100"
+        stroke-dasharray="${p.partialPercent} 100"
+        stroke-dashoffset="-${p.countedPercent}"
+      /></svg
+    ><span>${p.percent}%</span></span
+  >`;
 }
 function skeleton() {
-  return '<div class="skeleton-stack" aria-hidden="true"><div class="skeleton-card"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-line"></span></div><div class="skeleton-card"><span class="skeleton skeleton-line"></span></div></div>';
+  return html`<div class="skeleton-stack" aria-hidden="true">
+    <div class="skeleton-card">
+      <span class="skeleton skeleton-line"></span><span class="skeleton skeleton-line"></span>
+    </div>
+    <div class="skeleton-card"><span class="skeleton skeleton-line"></span></div>
+  </div>`;
 }
 function renderShell(cycles) {
-  root.innerHTML = `<section class="supervision-context" aria-label="Estado del inventario">
-  <div class="supervision-context-heading"><strong id="context-name"></strong><span id="cycle-state" class="supervision-updated" role="status"></span></div>
-  <div id="cycle-actions"></div><div id="inventory-management"></div>
-</section>
-<div class="supervision-tabs" role="tablist" aria-label="Vistas de supervisión">${[
-    ['areas', 'Áreas'],
-    ['items', 'Productos'],
-    ['history', 'Historial'],
-  ]
-    .map(
-      ([id, title]) =>
-        `<button type="button" id="tab-${id}" role="tab" data-mode="${id}" aria-controls="supervision-panel" aria-selected="false">${title}</button>`,
-    )
-    .join('')}</div>
-<section id="supervision-panel" role="tabpanel">
-  <div id="list-tools">
-    <div class="supervision-query-row">
-      <label class="supervision-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" type="search" maxlength="100" placeholder="Buscar producto" aria-label="Buscar producto"></label>
-      <button type="button" id="toggle-filters" aria-expanded="false" aria-controls="supervision-filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filtros</span><small id="filter-count" hidden></small></button>
-    </div>
-    <div class="supervision-filter-summary"><div id="active-filters"></div><button type="button" class="supervision-text-action" id="clear-filters" hidden>Limpiar</button></div>
-  </div>
-  <section id="supervision-filters" aria-label="Filtros de resultados" hidden>
-    <div class="supervision-tools"><label id="scope-filter">Área<select id="scope"><option value="">${user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas'}</option></select></label><label id="status-filter">Estado<select id="status"><option value="">Todos los productos</option>${['pending', 'partial', 'counted', 'excluded'].map((id) => `<option value="${id}">${stateNames[id]}</option>`).join('')}</select></label></div>
-    <div id="history-filters" class="supervision-tools"><label>Movimiento<select id="history-category">${[
-      ['', 'Todos'],
-      ['count', 'Conteos'],
-      ['correction', 'Correcciones'],
-      ['annul', 'Anulaciones'],
-    ]
-      .map(([id, title]) => `<option value="${id}">${title}</option>`)
-      .join(
-        '',
-      )}</select></label><label>Ubicación<select id="history-location"><option value="">Todas</option></select></label><label>Autor<select id="history-author"><option value="">Todos</option></select></label></div>
-    <button type="button" class="supervision-text-action" id="apply-filters">Listo</button>
-  </section>
-  <a id="scope-summary" class="supervision-scope-summary" hidden></a>
-  <div class="supervision-list-heading"><h2 id="result-title">Avance por área</h2><span id="result-count"></span></div>
-  <section id="results" aria-label="Resultados de supervisión"></section>
-  <div class="supervision-list-footer"><button type="button" class="button button-secondary" id="more" hidden>Cargar más</button></div>
-</section>
-${user.role === 'admin' ? '<button class="supervision-text-action supervision-admin-events" type="button" id="admin-events">Actividad administrativa</button>' : ''}
-`;
+  setHTML(
+    root,
+    html`<section class="supervision-context" aria-label="Estado del inventario">
+        <div class="supervision-context-heading">
+          <strong id="context-name"></strong
+          ><span id="cycle-state" class="supervision-updated" role="status"></span>
+        </div>
+        <div id="cycle-actions"></div>
+        <div id="inventory-management"></div>
+      </section>
+      <div class="supervision-tabs" role="tablist" aria-label="Vistas de supervisión">
+        ${joinHTML(
+          [
+            ['areas', 'Áreas'],
+            ['items', 'Productos'],
+            ['history', 'Historial'],
+          ].map(
+            ([id, title]) =>
+              html`<button
+                type="button"
+                id="tab-${id}"
+                role="tab"
+                data-mode="${id}"
+                aria-controls="supervision-panel"
+                aria-selected="false"
+              >
+                ${title}
+              </button>`,
+          ),
+        )}
+      </div>
+      <section id="supervision-panel" role="tabpanel">
+        <div id="list-tools">
+          <div class="supervision-query-row">
+            <label class="supervision-search"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 5 5" /></svg
+              ><input
+                id="search"
+                type="search"
+                maxlength="100"
+                placeholder="Buscar producto"
+                aria-label="Buscar producto"
+            /></label>
+            <button
+              type="button"
+              id="toggle-filters"
+              aria-expanded="false"
+              aria-controls="supervision-filters"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg
+              ><span>Filtros</span><small id="filter-count" hidden></small>
+            </button>
+          </div>
+          <div class="supervision-filter-summary">
+            <div id="active-filters"></div>
+            <button type="button" class="supervision-text-action" id="clear-filters" hidden>
+              Limpiar
+            </button>
+          </div>
+        </div>
+        <section id="supervision-filters" aria-label="Filtros de resultados" hidden>
+          <div class="supervision-tools">
+            <label id="scope-filter"
+              >Área<select id="scope">
+                <option value="">
+                  ${user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas'}
+                </option>
+              </select></label
+            ><label id="status-filter"
+              >Estado<select id="status">
+                <option value="">Todos los productos</option>
+                ${joinHTML(['pending', 'partial', 'counted', 'excluded'].map((id) => html`<option value="${id}">${stateNames[id]}</option>`))}
+              </select></label
+            >
+          </div>
+          <div id="history-filters" class="supervision-tools">
+            <label
+              >Movimiento<select id="history-category">
+                ${joinHTML(
+                  [
+                    ['', 'Todos'],
+                    ['count', 'Conteos'],
+                    ['correction', 'Correcciones'],
+                    ['annul', 'Anulaciones'],
+                  ].map(([id, title]) => html`<option value="${id}">${title}</option>`),
+                )}
+              </select></label
+            ><label
+              >Ubicación<select id="history-location">
+                <option value="">Todas</option>
+              </select></label
+            ><label
+              >Autor<select id="history-author">
+                <option value="">Todos</option>
+              </select></label
+            >
+          </div>
+          <button type="button" class="supervision-text-action" id="apply-filters">Listo</button>
+        </section>
+        <a id="scope-summary" class="supervision-scope-summary" hidden></a>
+        <div class="supervision-list-heading">
+          <h2 id="result-title">Avance por área</h2>
+          <span id="result-count"></span>
+        </div>
+        <section id="results" aria-label="Resultados de supervisión"></section>
+        <div class="supervision-list-footer">
+          <button type="button" class="button button-secondary" id="more" hidden>Cargar más</button>
+        </div>
+      </section>
+      ${user.role === 'admin' ? html`<button class="supervision-text-action supervision-admin-events" type="button" id="admin-events">Actividad administrativa</button>` : ''} `,
+  );
   $('#status').value = state.status;
   $('#search').value = state.search;
   $('#scope').onchange = async (event) => {
@@ -258,8 +358,12 @@ ${user.role === 'admin' ? '<button class="supervision-text-action supervision-ad
 function renderManagement(cycles) {
   const el = $('#inventory-management');
   if (!el || user.role !== 'admin') return;
-  el.innerHTML =
-    '<button type="button" class="supervision-text-action" id="manage-inventory">Opciones del inventario</button>';
+  setHTML(
+    el,
+    html`<button type="button" class="supervision-text-action" id="manage-inventory">
+      Opciones del inventario
+    </button>`,
+  );
   $('#manage-inventory').onclick = () =>
     inventoryDialog(user, cycles, cycle || cycles.find((c) => c.id === state.cycleId));
 }
@@ -304,12 +408,24 @@ function renderFilterSummary() {
         ? ['scope', 'status']
         : [];
   const active = fields.filter((field) => state[field]);
-  $('#active-filters').innerHTML = active
-    .map(
-      (field) =>
-        `<button type="button" data-clear-filter="${field}" aria-label="Quitar filtro ${esc($(filterFields[field]).selectedOptions[0]?.textContent || state[field])}">${esc($(filterFields[field]).selectedOptions[0]?.textContent || state[field])}<span aria-hidden="true">×</span></button>`,
-    )
-    .join('');
+  setHTML(
+    $('#active-filters'),
+    joinHTML(
+      active.map(
+        (field) =>
+          html`<button
+            type="button"
+            data-clear-filter="${field}"
+            aria-label="Quitar filtro ${$(filterFields[field]).selectedOptions[0]?.textContent || state[field]}"
+          >
+            ${$(filterFields[field]).selectedOptions[0]?.textContent || state[field]}<span
+              aria-hidden="true"
+              >×</span
+            >
+          </button>`,
+      ),
+    ),
+  );
   $('#filter-count').hidden = !active.length;
   $('#filter-count').textContent = String(active.length);
   $('#clear-filters').hidden = !active.length && !state.search;
@@ -340,10 +456,16 @@ function renderScopes() {
   for (const id of ['#scope', '#history-location']) {
     const el = $(id),
       value = id === '#scope' ? state.scope : state.location;
-    const options = scopes
-      .map((scope) => `<option value="${esc(scope.id)}">${esc(scope.name)}</option>`)
-      .join('');
-    el.innerHTML = `<option value="">${id === '#scope' ? (user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas') : 'Todas las ubicaciones'}</option>${options}`;
+    const options = joinHTML(
+      scopes.map((scope) => html`<option value="${scope.id}">${scope.name}</option>`),
+    );
+    setHTML(
+      el,
+      html`<option value="">
+          ${id === '#scope' ? (user.role === 'admin' ? 'Todas las áreas' : 'Servicio y subáreas') : 'Todas las ubicaciones'}
+        </option>
+        ${options}`,
+    );
     el.value = value;
     if (id === '#scope' && el.value !== state.scope) state.scope = '';
   }
@@ -366,7 +488,7 @@ async function refresh({ reset = false, quiet = false, authors = false } = {}) {
   if (!reset && !restoring) snapshot();
   if (!quiet) {
     root.setAttribute('aria-busy', 'true');
-    $('#results').innerHTML = skeleton();
+    setHTML($('#results'), skeleton());
   }
   try {
     const query = params(),
@@ -407,11 +529,11 @@ async function refresh({ reset = false, quiet = false, authors = false } = {}) {
     if (authors) {
       const authorData = await authenticated('/api/admin/supervision/authors?' + params());
       if (ticket !== generation) return;
-      $('#history-author').innerHTML =
-        '<option value="">Todos</option>' +
-        authorData.authors
-          .map((author) => `<option value="${esc(author.id)}">${esc(author.name)}</option>`)
-          .join('');
+      setHTML(
+        $('#history-author'),
+        html`<option value="">Todos</option>
+          ${joinHTML(authorData.authors.map((author) => html`<option value="${author.id}">${author.name}</option>`))}`,
+      );
       $('#history-author').value = state.author;
     }
     if (state.mode === 'areas') {
@@ -439,8 +561,12 @@ async function refresh({ reset = false, quiet = false, authors = false } = {}) {
       Date.now() +
       Math.max(Number(error.retryAfter) || 0, Math.min(60, 2 ** refreshFailures)) * 1000;
     if (!quiet)
-      $('#results').innerHTML =
-        '<p class="supervision-empty">No se pudo cargar el inventario. Puedes volver a elegir una vista para reintentar.</p>';
+      setHTML(
+        $('#results'),
+        html`<p class="supervision-empty">
+          No se pudo cargar el inventario. Puedes volver a elegir una vista para reintentar.
+        </p>`,
+      );
     notice(error.message);
     setSync('No se pudo actualizar', 'error');
     return false;
@@ -502,18 +628,24 @@ function restoreFocus(saved) {
 function renderCycleActions() {
   const scopesToShow =
     cycle.lifecycle === 'prepared' ? [] : user.role === 'admin' ? ['', 'servicio'] : ['servicio'];
-  $('#cycle-actions').innerHTML =
-    scopesToShow
-      .map((scope) => {
+  setHTML(
+    $('#cycle-actions'),
+    html`${joinHTML(
+      scopesToShow.map((scope) => {
         const current = scope ? effective(scope) : cycle.state,
           title = scope ? 'Servicio' : 'Inventario Global';
         const canOpen = mayReopen(user.role, current);
-        return `<div class="supervision-lifecycle"><div><span>${title}</span><strong data-state="${current}">${stateNames[current]}</strong></div><div class="supervision-state-actions">${current === 'open' ? `<button type="button" class="supervision-text-action" data-transition="review" data-scope="${scope}">Cerrar</button>` : ''}${current === 'review' ? `<button type="button" class="supervision-text-action" data-transition="closed" data-scope="${scope}">Finalizar y enviar</button>` : ''}${canOpen ? `<button type="button" class="supervision-text-action" data-transition="open" data-scope="${scope}">Reabrir</button>` : ''}</div></div>`;
-      })
-      .join('') +
-    (pendingCommand
-      ? '<div class="supervision-pending"><span>Hay un cambio cuyo resultado falta confirmar.</span><button type="button" id="retry-command" class="button button-secondary">Reintentar cambio pendiente</button></div>'
-      : '');
+        return html`<div class="supervision-lifecycle">
+          <div>
+            <span>${title}</span><strong data-state="${current}">${stateNames[current]}</strong>
+          </div>
+          <div class="supervision-state-actions">
+            ${current === 'open' ? html`<button type="button" class="supervision-text-action" data-transition="review" data-scope="${scope}">Cerrar</button>` : ''}${current === 'review' ? html`<button type="button" class="supervision-text-action" data-transition="closed" data-scope="${scope}">Finalizar y enviar</button>` : ''}${canOpen ? html`<button type="button" class="supervision-text-action" data-transition="open" data-scope="${scope}">Reabrir</button>` : ''}
+          </div>
+        </div>`;
+      }),
+    )}${pendingCommand ? html`<div class="supervision-pending"><span>Hay un cambio cuyo resultado falta confirmar.</span><button type="button" id="retry-command" class="button button-secondary">Reintentar cambio pendiente</button></div>` : ''}`,
+  );
   for (const button of root.querySelectorAll('[data-transition]')) {
     button.disabled = !!pendingCommand || sending;
     button.onclick = () =>
@@ -553,33 +685,70 @@ function renderScopeSummary() {
     { total: 0, counted: 0, partial: 0 },
   );
   link.href = summaryUrl(state.scope);
-  link.innerHTML = `${ring(totals)}<span><strong>${esc(locationName(state.scope))}</strong><small>${totals.counted} contados · ${totals.partial} con avance</small></span><span class="supervision-scope-link">Ver resumen ›</span>`;
+  setHTML(
+    link,
+    html`${ring(totals)}<span
+        ><strong>${locationName(state.scope)}</strong
+        ><small>${totals.counted} contados · ${totals.partial} con avance</small></span
+      ><span class="supervision-scope-link">Ver resumen ›</span>`,
+  );
   link.onclick = () => snapshot();
 }
 function renderAreas() {
   $('#result-count').textContent = `${groups.length} ${groups.length === 1 ? 'área' : 'áreas'}`;
-  const chevron =
-    '<svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>';
+  const chevron = html`<svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="m9 5 7 7-7 7" />
+  </svg>`;
   const content = (id, g) =>
-    `${ring(g)}<span><strong>${esc(locationName(id))}</strong><small>${g.counted} contados · ${g.partial} con avance</small><small>${g.pending} pendientes · ${g.excluded} inactivos</small></span>`;
+    html`${ring(g)}<span
+        ><strong>${locationName(id)}</strong
+        ><small>${g.counted} contados · ${g.partial} con avance</small
+        ><small>${g.pending} pendientes · ${g.excluded} inactivos</small></span
+      >`;
   const branch = (id, g) => {
     const children = scopes.filter(
       (s) => s.parent === id && scopeGroups.some((g) => g.scopeId === s.id),
     );
     if (!children.length)
-      return `<a class="supervision-area-row" data-area="${esc(id.split(':')[0])}" href="${esc(summaryUrl(id))}">${content(id, g)}${chevron}</a>`;
-    return `<details class="supervision-area-branch" data-scope="${esc(id)}" ${state.openScopes.includes(id) ? 'open' : ''}><summary class="supervision-area-row" data-area="${esc(id.split(':')[0])}">${content(id, g)}${chevron}</summary><div class="supervision-children">${children
-      .map((child) =>
-        branch(
-          child.id,
-          scopeGroups.find((g) => g.scopeId === child.id),
-        ),
-      )
-      .join('')}</div></details>`;
+      return html`<a
+        class="supervision-area-row"
+        data-area="${id.split(':')[0]}"
+        href="${summaryUrl(id)}"
+        >${content(id, g)}${chevron}</a
+      >`;
+    return html`<details
+      class="supervision-area-branch"
+      data-scope="${id}"
+      ${state.openScopes.includes(id) ? 'open' : ''}
+    >
+      <summary class="supervision-area-row" data-area="${id.split(':')[0]}">
+        ${content(id, g)}${chevron}
+      </summary>
+      <div class="supervision-children">
+        ${joinHTML(
+          children.map((child) =>
+            branch(
+              child.id,
+              scopeGroups.find((g) => g.scopeId === child.id),
+            ),
+          ),
+        )}
+      </div>
+    </details>`;
   };
-  $('#results').innerHTML = groups.length
-    ? `<div class="supervision-area-list">${groups.map((group) => branch(group.areaId, group)).join('')}</div><p class="supervision-legend"><span><i class="state-dot counted"></i>Contado</span><span><i class="state-dot partial"></i>Avance</span><span><i class="state-dot pending"></i>Pendiente</span></p>`
-    : '<p class="supervision-empty">No hay productos disponibles en esta área.</p>';
+  setHTML(
+    $('#results'),
+    groups.length
+      ? html`<div class="supervision-area-list">
+            ${joinHTML(groups.map((group) => branch(group.areaId, group)))}
+          </div>
+          <p class="supervision-legend">
+            <span><i class="state-dot counted"></i>Contado</span
+            ><span><i class="state-dot partial"></i>Avance</span
+            ><span><i class="state-dot pending"></i>Pendiente</span>
+          </p>`
+      : html`<p class="supervision-empty">No hay productos disponibles en esta área.</p>`,
+  );
   for (const link of root.querySelectorAll('#results a')) link.onclick = () => snapshot();
   for (const branch of root.querySelectorAll('details[data-scope]'))
     branch.addEventListener('toggle', () => snapshot());
@@ -645,13 +814,73 @@ async function loadMore() {
 }
 function itemActions(item) {
   const closed = effective(areaOf(item) === 'servicio' ? 'servicio' : '') === 'closed';
-  return `${user.role === 'admin' ? `<label class="supervision-activity"><span>Producto en ${esc(locationName(areaOf(item)))}</span><span class="supervision-switch"><input type="checkbox" role="switch" data-active="${esc(key(item))}" ${item.active ? 'checked' : ''} ${closed || pendingCommand || sending ? 'disabled' : ''} aria-label="Producto activo en ${esc(locationName(areaOf(item)))}"><span aria-hidden="true"></span><b>${item.active ? 'Activo' : 'Inactivo'}</b></span></label>` : ''}${!item.active ? `<p class="supervision-muted">${item.inactiveSince ? `Inactivo desde ${esc(dateTime(item.inactiveSince))}. ` : ''}No aparece en el conteo normal.</p>` : ''}${closed ? '<p class="supervision-muted">Finalizado. Un Administrador debe reabrir antes de modificar.</p>' : item.active ? `<div class="supervision-item-actions"><button type="button" class="button button-secondary" data-change="rectify">Corregir total</button>${item.record && item.record.status !== 'pending' ? '<button type="button" class="button button-danger" data-change="annul">Anular conteo</button>' : ''}</div>` : ''}<button type="button" class="supervision-text-action" data-item-history>Ver historial</button>`;
+  return html`${
+    user.role === 'admin'
+      ? html`<label class="supervision-activity"
+            ><span>Producto en ${locationName(areaOf(item))}</span
+            ><span class="supervision-switch"
+              ><input
+                type="checkbox"
+                role="switch"
+                data-active="${key(item)}"
+                ${item.active ? 'checked' : ''}
+                ${closed || pendingCommand || sending ? 'disabled' : ''}
+                aria-label="Producto activo en ${locationName(areaOf(item))}"
+              /><span aria-hidden="true"></span><b>${item.active ? 'Activo' : 'Inactivo'}</b></span
+            ></label
+          >`
+      : ''
+  }${!item.active ? html`<p class="supervision-muted">${item.inactiveSince ? `Inactivo desde ${dateTime(item.inactiveSince)}. ` : ''}No aparece en el conteo normal.</p>` : ''}${closed ? html`<p class="supervision-muted">Finalizado. Un Administrador debe reabrir antes de modificar.</p>` : item.active ? html`<div class="supervision-item-actions"><button type="button" class="button button-secondary" data-change="rectify">Corregir total</button>${item.record && item.record.status !== 'pending' ? html`<button type="button" class="button button-danger" data-change="annul">Anular conteo</button>` : ''}</div>` : ''}<button
+      type="button"
+      class="supervision-text-action"
+      data-item-history
+    >
+      Ver historial
+    </button>`;
 }
 function renderProducts() {
   $('#result-count').textContent = `${products.length} cargados`;
-  $('#results').innerHTML = products.length
-    ? `<div class="supervision-rows">${products.map((item) => `<details class="supervision-product" data-product="${esc(key(item))}" ${state.openProducts.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.name)}</strong><small><i class="state-dot ${item.active ? item.status : 'inactive'}" aria-hidden="true"></i>${item.active ? stateNames[item.status] : 'Inactivo'} · ${esc(locationName(item.locationId))}</small></span><span class="supervision-row-value">${esc(recordValue(item.record, item.unit))}<svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></span></summary><div class="supervision-product-detail">${item.record?.note ? `<p class="supervision-note">${esc(item.record.note)}</p>` : ''}${itemActions(item)}</div></details>`).join('')}</div>`
-    : '<p class="supervision-empty">Sin productos para estos filtros.</p>';
+  setHTML(
+    $('#results'),
+    products.length
+      ? html`<div class="supervision-rows">
+          ${joinHTML(
+            products.map(
+              (item) =>
+                html`<details
+                  class="supervision-product"
+                  data-product="${key(item)}"
+                  ${state.openProducts.includes(key(item)) ? 'open' : ''}
+                >
+                  <summary>
+                    <span
+                      ><strong>${item.name}</strong
+                      ><small
+                        ><i
+                          class="state-dot ${item.active ? item.status : 'inactive'}"
+                          aria-hidden="true"
+                        ></i
+                        >${item.active ? stateNames[item.status] : 'Inactivo'} ·
+                        ${locationName(item.locationId)}</small
+                      ></span
+                    ><span class="supervision-row-value"
+                      >${recordValue(item.record, item.unit)}<svg
+                        class="supervision-chevron"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path d="m9 5 7 7-7 7" /></svg
+                    ></span>
+                  </summary>
+                  <div class="supervision-product-detail">
+                    ${item.record?.note ? html`<p class="supervision-note">${item.record.note}</p>` : ''}${itemActions(item)}
+                  </div>
+                </details>`,
+            ),
+          )}
+        </div>`
+      : html`<p class="supervision-empty">Sin productos para estos filtros.</p>`,
+  );
   for (const card of root.querySelectorAll('details[data-product]')) {
     const item = products.find((i) => key(i) === card.dataset.product);
     card.ontoggle = () => snapshot();
@@ -695,9 +924,36 @@ function historySummary(item) {
 function renderHistory() {
   $('#result-count').textContent =
     `${historyItems.length} ${historyItems.length === 1 ? 'producto' : 'productos'}`;
-  $('#results').innerHTML = historyItems.length
-    ? `<div class="supervision-rows">${historyItems.map((item) => `<details class="supervision-history-item" data-history="${esc(key(item))}" ${state.openHistory.includes(key(item)) ? 'open' : ''}><summary><span><strong>${esc(item.product)}</strong><small>${esc(locationName(item.locationId))}</small><small>${esc(historySummary(item))}</small></span><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary><div class="supervision-history-detail">${details.has(key(item)) ? chronology(details.get(key(item)).rows, item.unit) + moreHistoryMarkup(details.get(key(item)).cursor) : skeleton()}</div></details>`).join('')}</div>`
-    : '<p class="supervision-empty">Sin movimientos.</p>';
+  setHTML(
+    $('#results'),
+    historyItems.length
+      ? html`<div class="supervision-rows">
+          ${joinHTML(
+            historyItems.map(
+              (item) =>
+                html`<details
+                  class="supervision-history-item"
+                  data-history="${key(item)}"
+                  ${state.openHistory.includes(key(item)) ? 'open' : ''}
+                >
+                  <summary>
+                    <span
+                      ><strong>${item.product}</strong
+                      ><small>${locationName(item.locationId)}</small
+                      ><small>${historySummary(item)}</small></span
+                    ><svg class="supervision-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m9 5 7 7-7 7" />
+                    </svg>
+                  </summary>
+                  <div class="supervision-history-detail">
+                    ${details.has(key(item)) ? html`${chronology(details.get(key(item)).rows, item.unit)}${moreHistoryMarkup(details.get(key(item)).cursor)}` : skeleton()}
+                  </div>
+                </details>`,
+            ),
+          )}
+        </div>`
+      : html`<p class="supervision-empty">Sin movimientos.</p>`,
+  );
   for (const card of root.querySelectorAll('details[data-history]')) {
     const item = historyItems.find((i) => key(i) === card.dataset.history);
     card.ontoggle = () => {
@@ -711,25 +967,40 @@ function renderHistory() {
   }
 }
 function chronology(rows, unit) {
-  if (!rows.length) return '<p class="supervision-muted">Sin movimientos.</p>';
+  if (!rows.length) return html`<p class="supervision-muted">Sin movimientos.</p>`;
   let day = '';
-  return (
-    '<ol class="supervision-timeline">' +
-    rows
-      .map((event) => {
+  return html`<ol class="supervision-timeline">
+    ${joinHTML(
+      rows.map((event) => {
         const nextDay = calendarDay(event.createdAt),
-          heading = nextDay === day ? '' : `<li class="supervision-day">${esc(nextDay)}</li>`;
+          heading = nextDay === day ? '' : html`<li class="supervision-day">${nextDay}</li>`;
         day = nextDay;
-        return `${heading}<li class="supervision-movement"><p><strong>${esc(movementQuantity({ ...event, unit: event.unit || unit }))}</strong><span> · ${esc(event.authorName || event.after?.authorName || 'Usuario')}</span></p><p class="supervision-movement-meta">${esc(actionNames[event.action] || event.action)} · <time datetime="${esc(event.createdAt)}">${esc(dateTime(event.createdAt))}</time></p><p class="supervision-before-after">Antes: ${esc(recordValue(event.before, event.unit || unit))}<br>Después: ${esc(recordValue(event.after, event.unit || unit))}</p>${event.after?.note ? `<p class="supervision-note">${esc(event.after.note)}</p>` : ''}${event.reason ? `<p class="supervision-muted">Motivo: ${esc(event.reason)}</p>` : ''}</li>`;
-      })
-      .join('') +
-    '</ol>'
-  );
+        return html`${heading}
+          <li class="supervision-movement">
+            <p>
+              <strong>${movementQuantity({ ...event, unit: event.unit || unit })}</strong
+              ><span> · ${event.authorName || event.after?.authorName || 'Usuario'}</span>
+            </p>
+            <p class="supervision-movement-meta">
+              ${actionNames[event.action] || event.action} ·
+              <time datetime="${event.createdAt}">${dateTime(event.createdAt)}</time>
+            </p>
+            <p class="supervision-before-after">
+              Antes: ${recordValue(event.before, event.unit || unit)}<br />Después:
+              ${recordValue(event.after, event.unit || unit)}
+            </p>
+            ${event.after?.note ? html`<p class="supervision-note">${event.after.note}</p>` : ''}${event.reason ? html`<p class="supervision-muted">Motivo: ${event.reason}</p>` : ''}
+          </li>`;
+      }),
+    )}
+  </ol>`;
 }
 function moreHistoryMarkup(next) {
   return next == null
     ? ''
-    : '<button type="button" class="supervision-text-action" data-more-history>Movimientos anteriores</button>';
+    : html`<button type="button" class="supervision-text-action" data-more-history>
+        Movimientos anteriores
+      </button>`;
 }
 function bindHistoryMore(host, item) {
   const button = host.querySelector('[data-more-history]');
@@ -754,12 +1025,18 @@ async function loadHistory(item, host, append = false) {
       cursor: data.nextCursor,
     };
     details.set(id, entry);
-    host.innerHTML = chronology(entry.rows, item.unit) + moreHistoryMarkup(entry.cursor);
+    setHTML(host, html`${chronology(entry.rows, item.unit)}${moreHistoryMarkup(entry.cursor)}`);
     bindHistoryMore(host, item);
     snapshot();
   } catch (error) {
     if (!host.isConnected) return;
-    host.innerHTML = `<p role="alert">${esc(error.message)}</p><button type="button" class="supervision-text-action" data-history-retry>Reintentar</button>`;
+    setHTML(
+      host,
+      html`<p role="alert">${error.message}</p>
+        <button type="button" class="supervision-text-action" data-history-retry>
+          Reintentar
+        </button>`,
+    );
     host.querySelector('button').onclick = () => loadHistory(item, host, append);
   }
 }
@@ -771,7 +1048,18 @@ function openProductHistory(item) {
     effective(areaOf(item) === 'servicio' ? 'servicio' : '') !== 'closed';
   const el = dialog(
     'Historial del producto',
-    `<p class="supervision-muted">${esc(item.name)} · ${esc(locationName(item.locationId))}</p><div class="supervision-history-dialog">${skeleton()}</div><div class="supervision-dialog-actions">${canAnnul ? '<button type="button" class="button button-danger" data-annul-history>Anular conteo</button>' : ''}<button type="button" class="button button-secondary" data-close autofocus>Cerrar</button></div>`,
+    html`<p class="supervision-muted">${item.name} · ${locationName(item.locationId)}</p>
+      <div class="supervision-history-dialog">${skeleton()}</div>
+      <div class="supervision-dialog-actions">
+        ${canAnnul ? html`<button type="button" class="button button-danger" data-annul-history>Anular conteo</button>` : ''}<button
+          type="button"
+          class="button button-secondary"
+          data-close
+          autofocus
+        >
+          Cerrar
+        </button>
+      </div>`,
   );
   el.classList.add('supervision-modal');
   el.querySelector('[data-close]').onclick = () => el.close();
@@ -787,16 +1075,29 @@ function openProductHistory(item) {
 }
 function renderEvents(events) {
   $('#result-count').textContent = `${events.length} cambios cargados`;
-  $('#results').innerHTML = events.length
-    ? '<div class="supervision-rows">' +
-      events
-        .map(
-          (event) =>
-            `<article class="supervision-event"><strong>${esc(actionNames[event.kind] || event.kind)}${event.kind === 'state' && stateNames[event.result?.scopeState] ? ' · ' + esc(stateNames[event.result.scopeState]) : ''}</strong><p>${esc(event.authorName || event.user_id || 'Usuario')} · ${esc(event.scope_id ? locationName(event.scope_id) : 'Inventario Global')} · ${esc(dateTime(event.created_at))}</p>${event.reason ? `<p class="supervision-note">${esc(event.reason)}</p>` : ''}</article>`,
-        )
-        .join('') +
-      '</div>'
-    : '<p class="supervision-empty">Sin cambios administrativos.</p>';
+  setHTML(
+    $('#results'),
+    events.length
+      ? html`<div class="supervision-rows">
+          ${joinHTML(
+            events.map(
+              (event) =>
+                html`<article class="supervision-event">
+                  <strong
+                    >${actionNames[event.kind] || event.kind}${event.kind === 'state' && stateNames[event.result?.scopeState] ? ' · ' + stateNames[event.result.scopeState] : ''}</strong
+                  >
+                  <p>
+                    ${event.authorName || event.user_id || 'Usuario'} ·
+                    ${event.scope_id ? locationName(event.scope_id) : 'Inventario Global'} ·
+                    ${dateTime(event.created_at)}
+                  </p>
+                  ${event.reason ? html`<p class="supervision-note">${event.reason}</p>` : ''}
+                </article>`,
+            ),
+          )}
+        </div>`
+      : html`<p class="supervision-empty">Sin cambios administrativos.</p>`,
+  );
 }
 function changeDialog(change, item) {
   if (pendingCommand || sending) {
@@ -841,7 +1142,62 @@ function changeDialog(change, item) {
   const draftKey = `${state.cycleId}:${item ? key(item) : change.scope || 'global'}:${change.kind}:${change.state || ''}`;
   const el = dialog(
     titles[change.kind],
-    `<p class="supervision-dialog-context">${esc(item ? item.name + ' · ' + locationName(item.locationId) : scopeName)}</p><p>${esc(descriptions)}</p><form id="change-form">${edit ? `<label>Total (${esc(item.unit || 'unidad pendiente')})<input name="quantity" inputmode="decimal" type="number" min="0" max="1000000" step="0.001" value="${item.record?.quantity ?? ''}" required></label><label>Estado<select name="status"><option value="counted">Contado</option><option value="partial" ${item.status === 'partial' ? 'selected' : ''}>Avance</option></select></label><label class="supervision-check"><input type="checkbox" name="outOfStock" ${item.record?.outOfStock ? 'checked' : ''}>Sin stock (cero contado)</label><label>Nota (opcional)<textarea name="note" maxlength="1000">${esc(item.record?.note || '')}</textarea></label><p id="change-preview" class="supervision-preview" aria-live="polite"></p>` : ''}${reopen ? '<div class="supervision-reasons"><button type="button" data-reason="Revisar o corregir conteos">Revisar conteos</button><button type="button" data-reason="Completar el conteo de productos">Completar productos</button></div>' : ''}${reopen || edit || annul ? `<label>Motivo${reopen ? '' : ' (opcional)'}<textarea name="reason" ${reopen ? 'minlength="3" required' : ''} maxlength="500" placeholder="${reopen ? 'Elige una sugerencia o escribe otro motivo' : annul ? 'Por ejemplo: producto contado por error' : 'Por ejemplo: ajuste tras revisar el conteo'}"></textarea></label>` : ''}<section data-completion-warning class="supervision-completion-warning" role="alert" hidden></section><p data-command-error role="alert"></p><div class="supervision-dialog-actions"><button type="button" class="button button-secondary" data-cancel autofocus>Cancelar</button><button type="submit" class="button ${annul ? 'button-danger' : 'button-primary'}" data-confirm>${edit ? 'Guardar' : annul ? 'Anular' : reopen ? 'Reabrir' : change.state === 'review' ? 'Cerrar' : 'Finalizar y enviar'}</button></div></form>`,
+    html`<p class="supervision-dialog-context">
+        ${item ? item.name + ' · ' + locationName(item.locationId) : scopeName}
+      </p>
+      <p>${descriptions}</p>
+      <form id="change-form">
+        ${
+          edit
+            ? html`<label
+                  >Total (${item.unit || 'unidad pendiente'})<input
+                    name="quantity"
+                    inputmode="decimal"
+                    type="number"
+                    min="0"
+                    max="1000000"
+                    step="0.001"
+                    value="${item.record?.quantity ?? ''}"
+                    required /></label
+                ><label
+                  >Estado<select name="status">
+                    <option value="counted">Contado</option>
+                    <option value="partial" ${item.status === 'partial' ? 'selected' : ''}>
+                      Avance
+                    </option>
+                  </select></label
+                ><label class="supervision-check"
+                  ><input
+                    type="checkbox"
+                    name="outOfStock"
+                    ${item.record?.outOfStock ? 'checked' : ''}
+                  />Sin stock (cero contado)</label
+                ><label
+                  >Nota (opcional)<textarea name="note" maxlength="1000">
+${item.record?.note || ''}</textarea>
+                </label>
+                <p id="change-preview" class="supervision-preview" aria-live="polite"></p>`
+            : ''
+        }${reopen ? html`<div class="supervision-reasons"><button type="button" data-reason="Revisar o corregir conteos">Revisar conteos</button><button type="button" data-reason="Completar el conteo de productos">Completar productos</button></div>` : ''}${reopen || edit || annul ? html`<label>Motivo${reopen ? '' : ' (opcional)'}<textarea name="reason" ${reopen ? html`minlength="3" required` : ''} maxlength="500" placeholder="${reopen ? 'Elige una sugerencia o escribe otro motivo' : annul ? 'Por ejemplo: producto contado por error' : 'Por ejemplo: ajuste tras revisar el conteo'}"></textarea></label>` : ''}
+        <section
+          data-completion-warning
+          class="supervision-completion-warning"
+          role="alert"
+          hidden
+        ></section>
+        <p data-command-error role="alert"></p>
+        <div class="supervision-dialog-actions">
+          <button type="button" class="button button-secondary" data-cancel autofocus>
+            Cancelar</button
+          ><button
+            type="submit"
+            class="button ${annul ? 'button-danger' : 'button-primary'}"
+            data-confirm
+          >
+            ${edit ? 'Guardar' : annul ? 'Anular' : reopen ? 'Reabrir' : change.state === 'review' ? 'Cerrar' : 'Finalizar y enviar'}
+          </button>
+        </div>
+      </form>`,
   );
   el.classList.add('supervision-modal');
   el.querySelector('h2').after(el.querySelector('[data-command-error]'));
@@ -1032,7 +1388,7 @@ try {
     return pendingCommand ? 'Cambio pendiente de confirmar' : 'Sincronizado';
   });
   if (!state.cycleId) {
-    root.innerHTML = '<p class="supervision-empty">No hay inventarios disponibles.</p>';
+    setHTML(root, html`<p class="supervision-empty">No hay inventarios disponibles.</p>`);
     root.setAttribute('aria-busy', 'false');
   } else {
     restoring = true;

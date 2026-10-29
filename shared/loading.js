@@ -1,3 +1,4 @@
+import { html } from './html.js';
 // Feedback is immediate; no minimum loading time or cached inventory is introduced.
 const transitions = new WeakMap();
 export function reveal(container, key = 'ready') {
@@ -38,5 +39,11 @@ export function pendingButton(button, label) {
   };
 }
 export function historyLoading() {
-  return '<div class="loading-state"><p class="loading-label" role="status">Cargando historial…<small data-loading-hint></small></p><div class="skeleton-stack" aria-hidden="true"><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span></div></div>';
+  return html`<div class="loading-state">
+    <p class="loading-label" role="status">Cargando historial…<small data-loading-hint></small></p>
+    <div class="skeleton-stack" aria-hidden="true">
+      <span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span
+      ><span class="skeleton skeleton-line"></span><span class="skeleton skeleton-field"></span>
+    </div>
+  </div>`;
 }

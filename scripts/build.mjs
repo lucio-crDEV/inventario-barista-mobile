@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import { mkdir, rm, readFile, writeFile, realpath, lstat } from 'node:fs/promises';
@@ -179,6 +180,30 @@ for (const page of documents) {
 }
 // Both Workers static assets and Pages honor this file. Only content-hashed files
 // receive immutable caching; HTML is revalidated and still passes authorization.
+// Public copies contain only the same static skeleton as the protected page.
+// API responses and identities never enter the service-worker manifest.
+const shells = {};
+for (const page of documents) {
+  const html = await readFile(`dist/${page.path}`, 'utf8');
+  const hash = createHash('sha256').update(html).digest('hex').slice(0, 16);
+  const file = `/offline-shells/${page.name}-${hash}.html`;
+  await mkdir('dist/offline-shells', { recursive: true });
+  await writeFile('dist' + file, html);
+  shells[page.path === 'index.html' ? '/' : '/' + page.path.replace(/index\.html$/, '')] = file;
+}
+const assets = result.outputFiles.map((file) => publicURL(file.path)).sort();
+const workerSource = await readFile('shared/offline-worker.js', 'utf8');
+const offlineVersion = createHash('sha256')
+  .update(JSON.stringify({ assets, shells }) + workerSource)
+  .digest('hex')
+  .slice(0, 24);
+await writeFile(
+  'dist/service-worker.js',
+  workerSource.replace(
+    '__INVENTORY_OFFLINE_MANIFEST__',
+    JSON.stringify({ version: offlineVersion, assets, shells }),
+  ),
+);
 await writeFile(
   'dist/_headers',
   `/*
@@ -188,6 +213,11 @@ await writeFile(
   Cache-Control: public, max-age=0, must-revalidate
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+/offline-shells/*
+  Cache-Control: public, max-age=31536000, immutable
+/service-worker.js
+  Cache-Control: no-store
+  Service-Worker-Allowed: /
 `,
 );
 console.log(

@@ -135,6 +135,10 @@ try {
   run('tests/shared/operations.mjs');
   run('tests/shared/package-security.mjs');
   run('tests/shared/export-ui.mjs');
+  run('tests/shared/html-browser.mjs');
+  run('tests/shared/offline-browser.mjs');
+  run('tests/shared/realtime-runtime.mjs');
+  run('tests/shared/realtime-browser.mjs');
   server = spawn(
     process.execPath,
     [

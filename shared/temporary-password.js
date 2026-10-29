@@ -1,3 +1,4 @@
+import { html } from './html.js';
 // Temporary credentials stay in memory. Never write them to storage or URLs.
 const words = Object.freeze([
   'Brioche',
@@ -38,5 +39,6 @@ export function temporaryPassword(cryptoAPI = globalThis.crypto) {
   while (!/[2-9]/.test(suffix));
   return `${first}${pick(['-', '_', '$', '!'])}${second}-${suffix}`;
 }
-export const regenerateIcon =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7"/></svg>';
+export const regenerateIcon = html`<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7" />
+</svg>`;

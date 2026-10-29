@@ -82,13 +82,14 @@ export async function login(req, env, event, modernCycles) {
   if (!u || !match || !u.active || !valid)
     fail(401, 'INVALID_LOGIN', 'Usuario o contraseña incorrectos.');
   const raw = token(),
-    hash = await digest(raw);
+    hash = await digest(raw),
+    expires = now() + 43200;
   // Password/reset/disable may race verification: compare the verified hash atomically.
   const inserted = await db
     .prepare(
       'INSERT INTO sessions SELECT ?,id,? FROM users WHERE id=? AND password_hash=? AND username=? AND active=1 AND deleted_at IS NULL',
     )
-    .bind(hash, now() + 43200, u.id, u.password_hash, u.username)
+    .bind(hash, expires, u.id, u.password_hash, u.username)
     .run();
   if (!inserted.meta.changes) fail(401, 'INVALID_LOGIN', 'Usuario o contraseña incorrectos.');
   // Successful use does not consume the failed-login budget. Release exactly
@@ -99,6 +100,7 @@ export async function login(req, env, event, modernCycles) {
     .bind(ipKey, ipWindow, accountKey, accountWindow)
     .run();
   event.actor = u.id;
+  Object.defineProperty(event, 'sessionExpires', { value: expires, configurable: true });
   event.measure?.phase('cycle');
   const loginCycle = await resolveCycle(db, hash, null, env.ACTIVE_CYCLE_ID, modernCycles);
   event.measure?.phase('handler');

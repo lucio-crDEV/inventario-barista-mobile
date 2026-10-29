@@ -1,4 +1,9 @@
-import { escapeHtml } from '/shared/html.js';
+import { scopeView } from './view-scope.js';
+import { categoriesView } from './view-categories.js';
+import { itemDrawerView } from './view-drawer.js';
+import { countView } from './view-count.js';
+import { html, setHTML } from '/shared/html.js';
+
 import { createSummaryState, renderSummaryView } from './summary-view.js';
 import { showNotice, transitionItem } from '/shared/notices.js';
 import { SharedInventory } from '/shared/inventory.js';
@@ -637,7 +642,11 @@ function updateProgress() {
 
 function render() {
   if (forbiddenScope && items.length) {
-    appContent.innerHTML = '<p>No tienes acceso a este ámbito.</p><a href="/">Ir a mi inicio</a>';
+    setHTML(
+      appContent,
+      html`<p>No tienes acceso a este ámbito.</p>
+        <a href="/">Ir a mi inicio</a>`,
+    );
     headerBackButton.hidden = true;
     document.querySelector('#progress-bar-container').hidden = true;
     progressText.hidden = true;
@@ -758,37 +767,7 @@ function updateStorageWarning() {
 // ============================================================
 
 function renderScopeChooser(title, options) {
-  const hasProgress = options.some((option) => option.items);
-  appContent.innerHTML = `
-      <section class="categories-view scope-view ${hasProgress ? 'scope-view-zones' : ''}">
-        ${title ? `<div class="categories-heading"><h2>${escapeHtml(title)}</h2></div>` : ''}
-        <div class="category-grid">
-          ${options
-            .map((option) => {
-              const stats = option.items ? getCategoryStats(option.items) : null;
-              const partialText = stats?.partial
-                ? ` · ${stats.partial} ${stats.partial === 1 ? 'avance' : 'avances'}`
-                : '';
-              return `
-            <a class="category-card scope-card" href="${escapeHtml(inventoryURL(option.url, shared.cycleId))}"
-              ${stats ? `aria-label="${escapeHtml(option.name)}: ${stats.counted} de ${stats.total} contados${partialText}"` : ''}>
-              <span class="category-card-title">${escapeHtml(option.name)}</span>
-              ${
-                stats
-                  ? `
-                <span class="category-card-progress">${stats.counted} / ${stats.total} contados${partialText}</span>
-                <span class="category-progress-bar" aria-hidden="true">
-                  <span class="category-progress-value" style="width: ${stats.countedPercentage}%"></span>
-                  <span class="category-progress-partial" style="left: ${stats.countedPercentage}%; width: ${stats.partialPercentage}%"></span>
-                </span>`
-                  : ''
-              }
-            </a>
-          `;
-            })
-            .join('')}
-        </div>
-      </section>`;
+  setHTML(appContent, scopeView({ title, options, getCategoryStats, cycleId: shared.cycleId }));
 }
 
 // ============================================================
@@ -797,113 +776,20 @@ function renderScopeChooser(title, options) {
 
 function renderCategories() {
   const categoryGroups = getCategoryGroups();
-
-  const currentFeedback = feedbackMessage;
-
-  const currentTone = feedbackTone;
-
+  const currentFeedback = feedbackMessage,
+    currentTone = feedbackTone;
   feedbackMessage = '';
   feedbackTone = 'counted';
-
-  const categoryCards = categoryGroups
-    .map((group, index) => {
-      const stats = getCategoryStats(group.items);
-
-      const partialText =
-        stats.partial > 0
-          ? ` · ${stats.partial} ${stats.partial === 1 ? 'avance' : 'avances'}`
-          : '';
-
-      const progressLabel = `${stats.counted} de ${stats.total} contados${partialText}`;
-
-      return `
-            <button
-              class="category-card"
-              type="button"
-              data-category-index="${index}"
-              aria-label="${escapeHtml(group.name)}: ${escapeHtml(progressLabel)}"
-            >
-
-              <span
-                class="category-card-title"
-              >
-                ${escapeHtml(group.name)}
-              </span>
-
-
-              <span
-                class="category-card-progress"
-              >
-                ${stats.counted}
-                /
-                ${stats.total}
-                contados
-                ${partialText}
-              </span>
-
-
-              <span
-                class="category-progress-bar"
-                aria-hidden="true"
-              >
-
-                <span
-                  class="category-progress-value"
-                  style="width: ${stats.countedPercentage}%"
-                ></span>
-
-
-                <span
-                  class="category-progress-partial"
-                  style="
-                    left: ${stats.countedPercentage}%;
-                    width: ${stats.partialPercentage}%;
-                  "
-                ></span>
-
-              </span>
-
-            </button>
-          `;
-    })
-    .join('');
-
-  appContent.innerHTML = `
-
-    <section class="categories-view">
-
-      <div class="category-grid">
-        ${categoryCards}
-      </div>
-
-      ${renderItemDrawer(null)}
-
-
-      <button
-        id="open-summary"
-        class="button button-ghost"
-        type="button"
-      >
-        Ver Resumen
-      </button>
-
-
-      ${
-        currentFeedback
-          ? `
-            <p
-              class="feedback feedback-toast feedback-toast-${currentTone}"
-              role="status"
-            >
-              ${escapeHtml(currentFeedback)}
-            </p>
-          `
-          : ''
-      }
-
-    </section>
-  `;
-
+  setHTML(
+    appContent,
+    categoriesView({
+      categoryGroups,
+      getCategoryStats,
+      currentFeedback,
+      currentTone,
+      drawer: renderItemDrawer(null),
+    }),
+  );
   setupCategoryEvents(categoryGroups);
   setupItemDrawerEvents();
 }
@@ -930,280 +816,45 @@ function setupCategoryEvents(categoryGroups) {
 
 const openItemDrawerGroups = new Set();
 
-function renderItemDrawerList(currentItemId) {
-  const groups = new Map();
-
-  activeItems.forEach((item, index) => {
-    const category = isGarzonZone ? '' : getCountCategory(item);
-    if (!groups.has(category)) {
-      groups.set(category, []);
-    }
-    groups.get(category).push({ item, index });
-  });
-
-  return [...groups]
-    .map(
-      ([category, groupItems]) => `
-      ${
-        category
-          ? `<details class="item-drawer-group" data-item-group data-category="${escapeHtml(category)}" ${groupItems.some(({ item }) => item.id === currentItemId) ? 'open' : ''}>
-            <summary class="item-drawer-group-toggle">${escapeHtml(category)}</summary>`
-          : '<section class="item-drawer-group" data-item-group>'
-      }
-        ${groupItems
-          .map(({ item, index }) => {
-            const count = getCount(item.id);
-            const status = count.status;
-            const outOfStock = isOutOfStockCount(count);
-            const isCurrent = item.id === currentItemId;
-            return `
-              <button
-                class="item-drawer-link${isCurrent ? ' is-current' : ''}${outOfStock ? ' is-out-of-stock' : ''}"
-                type="button"
-                data-item-index="${index}"
-                ${isCurrent ? 'aria-current="true"' : ''}
-              >
-                <span class="item-drawer-status status-dot-${outOfStock ? 'out-of-stock' : status}" aria-hidden="true"></span>
-                <span class="item-drawer-name">${escapeHtml(item.name)}</span>
-                <span class="item-drawer-state">${getStatusLabel(status, outOfStock)}</span>
-              </button>`;
-          })
-          .join('')}
-      ${category ? '</details>' : '</section>'}`,
-    )
-    .join('');
-}
-
 function renderItemDrawer(currentItemId) {
-  return `
-      <div id="item-drawer" class="item-drawer" aria-hidden="true" inert>
-        <button class="item-drawer-backdrop" type="button" tabindex="-1" aria-label="Cerrar listado de ítems"></button>
-        <aside class="item-drawer-panel" role="dialog" aria-modal="true" aria-label="Listado de ítems" tabindex="-1">
-          <div class="item-drawer-controls">
-            <input id="item-drawer-search" class="item-drawer-search" type="search" placeholder="Buscar producto" aria-label="Buscar producto" autocomplete="off">
-            <button id="close-item-drawer" class="item-drawer-close" type="button" aria-label="Cerrar listado"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
-          </div>
-          <div class="item-drawer-list" id="item-drawer-list">
-            ${renderItemDrawerList(currentItemId)}
-          </div>
-          <p id="item-drawer-empty" class="item-drawer-empty" hidden>No encontramos productos con ese nombre.</p>
-        </aside>
-      </div>`;
+  return itemDrawerView({
+    currentItemId,
+    activeItems,
+    isGarzonZone,
+    getCountCategory,
+    getCount,
+    getStatusLabel,
+  });
 }
 
 function renderCurrentItem() {
   const item = getCurrentItem();
-
-  if (!item) {
-    return;
-  }
-
-  const count = getCount(item.id);
-
-  const categoryItems = getNavigationItems(item);
-
+  if (!item) return;
+  const count = getCount(item.id),
+    categoryItems = getNavigationItems(item);
   const categoryIndex = categoryItems.indexOf(item);
-
-  const isLastItem = categoryIndex === categoryItems.length - 1;
-
-  const safeName = escapeHtml(item.name);
-
-  const safeCategory = escapeHtml(getCountCategory(item));
-
-  const safeArea = escapeHtml(getAreaName(item.areaId));
-
-  const safeUnit = escapeHtml(item.unit);
-
-  const safeNote = escapeHtml(count.note || '');
-
-  const quantityValue = count.quantity === null ? '' : formatQuantity(count.quantity);
-
-  const statusIcon = getStatusIcon(count.status, isOutOfStockCount(count));
-
-  const statusLabel = getStatusLabel(count.status, isOutOfStockCount(count));
-
-  const currentFeedback = feedbackMessage;
-
-  const currentTone = feedbackTone;
-
+  const currentFeedback = feedbackMessage,
+    currentTone = feedbackTone;
   feedbackMessage = '';
   feedbackTone = 'counted';
-
-  appContent.innerHTML = `
-
-    <section class="count-view">
-
-
-      <div class="item-navigation-top" role="group" aria-label="Navegación de ítems">
-        <button
-          id="previous-item"
-          class="button button-ghost"
-          type="button"
-          ${categoryIndex === 0 ? 'disabled' : ''}
-        >
-          ← Anterior
-        </button>
-
-        <button
-          id="open-item-drawer"
-          class="item-drawer-trigger"
-          type="button"
-          aria-controls="item-drawer"
-          aria-expanded="false"
-        >
-          <span class="item-drawer-trigger-icon" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </span>
-          <span class="item-drawer-trigger-label">Ver ítems</span>
-        </button>
-
-        <button
-          id="next-item"
-          class="button button-ghost"
-          type="button"
-        >
-          ${isLastItem ? (isGarzonZone ? 'Resumen →' : 'Categorías →') : 'Siguiente →'}
-        </button>
-      </div>
-
-      ${renderItemDrawer(item.id)}
-
-
-      <article class="item-card">
-
-
-        <div class="item-header">
-
-
-          <div class="item-heading">
-
-            <span class="item-category">
-              ${isGarzonZone ? safeArea : `${safeCategory} · ${safeArea}`}
-            </span>
-
-
-            <h2>
-              ${safeName}
-            </h2>
-
-          </div>
-
-
-          <span
-            class="
-              status-badge
-              status-${isOutOfStockCount(count) ? 'out-of-stock' : count.status}
-            "
-          >
-            ${statusIcon}
-            ${statusLabel}
-          </span>
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="quantity">
-            Cantidad (${safeUnit})
-          </label>
-
-
-          <input
-            id="quantity"
-            type="text"
-            inputmode="decimal"
-            enterkeyhint="done"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            placeholder="0"
-            value="${quantityValue}"
-          >
-
-
-        </div>
-
-
-        <div class="field">
-
-          <label for="note">
-            Nota
-          </label>
-
-
-          <textarea
-            id="note"
-            rows="3"
-            maxlength="300"
-            placeholder="Opcional"
-          >${safeNote}</textarea>
-
-        </div>
-
-
-      </article>
-
-
-      <div class="count-actions">
-
-        <button
-          id="save-out-of-stock"
-          class="button button-out-of-stock"
-          type="button"
-        >
-          Sin stock
-        </button>
-
-        <button
-          id="save-partial"
-          class="button button-secondary"
-          type="button"
-        >
-          Avance
-        </button>
-
-
-        <button
-          id="save-counted"
-          class="button button-primary"
-          type="button"
-        >
-          Listo
-        </button>
-
-
-      </div>
-
-
-      <div class="summary-navigation">
-        <button
-          id="open-summary"
-          class="button button-ghost"
-          type="button"
-        >
-          Ir a Resumen
-        </button>
-      </div>
-
-
-      ${
-        currentFeedback
-          ? `
-            <p
-              class="feedback feedback-toast feedback-toast-${currentTone}"
-              role="status"
-            >
-              ${escapeHtml(currentFeedback)}
-            </p>
-          `
-          : ''
-      }
-
-
-    </section>
-  `;
-
+  setHTML(
+    appContent,
+    countView({
+      item,
+      count,
+      categoryIndex,
+      isLastItem: categoryIndex === categoryItems.length - 1,
+      isGarzonZone,
+      category: getCountCategory(item),
+      area: getAreaName(item.areaId),
+      quantityValue: count.quantity === null ? '' : formatQuantity(count.quantity),
+      statusIcon: getStatusIcon(count.status, isOutOfStockCount(count)),
+      statusLabel: getStatusLabel(count.status, isOutOfStockCount(count)),
+      currentFeedback,
+      currentTone,
+      drawer: renderItemDrawer(item.id),
+    }),
+  );
   setupCurrentItemEvents();
   shared.mount(item, count);
   updateKeyboardActions();
@@ -1369,24 +1020,16 @@ function showFeedback(message) {
 // ============================================================
 
 function renderEmptyState() {
-  appContent.innerHTML = `
+  setHTML(
+    appContent,
+    html`
+      <section class="empty-state">
+        <h2>No hay productos activos</h2>
 
-    <section class="empty-state">
-
-      <h2>
-        No hay productos activos
-      </h2>
-
-
-      <p>
-
-        Los productos inactivos se gestionan desde el Panel de supervisión.
-
-      </p>
-
-    </section>
-
-  `;
+        <p>Los productos inactivos se gestionan desde el Panel de supervisión.</p>
+      </section>
+    `,
+  );
 }
 
 // ============================================================

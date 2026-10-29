@@ -20,12 +20,13 @@ Abrir `http://127.0.0.1:8787/`. Usuario ficticio `admin-prueba`, clave `Solo-pru
 ## Validación y publicación
 
 ```sh
+npm run format:check
 npm test
 npm run test:security:isolated
 npm run build:pages
 ```
 
-GitHub Actions ejecuta las pruebas automáticamente. Pages publica **solo `dist`**, después del push del usuario a `inventory-v3`. Nunca publicar la raíz, `.backups`, `.exports`, `.git` ni `node_modules`. No hay secretos incluidos en el build.
+GitHub Actions ejecuta formato, pruebas unitarias, lint HTML y la batería aislada, que incluye HTML seguro, offline y tiempo real. Pages publica **solo `dist`**, después del push del usuario a `inventory-v3`. Nunca publicar la raíz, `.backups`, `.exports`, `.git` ni `node_modules`. No hay secretos incluidos en el build.
 
 ## Documentación
 
@@ -35,4 +36,6 @@ GitHub Actions ejecuta las pruebas automáticamente. Pages publica **solo `dist`
 - [Guía de estilos](docs/style-guide.md).
 - [Índice de documentación](docs/README.md).
 
-El estado publicado y el código local se registran por separado. Dependabot, modo offline completo, TOTP y cambios de política de acceso siguen pendientes de decisión.
+La app puede abrir el último ciclo y área autorizados sin conexión: conserva una instantánea por persona hasta el vencimiento de su sesión, como máximo doce horas. Los borradores requieren envío explícito con conexión; salir elimina la instantánea. El conteo RTv2 comparte registros autorizados y conserva la compatibilidad anterior.
+
+El código local y su publicación se registran por separado. La migración de índice 0016 ya está aplicada y verificada en producción. Dependabot, TOTP, nuevas políticas de acceso y «Cerrar otras sesiones» siguen pendientes. La aceptación en teléfono físico y Microsoft Excel, y las referencias de catálogo sin resolver, conservan sus límites documentados.

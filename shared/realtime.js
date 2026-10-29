@@ -1,9 +1,10 @@
-// Notifications carry no records. Every hint uses the normal authorized read path.
+// Counting opts into scoped record frames; other views retain authorized HTTP hints.
 export function startRealtime({
   enabled = false,
   cycleId = '',
   polling,
   onChange = () => polling.refresh({ afterPending: true }),
+  onRecords,
   onAuth = () => location.reload(),
   document: doc = document,
   window: win = window,
@@ -25,7 +26,9 @@ export function startRealtime({
     readFailures = 0,
     pending,
     dirty = false,
-    hint = 'ready';
+    hint = 'ready',
+    hintData,
+    frames = [];
   const active = () => !stopped && !suspended && !doc.hidden && nav?.onLine !== false;
   function clear() {
     for (const timer of [reconnectTimer, changeTimer, heartbeatTimer, watchdog]) clearTimer(timer);
@@ -34,6 +37,7 @@ export function startRealtime({
   function disconnect() {
     clear();
     ready = false;
+    frames = [];
     const current = socket;
     socket = undefined;
     current?.close();
@@ -69,20 +73,25 @@ export function startRealtime({
       }, 15000);
     }, 60000);
   }
-  function notify(type = 'changed') {
+  function notify(type = 'changed', message) {
     if (!active()) return;
     dirty = true;
-    if (type !== 'ready' || hint === 'ready') hint = type;
+    if (type !== 'ready' || hint === 'ready') {
+      hint = type;
+      hintData = message;
+    }
     if (pending || changeTimer) return;
     changeTimer = setTimer(read, 125);
   }
   function read() {
     changeTimer = undefined;
     if (!active() || pending || !dirty) return;
-    const type = hint;
+    const type = hint,
+      message = hintData;
     dirty = false;
     hint = 'ready';
-    pending = Promise.resolve().then(() => onChange(type));
+    hintData = undefined;
+    pending = Promise.resolve().then(() => onChange(type, message));
     pending
       .then(
         () => {
@@ -102,6 +111,23 @@ export function startRealtime({
             read,
             readFailures ? Math.min(30000, 1000 * 2 ** readFailures) : 125,
           );
+        else drainFrames();
+      });
+  }
+  function drainFrames() {
+    if (!active() || pending || dirty || changeTimer || !frames.length) return;
+    const frame = frames.shift();
+    pending = Promise.resolve().then(() => onRecords(frame));
+    pending
+      .catch(() => {
+        frames = [];
+        polling.resume();
+        notify('changed');
+      })
+      .finally(() => {
+        pending = undefined;
+        if (dirty && active() && !changeTimer) changeTimer = setTimer(read, 125);
+        else drainFrames();
       });
   }
   function connect() {
@@ -109,6 +135,7 @@ export function startRealtime({
     const url = new URL('/api/realtime', win.location.href);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     if (cycleId) url.searchParams.set('cycle', cycleId);
+    if (typeof onRecords === 'function') url.searchParams.set('v', '2');
     let current;
     try {
       current = new Socket(url.href);
@@ -137,14 +164,27 @@ export function startRealtime({
         failures = 0;
         polling.pause();
         heartbeat();
-        notify('ready');
+        notify('ready', message);
       } else if (message.type === 'pong') heartbeat();
-      else if (ready && ['changed', 'refresh'].includes(message.type)) notify(message.type);
+      else if (ready && message.type === 'records' && typeof onRecords === 'function') {
+        if (
+          typeof event.data !== 'string' ||
+          new TextEncoder().encode(event.data).byteLength > 48 * 1024 ||
+          frames.length >= 16
+        ) {
+          frames = [];
+          notify('changed');
+          return;
+        }
+        frames.push(message);
+        drainFrames();
+      } else if (ready && ['changed', 'refresh'].includes(message.type)) notify(message.type);
     });
     current.addEventListener('close', (event) => {
       if (socket !== current) return;
       socket = undefined;
       ready = false;
+      frames = [];
       clear();
       if (event.code === 4001) {
         stopped = true;

@@ -1,7 +1,42 @@
 // One private, SQLite-backed hibernating object per installation. It reads only
-// indexed journal/control metadata; inventory data stays behind the API guards.
+// the journal once per sweep and shares only the API-authorized scope projection.
 const INTERVAL = 3000,
-  MAX_SOCKETS = 128;
+  MAX_SOCKETS = 128,
+  MAX_FRAME_BYTES = 48 * 1024;
+const encodedLength = (value) => new TextEncoder().encode(JSON.stringify(value)).byteLength;
+// Every frame covers a contiguous global journal range, including entries hidden
+// by scope/cycle. Empty frames advance that range without exposing their records.
+function recordFrames(rows, fromCursor, toCursor, auth) {
+  const frames = [];
+  let from = fromCursor,
+    chunk = [],
+    bytes = 512;
+  const flush = (to) => {
+    frames.push({
+      type: 'records',
+      cycleId: auth.cycleId,
+      fromCursor: from,
+      toCursor: to,
+      records: chunk
+        .filter((row) => row.cycle_id === auth.cycleId && auth.scopeIds.includes(row.location_id))
+        .map((row) => row.record),
+    });
+    from = to;
+    chunk = [];
+    bytes = 512;
+  };
+  for (const row of rows) {
+    const size = encodedLength(row.record) + 1;
+    if (size + 512 > MAX_FRAME_BYTES) throw Error('Record too large');
+    if (chunk.length && (chunk.length >= 250 || bytes + size > MAX_FRAME_BYTES))
+      flush(chunk.at(-1).seq);
+    chunk.push(row);
+    bytes += size;
+  }
+  if (chunk.length) flush(toCursor);
+  else if (from < toCursor) flush(toCursor);
+  return frames;
+}
 const controlSQL = `SELECT coalesce((SELECT max(seq) FROM history),0) cursor,
  (SELECT users_metadata_revision FROM runtime_contract WHERE id=1) access_revision,
  (SELECT revision FROM cycle_registry WHERE id=1) registry_revision`;
@@ -11,6 +46,11 @@ export class InventoryRealtime {
     this.env = env;
     this.running = null;
     this.initializing = null;
+    // Native hibernating auto-response avoids waking this object for keepalives.
+    if (ctx.setWebSocketAutoResponse && globalThis.WebSocketRequestResponsePair)
+      ctx.setWebSocketAutoResponse(
+        new WebSocketRequestResponsePair('{"type":"ping"}', '{"type":"pong"}'),
+      );
   }
   database() {
     return this.env.DB.withSession ? this.env.DB.withSession('first-primary') : this.env.DB;
@@ -52,7 +92,7 @@ export class InventoryRealtime {
     } catch {
       return new Response('Not ready', { status: 503 });
     }
-    if (state.access_revision !== auth.accessRevision)
+    if (auth.expires * 1000 <= Date.now() || state.access_revision !== auth.accessRevision)
       return new Response('Refresh access', { status: 403 });
     if (this.ctx.getWebSockets().length >= MAX_SOCKETS)
       return new Response('Busy', { status: 503 });
@@ -61,7 +101,13 @@ export class InventoryRealtime {
       server = pair[1];
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment(auth);
-    server.send(JSON.stringify({ type: 'ready' }));
+    server.send(
+      JSON.stringify(
+        auth.protocol === 2
+          ? { type: 'ready', cycleId: auth.cycleId, cursor: state.cursor }
+          : { type: 'ready' },
+      ),
+    );
     if ((await this.ctx.storage.getAlarm()) === null)
       await this.ctx.storage.setAlarm(Date.now() + INTERVAL);
     return new Response(null, { status: 101, webSocket: client });
@@ -117,29 +163,76 @@ export class InventoryRealtime {
         if (next.cursor !== previous.cursor) {
           const result = await db
             .prepare(
-              'SELECT cycle_id,location_id FROM history WHERE seq>? AND seq<=? ORDER BY seq LIMIT 1001',
+              'SELECT seq,cycle_id,location_id,after_record FROM history WHERE seq>? AND seq<=? ORDER BY seq LIMIT 1001',
             )
             .bind(previous.cursor, next.cursor)
             .all();
-          if (result.results.length > 1000) {
+          // The data query is an await boundary: a permission revocation may have
+          // committed after the first control read. A fresh first-primary session
+          // revalidates the current primary, rather than a prior session bookmark.
+          const control = await this.database()
+            .prepare(
+              'SELECT users_metadata_revision access_revision FROM runtime_contract WHERE id=1',
+            )
+            .first();
+          if (!control || control.access_revision !== next.access_revision) {
+            for (const socket of sockets) socket.close(4001, 'Refresh access');
+          } else if (result.results.length > 1000) {
             for (const socket of sockets) socket.close(1012, 'Reconnect');
-          } else
+          } else {
+            const needsRecords = sockets.some(
+              (socket) => socket.deserializeAttachment().protocol === 2,
+            );
+            const rows = needsRecords
+              ? result.results.map((row) => {
+                  const record = JSON.parse(row.after_record);
+                  if (
+                    !record ||
+                    Array.isArray(record) ||
+                    typeof record.itemId !== 'string' ||
+                    record.locationId !== row.location_id ||
+                    !Number.isSafeInteger(record.version)
+                  )
+                    throw Error('Invalid journal record');
+                  return { ...row, record };
+                })
+              : result.results;
             for (const socket of sockets) {
               const auth = socket.deserializeAttachment();
-              if (
+              if (auth.expires * 1000 <= Date.now()) {
+                socket.close(4001, 'Refresh access');
+                continue;
+              }
+              if (auth.protocol === 2 && auth.cycleId) {
+                for (const frame of recordFrames(rows, previous.cursor, next.cursor, auth)) {
+                  if (auth.expires * 1000 <= Date.now()) {
+                    socket.close(4001, 'Refresh access');
+                    break;
+                  }
+                  const payload = JSON.stringify(frame);
+                  if (new TextEncoder().encode(payload).byteLength > MAX_FRAME_BYTES)
+                    throw Error('Frame too large');
+                  socket.send(payload);
+                }
+              } else if (
                 auth.cycleId &&
-                result.results.some(
+                rows.some(
                   (row) => row.cycle_id === auth.cycleId && auth.scopeIds.includes(row.location_id),
                 )
               )
                 socket.send(JSON.stringify({ type: 'changed' }));
             }
+          }
         }
         if (next.registry_revision !== previous.registry_revision) {
           // Only configuration changed. Home may need a new default inventory;
           // counting/supervision re-read their authorized revision projection.
           for (const socket of sockets)
-            if (socket.readyState === 1) socket.send(JSON.stringify({ type: 'refresh' }));
+            if (
+              socket.readyState === 1 &&
+              socket.deserializeAttachment().expires * 1000 > Date.now()
+            )
+              socket.send(JSON.stringify({ type: 'refresh' }));
         }
       }
       if (

@@ -1,8 +1,11 @@
-import { escapeHtml as esc } from './client.js';
+import { html, setHTML, joinHTML } from './html.js';
+
 import { inventoryDates, monthCells } from './inventory-dates.js';
 
 const arrow = (direction) =>
-  `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${direction < 0 ? 'm14 5-7 7 7 7' : 'm10 5 7 7-7 7'}"/></svg>`;
+  html`<svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="${direction < 0 ? 'm14 5-7 7 7 7' : 'm10 5 7 7-7 7'}" />
+  </svg>`;
 const monthName = (value) => {
   const name = new Intl.DateTimeFormat('es-CL', {
     month: 'long',
@@ -31,8 +34,20 @@ export function mountInventoryDatePicker(
     month = months.includes(initial.slice(0, 7)) ? initial.slice(0, 7) : months.at(-1),
     periods = false,
     year = month?.slice(0, 4);
-  host.innerHTML =
-    '<div class="inventory-date-tools"><button type="button" data-date-open aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg><span>Elegir fecha</span></button><button type="button" data-date-clear aria-label="Quitar filtro de fecha" hidden>Ver todos</button></div><section class="inventory-calendar" aria-label="Calendario de inventarios" hidden></section>';
+  setHTML(
+    host,
+    html`<div class="inventory-date-tools">
+        <button type="button" data-date-open aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M16 3v4M8 3v4M3 11h18" /></svg
+          ><span>Elegir fecha</span></button
+        ><button type="button" data-date-clear aria-label="Quitar filtro de fecha" hidden>
+          Ver todos
+        </button>
+      </div>
+      <section class="inventory-calendar" aria-label="Calendario de inventarios" hidden></section>`,
+  );
   const open = host.querySelector('[data-date-open]'),
     clear = host.querySelector('[data-date-clear]'),
     calendar = host.querySelector('section');
@@ -40,23 +55,55 @@ export function mountInventoryDatePicker(
   function render() {
     const index = months.indexOf(month),
       yearIndex = years.indexOf(year);
-    calendar.innerHTML = `<div class="inventory-calendar-heading"><button type="button" data-step="-1" aria-label="${periods ? 'Año' : 'Mes'} anterior" ${(periods ? yearIndex : index) <= 0 ? 'disabled' : ''}>${arrow(-1)}</button><button type="button" data-period aria-label="${periods ? 'Volver al calendario' : 'Elegir mes y año'}">${esc(periods ? year : monthName(month))}</button><button type="button" data-step="1" aria-label="${periods ? 'Año' : 'Mes'} siguiente" ${(periods ? yearIndex >= years.length - 1 : index >= months.length - 1) ? 'disabled' : ''}>${arrow(1)}</button></div>${
-      periods
-        ? `<div class="inventory-month-grid">${Array.from({ length: 12 }, (_, i) => {
-            const value = year + '-' + String(i + 1).padStart(2, '0');
-            return `<button type="button" data-month="${value}" ${months.includes(value) ? '' : 'disabled'}>${esc(new Intl.DateTimeFormat('es-CL', { month: 'short', timeZone: 'UTC' }).format(new Date(value + '-01T12:00:00Z')))}</button>`;
-          }).join('')}</div>`
-        : `<div class="inventory-weekdays" aria-hidden="true">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day) => `<span>${day}</span>`).join('')}</div><div class="inventory-day-grid" role="group" aria-label="Fechas disponibles">${monthCells(
-            month,
-            dates,
-          )
-            .map((day) =>
-              day
-                ? `<button type="button" data-date="${day.date}" aria-label="${esc(fullDate(day.date))}, ${day.count ? day.count + ' ' + (day.count === 1 ? 'inventario' : 'inventarios') : 'sin inventarios'}" aria-pressed="${selected === day.date}" ${day.count ? '' : 'disabled'}>${day.number}${day.count ? '<span aria-hidden="true">•</span>' : ''}</button>`
-                : '<span></span>',
-            )
-            .join('')}</div>`
-    }`;
+    setHTML(
+      calendar,
+      html`<div class="inventory-calendar-heading">
+          <button
+            type="button"
+            data-step="-1"
+            aria-label="${periods ? 'Año' : 'Mes'} anterior"
+            ${(periods ? yearIndex : index) <= 0 ? 'disabled' : ''}
+          >
+            ${arrow(-1)}</button
+          ><button
+            type="button"
+            data-period
+            aria-label="${periods ? 'Volver al calendario' : 'Elegir mes y año'}"
+          >
+            ${periods ? year : monthName(month)}</button
+          ><button
+            type="button"
+            data-step="1"
+            aria-label="${periods ? 'Año' : 'Mes'} siguiente"
+            ${(periods ? yearIndex >= years.length - 1 : index >= months.length - 1) ? 'disabled' : ''}
+          >
+            ${arrow(1)}
+          </button>
+        </div>
+        ${
+          periods
+            ? html`<div class="inventory-month-grid">
+                ${joinHTML(
+                  Array.from({ length: 12 }, (_, i) => {
+                    const value = year + '-' + String(i + 1).padStart(2, '0');
+                    return html`<button
+                      type="button"
+                      data-month="${value}"
+                      ${months.includes(value) ? '' : 'disabled'}
+                    >
+                      ${new Intl.DateTimeFormat('es-CL', { month: 'short', timeZone: 'UTC' }).format(new Date(value + '-01T12:00:00Z'))}
+                    </button>`;
+                  }),
+                )}
+              </div>`
+            : html`<div class="inventory-weekdays" aria-hidden="true">
+                  ${joinHTML(['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day) => html`<span>${day}</span>`))}
+                </div>
+                <div class="inventory-day-grid" role="group" aria-label="Fechas disponibles">
+                  ${joinHTML(monthCells(month, dates).map((day) => (day ? html`<button type="button" data-date="${day.date}" aria-label="${fullDate(day.date)}, ${day.count ? day.count + ' ' + (day.count === 1 ? 'inventario' : 'inventarios') : 'sin inventarios'}" aria-pressed="${selected === day.date}" ${day.count ? '' : 'disabled'}>${day.number}${day.count ? html`<span aria-hidden="true">•</span>` : ''}</button>` : html`<span></span>`)))}
+                </div>`
+        }`,
+    );
   }
   function close() {
     calendar.hidden = true;

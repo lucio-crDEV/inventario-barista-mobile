@@ -1,3 +1,4 @@
+import { html, setHTML } from '../../shared/html.js';
 /** Muestra un acento visual mientras el resumen ya está disponible. */
 export function showSummaryTransition(
   container,
@@ -8,8 +9,10 @@ export function showSummaryTransition(
   const indicator = container.ownerDocument.createElement('div');
   indicator.className = 'summary-transition';
   indicator.setAttribute('aria-hidden', 'true');
-  indicator.innerHTML =
-    '<span class="summary-transition-mark"></span><span>Preparando resumen</span>';
+  setHTML(
+    indicator,
+    html`<span class="summary-transition-mark"></span><span>Preparando resumen</span>`,
+  );
   container.querySelector('.summary-view').prepend(indicator);
   schedule(() => indicator.remove(), duration);
   return indicator;

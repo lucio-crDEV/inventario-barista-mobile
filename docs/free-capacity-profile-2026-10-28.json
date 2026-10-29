@@ -1,0 +1,195 @@
+{
+  "generatedAt": "2026-10-28T15:46:24.964Z",
+  "scope": "Disposable local Wrangler D1 + the real Worker route; no production origin, remote D1, or external load.",
+  "assumptions": {
+    "fakeUsers": 30,
+    "catalogItems": 1268,
+    "activeCycle": "prueba-compartida",
+    "inventoryPasses": 2,
+    "firstPass": "partial/advance",
+    "secondPass": "counted",
+    "maxConcurrentActors": 30,
+    "allItemsEnabledOnlyInDisposableD1": true
+  },
+  "durationMs": 33122,
+  "measuredWorkloadDurationMs": 9372,
+  "http": {
+    "requests": 2686,
+    "statusCounts": {
+      "login": {
+        "200": 30
+      },
+      "bootstrap_by_area": {
+        "200": 30
+      },
+      "advance_partial": {
+        "200": 1268
+      },
+      "idempotent_retry": {
+        "200": 30
+      },
+      "stale_retry": {
+        "409": 30
+      },
+      "final_count": {
+        "200": 1268
+      },
+      "empty_incremental_sync": {
+        "200": 30
+      }
+    },
+    "unexpectedRateLimits": 0,
+    "latencyMs": {
+      "login": {
+        "p50": 8577,
+        "p95": 8577,
+        "max": 8578
+      },
+      "bootstrap_by_area": {
+        "p50": 42,
+        "p95": 50,
+        "max": 51
+      },
+      "advance_partial": {
+        "p50": 95,
+        "p95": 107,
+        "max": 119
+      },
+      "idempotent_retry": {
+        "p50": 93,
+        "p95": 97,
+        "max": 97
+      },
+      "stale_retry": {
+        "p50": 98,
+        "p95": 99,
+        "max": 100
+      },
+      "final_count": {
+        "p50": 94,
+        "p95": 114,
+        "max": 128
+      },
+      "empty_incremental_sync": {
+        "p50": 79,
+        "p95": 79,
+        "max": 79
+      }
+    }
+  },
+  "workload": {
+    "catalogActivation": "Inactive catalog rows were temporarily enabled through item_activity in the disposable D1 so all 1,268 rows could be exercised; catalog source data was unchanged.",
+    "itemOwnership": "Disjoint item/location sets across all 30 users to avoid false write conflicts.",
+    "perUserItems": {
+      "min": 25,
+      "max": 69
+    },
+    "areaBootstrapItems": {
+      "cocina": 171,
+      "panaderia": 151,
+      "pasteleria": 246,
+      "principal": 288,
+      "servicio": 412
+    },
+    "staleRetry": "30 expected HTTP 409 STALE responses; no operation accepted.",
+    "idempotentRetry": "30 repeated operation IDs; response matched the original acceptance.",
+    "emptyIncrementalSyncs": 30,
+    "verifiedD1State": {
+      "operations": 2536,
+      "history": 2536,
+      "items": 1268,
+      "counted": 1268,
+      "partial": 0
+    }
+  },
+  "d1LocalMetadata": {
+    "source": "Authenticated admin Server-Timing counters from the Worker request wrapper.",
+    "metadataResponses": 2656,
+    "missingHeaders": 30,
+    "missingStatementMetadata": 0,
+    "nonzeroResponses": 2656,
+    "rowsRead": 2045764,
+    "rowsWritten": 34477,
+    "statements": 13490,
+    "calls": 13310,
+    "byWorkload": {
+      "login": {
+        "responses": 30,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 357689,
+        "rowsWritten": 241,
+        "statements": 240,
+        "calls": 240
+      },
+      "bootstrap_by_area": {
+        "responses": 30,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 386823,
+        "rowsWritten": 0,
+        "statements": 270,
+        "calls": 120
+      },
+      "advance_partial": {
+        "responses": 1268,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 633999,
+        "rowsWritten": 17752,
+        "statements": 6340,
+        "calls": 6340
+      },
+      "idempotent_retry": {
+        "responses": 30,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 14490,
+        "rowsWritten": 0,
+        "statements": 150,
+        "calls": 150
+      },
+      "stale_retry": {
+        "responses": 0,
+        "missingHeaders": 30,
+        "missingStatementMetadata": 0,
+        "rowsRead": 0,
+        "rowsWritten": 0,
+        "statements": 0,
+        "calls": 0
+      },
+      "final_count": {
+        "responses": 1268,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 640340,
+        "rowsWritten": 16484,
+        "statements": 6340,
+        "calls": 6340
+      },
+      "empty_incremental_sync": {
+        "responses": 30,
+        "missingHeaders": 0,
+        "missingStatementMetadata": 0,
+        "rowsRead": 12423,
+        "rowsWritten": 0,
+        "statements": 150,
+        "calls": 120
+      }
+    },
+    "freeQuotaForecast": {
+      "freeDailyRowsRead": 5000000,
+      "freeDailyRowsWritten": 100000,
+      "observedSuccessfulRowsRead": 2045764,
+      "observedSuccessfulRowsWritten": 34477,
+      "profilesPerDayUpperBoundFromObservedRows": 2,
+      "status": "visible_success_responses_only",
+      "note": "Upper bound uses successful response Server-Timing metadata only; 30 stale 409 responses do not expose D1 timing."
+    }
+  },
+  "limits": {
+    "cloudflareCpu": "Not measurable with local Workerd/Miniflare; this is not a Cloudflare capacity certification.",
+    "freeQuotaAssumptions": "5,000,000 D1 rows read and 100,000 D1 rows written per day, as requested for this estimate.",
+    "localD1MetadataCaveat": "Miniflare metadata may be unavailable or differ from Cloudflare billed rows. Failed stale responses also omit Server-Timing."
+  }
+}

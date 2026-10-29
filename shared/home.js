@@ -1,6 +1,7 @@
+import { html, setHTML } from './html.js';
 import { startRealtime } from './realtime.js';
 import { startPolling } from './polling.js';
-import { api, authenticated, identityBar, escapeHtml } from './client.js';
+import { api, authenticated, identityBar } from './client.js';
 import { loading, reveal } from './loading.js';
 import { homeURL } from './navigation.js';
 const nav = document.querySelector('nav'),
@@ -27,8 +28,8 @@ try {
     if (!data.scopes.some((x) => x.id === id)) link.remove();
   }
   if (!data.scopes.length)
-    nav.innerHTML = '<p>No tienes áreas asignadas. Contacta al administrador</p>';
-  else if (data.cycleId === null) nav.innerHTML = '<p>No hay inventarios disponibles.</p>';
+    setHTML(nav, html`<p>No tienes áreas asignadas. Contacta al administrador</p>`);
+  else if (data.cycleId === null) setHTML(nav, html`<p>No hay inventarios disponibles.</p>`);
   finishLoading();
   placeholder.remove();
   nav.hidden = false;
@@ -64,7 +65,11 @@ try {
   finishLoading();
   placeholder.remove();
   nav.hidden = false;
-  nav.innerHTML = `<p class="error">${escapeHtml(e.message)}</p><button class="button button-primary" type="button">Reintentar conexión</button>`;
+  setHTML(
+    nav,
+    html`<p class="error">${e.message}</p>
+      <button class="button button-primary" type="button">Reintentar conexión</button>`,
+  );
   nav.querySelector('button').onclick = () => location.reload();
   reveal(nav);
 }

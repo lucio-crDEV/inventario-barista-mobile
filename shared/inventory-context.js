@@ -1,4 +1,5 @@
-import { api, dialog, escapeHtml as esc } from './client.js';
+import { html, setHTML, joinHTML } from './html.js';
+import { api, dialog } from './client.js';
 import { cycleLabel, cycleTypeNames } from './cycles.js';
 import { recommendation, relativeInventoryDate, localDay } from './inventory-calendar.js';
 import { showNotice } from './notices.js';
@@ -20,14 +21,6 @@ function retainPending(user, command) {
 }
 function clearPending(user) {
   sessionStorage.removeItem(pendingKey(user));
-}
-function styles() {
-  if (document.querySelector('link[data-inventory-context]')) return;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = '/shared/inventory-context.css';
-  link.dataset.inventoryContext = '';
-  document.head.append(link);
 }
 export function mountInventoryContext(user) {
   // The selector lives inside settings away from Home: load its cycles on demand.
@@ -62,7 +55,6 @@ export function mountInventoryContext(user) {
   return mounting;
 }
 async function mount(user) {
-  styles();
   const data = await api('/api/cycles');
   const query = new URLSearchParams(location.search),
     selected = query.get('inventory') || data.defaultCycleId;
@@ -75,7 +67,25 @@ async function mount(user) {
   const host = document.createElement('section');
   host.className = 'inventory-context-bar';
   host.setAttribute('aria-label', 'Inventario seleccionado');
-  host.innerHTML = `<button type="button" class="inventory-selector" data-select aria-haspopup="dialog"><span class="inventory-selection"><small>Inventario seleccionado</small><span class="inventory-selection-value"><strong>${current ? esc(cycleLabel(current)) : 'Seleccionar inventario'}</strong>${inventoryStatus(current)}</span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>${user.role === 'admin' ? '<button type="button" class="inventory-create-action" data-new><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Crear inventario</span></button>' : ''}`;
+  setHTML(
+    host,
+    html`<button type="button" class="inventory-selector" data-select aria-haspopup="dialog">
+        <span class="inventory-selection"
+          ><small>Inventario seleccionado</small
+          ><span class="inventory-selection-value"
+            ><strong>${current ? cycleLabel(current) : 'Seleccionar inventario'}</strong
+            >${inventoryStatus(current)}</span
+          ></span
+        ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg></button
+      >${
+        user.role === 'admin'
+          ? html`<button type="button" class="inventory-create-action" data-new>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg
+              ><span>Crear inventario</span>
+            </button>`
+          : ''
+      }`,
+  );
   host.querySelector('[data-select]').onclick = () =>
     openInventoryPicker(data.cycles, current, { includePrepared: management });
   host.querySelector('[data-new]')?.addEventListener('click', () => {
@@ -89,8 +99,10 @@ async function mount(user) {
   document.addEventListener('inventory:cycle-updated', (event) => {
     if (!host.isConnected || !current || event.detail?.id !== current.id) return;
     Object.assign(current, event.detail);
-    host.querySelector('.inventory-selection-value').innerHTML =
-      `<strong>${esc(cycleLabel(current))}</strong>${inventoryStatus(current)}`;
+    setHTML(
+      host.querySelector('.inventory-selection-value'),
+      html`<strong>${cycleLabel(current)}</strong>${inventoryStatus(current)}`,
+    );
   });
   if (current)
     for (const link of document.querySelectorAll(
@@ -114,7 +126,14 @@ async function mount(user) {
   const notice = document.createElement('aside');
   notice.className = 'inventory-opening-notice';
   notice.setAttribute('aria-label', 'Recomendación de inventario');
-  notice.innerHTML = `<button type="button" class="inventory-notice-close" aria-label="Descartar recomendación"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><p>${esc(rec.message)}</p><button type="button" class="inventory-link-action" data-open>Crear inventario</button>`;
+  setHTML(
+    notice,
+    html`<button type="button" class="inventory-notice-close" aria-label="Descartar recomendación">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+      <p>${rec.message}</p>
+      <button type="button" class="inventory-link-action" data-open>Crear inventario</button>`,
+  );
   (host.isConnected ? host : header).after(notice);
   notice.querySelector('[data-open]').onclick = () =>
     inventoryDialog(user, data.cycles, null, rec.type);
@@ -151,7 +170,6 @@ async function mount(user) {
 export function inventoryDialog(user, cycles, existing = null, type = 'weekly') {
   if (user.role !== 'admin') return;
   if (readPending(user)) return recoverInventoryCommand(user);
-  styles();
   const create = !existing;
   const latest = cycles.find((c) => c.lifecycle !== 'deleted');
   const latestDate = latest?.created_at || (latest?.period ? latest.period + 'T12:00:00Z' : '');
@@ -169,20 +187,70 @@ export function inventoryDialog(user, cycles, existing = null, type = 'weekly') 
   const prepared = existing?.lifecycle === 'prepared';
   const el = dialog(
     create ? 'Crear inventario' : 'Opciones del inventario',
-    `<form class="inventory-form"><p data-cycle-error class="feedback-message" role="alert" hidden></p>${
-      create
-        ? `<fieldset class="inventory-types"><legend>Tipo</legend><div class="inventory-type-options">${Object.keys(
-            cycleTypeNames,
-          )
-            .map(
-              (id) =>
-                `<label><input type="radio" name="type" value="${id}" ${id === type ? 'checked' : ''}><span>${id === 'both' ? 'Ambos' : cycleTypeNames[id]}</span></label>`,
-            )
-            .join(
-              '',
-            )}</div></fieldset><p class="inventory-opening-date">${localDay().split('-').reverse().join('/')}</p><label class="inventory-check"><input type="checkbox" name="activate" checked>Activar inmediatamente</label>`
-        : `<div class="inventory-options-context"><strong>${esc(cycleLabel(existing))}</strong><div><span>${esc(cycleTypeNames[existing.type] || 'Inventario')}</span>${inventoryStatus(existing)}</div></div><section data-activation ${prepared ? '' : 'hidden'}><h3>Activar inventario</h3><p>El equipo podrá comenzar a contar en este inventario.</p></section><section data-delete-confirm hidden><p>Se retirará de la lista. Sus conteos y su historial se conservan.</p></section>`
-    }<section data-warnings class="inventory-warning" role="alert" hidden></section><div class="inventory-submit-row" ${!create && !prepared ? 'hidden' : ''}>${create ? `<small>últ. inventario: ${esc(lastLabel)}</small>` : ''}<button class="button button-primary" type="submit">${create ? 'Crear inventario' : prepared ? 'Activar inventario' : 'Eliminar inventario'}</button></div>${create ? '' : `<section class="inventory-options-danger" data-delete-option><h3>Eliminar inventario</h3><p>Retíralo de la lista conservando sus conteos e historial.</p><button type="button" class="inventory-danger-button" data-delete>Eliminar inventario</button></section>`}<button type="button" class="inventory-link-action" data-cancel autofocus>${create ? 'Cancelar' : 'Cerrar'}</button></form>${create ? '' : '<button type="button" class="inventory-options-close" data-options-close aria-label="Cerrar opciones del inventario"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>'}`,
+    html`<form class="inventory-form">
+        <p data-cycle-error class="feedback-message" role="alert" hidden></p>
+        ${
+          create
+            ? html`<fieldset class="inventory-types">
+                  <legend>Tipo</legend>
+                  <div class="inventory-type-options">
+                    ${joinHTML(Object.keys(cycleTypeNames).map((id) => html`<label><input type="radio" name="type" value="${id}" ${id === type ? 'checked' : ''} /><span>${id === 'both' ? 'Ambos' : cycleTypeNames[id]}</span></label>`))}
+                  </div>
+                </fieldset>
+                <p class="inventory-opening-date">${localDay().split('-').reverse().join('/')}</p>
+                <label class="inventory-check"
+                  ><input type="checkbox" name="activate" checked />Activar inmediatamente</label
+                >`
+            : html`<div class="inventory-options-context">
+                  <strong>${cycleLabel(existing)}</strong>
+                  <div>
+                    <span>${cycleTypeNames[existing.type] || 'Inventario'}</span
+                    >${inventoryStatus(existing)}
+                  </div>
+                </div>
+                <section data-activation ${prepared ? '' : 'hidden'}>
+                  <h3>Activar inventario</h3>
+                  <p>El equipo podrá comenzar a contar en este inventario.</p>
+                </section>
+                <section data-delete-confirm hidden>
+                  <p>Se retirará de la lista. Sus conteos y su historial se conservan.</p>
+                </section>`
+        }
+        <section data-warnings class="inventory-warning" role="alert" hidden></section>
+        <div class="inventory-submit-row" ${!create && !prepared ? 'hidden' : ''}>
+          ${create ? html`<small>últ. inventario: ${lastLabel}</small>` : ''}<button
+            class="button button-primary"
+            type="submit"
+          >
+            ${create ? 'Crear inventario' : prepared ? 'Activar inventario' : 'Eliminar inventario'}
+          </button>
+        </div>
+        ${
+          create
+            ? ''
+            : html`<section class="inventory-options-danger" data-delete-option>
+                <h3>Eliminar inventario</h3>
+                <p>Retíralo de la lista conservando sus conteos e historial.</p>
+                <button type="button" class="inventory-danger-button" data-delete>
+                  Eliminar inventario
+                </button>
+              </section>`
+        }<button type="button" class="inventory-link-action" data-cancel autofocus>
+          ${create ? 'Cancelar' : 'Cerrar'}
+        </button>
+      </form>
+      ${
+        create
+          ? ''
+          : html`<button
+              type="button"
+              class="inventory-options-close"
+              data-options-close
+              aria-label="Cerrar opciones del inventario"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>`
+      }`,
   );
   el.classList.add('inventory-cycle-dialog');
   const form = el.querySelector('form'),
@@ -306,10 +374,14 @@ export function inventoryDialog(user, cycles, existing = null, type = 'weekly') 
 function recoverInventoryCommand(user) {
   const pending = readPending(user);
   if (!pending) return;
-  styles();
   const el = dialog(
     'Confirmar cambio pendiente',
-    '<p>Comprueba el resultado del último cambio antes de iniciar otro.</p><p role="alert" data-error hidden></p><div class="inventory-dialog-actions"><button type="button" data-close autofocus>Cerrar</button><button type="button" data-retry>Comprobar resultado</button></div>',
+    html`<p>Comprueba el resultado del último cambio antes de iniciar otro.</p>
+      <p role="alert" data-error hidden></p>
+      <div class="inventory-dialog-actions">
+        <button type="button" data-close autofocus>Cerrar</button
+        ><button type="button" data-retry>Comprobar resultado</button>
+      </div>`,
   );
   el.querySelector('[data-close]').onclick = () => el.close();
   const retry = el.querySelector('[data-retry]');

@@ -1,6 +1,6 @@
 # Verificación vigente
 
-Entrega de etapa 4D, rendimiento y mantenimiento. El [registro de evidencia](etapa-4d-verificacion-2026-10-28.json) distingue código local, preparación remota y publicación pendiente del push.
+Entrega de etapa 4D, offline real, HTML seguro y sincronización RTv2. El [registro de evidencia 4D](etapa-4d-verificacion-2026-10-28.json) conserva los resultados de esa etapa; las cifras finales y el estado remoto constan en [la evidencia de esta revisión](operacion-free-verificacion-2026-10-28.json). Una prueba local no acredita publicación ni alertas activas.
 
 ## Validación automática
 
@@ -8,6 +8,8 @@ Requiere Node 24 y las dependencias fijadas en el lockfile:
 
 ```sh
 npm ci
+npm run format:check
+npm run lint:html
 npm test
 python3 -m unittest discover -s tests -p '*_test.py'
 npm run test:security:isolated
@@ -15,7 +17,22 @@ node tests/shared/export-jobs-runtime.mjs
 npm run build:pages
 ```
 
-La batería aislada crea bases ficticias y servidores locales propios; no reutiliza el estado de desarrollo ni recibe credenciales productivas. Incluye permisos, conflictos, concurrencia, jerarquías, supervisión, navegación móvil, descarga, recuperación de respaldos y paquete público. Las pruebas nuevas de contraseña ejecutan bcrypt12 en un objeto SQLite local, incluyendo el ingreso HTTP completo. GitHub Actions usa este recorrido sin desplegar.
+La batería aislada crea bases ficticias y servidores locales propios; no reutiliza el estado de desarrollo ni recibe credenciales productivas. Incluye permisos, conflictos, concurrencia, jerarquías, supervisión, navegación móvil, descarga, recuperación de respaldos y paquete público. Las pruebas de contraseña ejecutan bcrypt12 en un objeto SQLite local, incluyendo el ingreso HTTP completo. GitHub Actions comprueba el formato, ejecuta las unitarias —que incluyen el lint HTML y el importador de catálogo— y la batería aislada, con los nuevos recorridos HTML/offline/RTv2. No despliega.
+
+Las regresiones nuevas pueden ejecutarse de forma acotada:
+
+```sh
+node tests/shared/html-browser.mjs
+node tests/shared/offline-browser.mjs
+node tests/shared/realtime-runtime.mjs
+node tests/shared/realtime-browser.mjs
+```
+
+- HTML: interpolaciones hostiles, fragmentos no falsificables, rechazo de puntos de inserción mediante cadenas y vistas separadas que conservan navegación, campos y borradores.
+- Offline con Chromium: apertura de una pestaña nueva realmente sin red, último ciclo/área autorizado, borrador y operación incierta conservados, reconexión sin envío automático y reintento del mismo comando. También se comprueban 401/503 sin alternativa local, cambio de cuenta entre pestañas, salida offline y revocación posterior de la cookie, expiración, cuotas y actualización del service worker sin perder el borrador. El SW solo conserva archivos estáticos y estructuras HTML públicas; IndexedDB guarda las proyecciones privadas por identidad, hasta el vencimiento real de sesión y como máximo doce horas.
+- RTv2 nativo: treinta conexiones comparten una consulta de datos del historial por intervalo; se añaden el control inicial y la comprobación de accesos posterior a la espera. Se prueban aislamiento por ciclo/ubicación, mensajes de hasta 250 registros y 48 KiB, continuidad de cursores, revocación y expiración durante la consulta, fallos, desborde, ping/pong sin despertar JavaScript y compatibilidad con avisos v1. No salen peticiones a Internet desde la simulación.
+- RTv2 en Chromium: el conteo aplica registros ordinarios sin consultas HTTP por teléfono, conserva cantidad, nota, foco y borrador, y no retrocede ante respuestas antiguas o duplicadas. Los huecos y mensajes inválidos recuperan la API autorizada; las páginas se drenan antes de confiar en el nuevo cursor. La instantánea offline ya autorizada también se actualiza.
+- Catálogo: validación del paquete aprobado, hash, ámbitos, referencias Excel, cardinalidades, límites de D1, importación repetida sin cambios y rechazo de estados incompatibles. No se inventan unidades, conversiones ni destinos.
 
 El guard independiente verifica el SHA del original, todos los miembros ZIP, formatos, referencias, fórmulas y límites de modificaciones:
 
@@ -26,7 +43,9 @@ python3 scripts/verify-excel-template.py --candidate .exports/copia.xlsx --recal
 
 La segunda opción corresponde a nuevas copias autorizadas para actualizar totales al abrir. Una copia histórica con política `preserve-calc` se verifica omitiendo `--recalculate-on-open`; el guard no acepta las opciones de cálculo sin ese permiso explícito.
 
-## Resultados de esta entrega
+## Evidencia y estado de entrega
+
+Las pruebas anteriores describen la cobertura actual. Registrar las cifras finales en la evidencia de la ejecución completa. Los siguientes antecedentes de 4D se conservan como referencia de esa etapa y no sustituyen una comprobación del estado remoto vigente:
 
 - Pruebas unitarias, fidelidad independiente Python y batería aislada: aprobadas según cifras exactas de la evidencia.
 - Generador nativo: trabajo SQLite, alarma real, cinco solicitudes simultáneas, recuperación de un fallo, objeto R2 único, descarga estable, sesión revocada y cero salidas a Internet en la simulación.
@@ -38,9 +57,15 @@ La segunda opción corresponde a nuevas copias autorizadas para actualizar total
 
 ## Límites
 
-No se hizo push ni despliegue de Pages en esta entrega. CI está preparado: su primera ejecución real en GitHub ocurre después del push. Una aprobación local no demuestra el resultado de ese workflow ni CPU facturada de producción.
+La documentación y los resultados locales no certifican un push, un despliegue de Pages ni el resultado de un workflow remoto. Verificar por separado el código publicado, los bindings y la evidencia operativa. Tampoco certifican CPU facturada ni cobertura de alertas del proveedor.
+
+`0016_catalog_lookup_index.sql` se aplicó en producción, con preflight de solo lectura anterior y posterior aprobado. No asumir su índice ni sus beneficios en una base que todavía no haya recibido la migración; no repetir las migraciones que ya consten aplicadas.
+
+Con tiempo real disponible, una desconexión del conteo activa consultas de respaldo cada treinta segundos; una conexión sana usa registros RTv2 y mantiene la recuperación HTTP inicial o ante discontinuidades. Esa demora de respaldo y el consumo dependen de la carga y de los roles. La simulación con treinta conexiones no garantiza las cuotas Free durante veinticuatro horas continuas.
 
 Falta aceptación en teléfono físico y Microsoft Excel. Las opciones de recálculo solicitan al programa actualizar las fórmulas; el generador no ejecuta Excel ni certifica su motor. Datos de catálogo pendientes pueden bloquear legítimamente una exportación; no se sustituyen por valores supuestos.
+
+TOTP, nuevas políticas de acceso/inactividad, «Cerrar otras sesiones» y Dependabot permanecen pendientes de decisión. Offline, HTML seguro, vistas separadas, importador y RTv2 forman parte de la implementación local actual.
 
 ## Comprobación posterior al push
 
@@ -53,3 +78,13 @@ node scripts/preflight.mjs --remote --config wrangler.pages.production.jsonc --c
 ```
 
 No repetir primer administrador, fixtures ni migraciones ya aplicadas. Los informes fechados de etapas anteriores conservan resultados históricos, no pendientes vigentes; [índice](README.md).
+
+## Cierre de esta revisión
+
+204 pruebas unitarias, 14 pruebas Python y 29 recorridos de la batería aislada aprobados; formato y lint aprobados. Las pruebas nativas cubren exportación privada, treinta conexiones de tiempo real y monitor con Analytics simulado, sin tocar datos productivos. El libro original conserva su SHA-256. Se corrigieron y cubrieron dos regresiones: estructura del panel de productos y errores de envío que el aviso offline ocultaba.
+
+El índice 0016 y los Workers privados de tiempo real/monitoreo quedaron preparados remotamente. La alerta de correo figura habilitada y el usuario confirmó la entrega del mensaje de prueba. La consulta real de Analytics validó las cuatro series; las métricas actuales no se confunden con el perfil local ni con un ensayo de carga productiva. Pages y el primer workflow de GitHub de esta revisión requieren el push del usuario.
+
+La primera muestra programada real se observó el 28-10-2026 a las 16:30:22 UTC: monitor disponible y las cuatro series disponibles. El canal de correo también fue confirmado por el usuario.
+
+Pendiente para la siguiente entrega: mejorar la concurrencia de la verificación privada de contraseñas cuando 25–30 personas ingresan simultáneamente desde una misma IP pública. Esta entrega conserva la cola existente y no incluye esa corrección; la prueba local de treinta personas no certifica ese escenario de ingreso privado. Si se satura, algunos ingresos pueden requerir un reintento.

@@ -1,6 +1,7 @@
+import { html, setHTML, joinHTML } from '/shared/html.js';
 import { showNotice } from '/shared/notices.js';
 import { passwordField, bindPasswordFields } from '/shared/password-field.js';
-import { api, authenticated, identityBar, escapeHtml as esc, dialog } from '/shared/client.js';
+import { api, authenticated, identityBar, dialog } from '/shared/client.js';
 import { loading, reveal, pendingButton } from '/shared/loading.js';
 import { roleNames } from '/shared/roles.js';
 import { temporaryPassword, regenerateIcon } from '/shared/temporary-password.js';
@@ -11,12 +12,17 @@ let actor,
   createDraft = null,
   createPending = false;
 const temporaryField = () =>
-  passwordField('Contraseña temporal', 'password', 'new-password')
-    .replace('class="password-field"', 'class="password-field temporary-password-field"')
-    .replace(
-      '</span></label>',
-      `<button type="button" class="regenerate-password" aria-label="Generar otra contraseña temporal" title="Generar otra contraseña temporal">${regenerateIcon}</button></span></label>`,
-    );
+  passwordField('Contraseña temporal', 'password', 'new-password', true, {
+    className: 'temporary-password-field',
+    after: html`<button
+      type="button"
+      class="regenerate-password"
+      aria-label="Generar otra contraseña temporal"
+      title="Generar otra contraseña temporal"
+    >
+      ${regenerateIcon}
+    </button>`,
+  });
 function bindTemporaryFields(root) {
   bindPasswordFields(root);
   for (const button of root.querySelectorAll('.regenerate-password')) {
@@ -30,10 +36,16 @@ function bindTemporaryFields(root) {
 }
 const roleSelect = (role, manager) =>
   manager === 'service_lead'
-    ? '<input name="role" type="hidden" value="worker"><p class="field-hint">Rol: Trabajador</p>'
-    : `<label>Rol<select name="role">${['admin', 'service_lead', 'worker'].map((r) => `<option value="${r}" ${role === r ? 'selected' : ''}>${roleNames[r]}</option>`).join('')}</select></label>`;
-const chevron =
-  '<svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg>';
+    ? html`<input name="role" type="hidden" value="worker" />
+        <p class="field-hint">Rol: Trabajador</p>`
+    : html`<label
+        >Rol<select name="role">
+          ${joinHTML(['admin', 'service_lead', 'worker'].map((r) => html`<option value="${r}" ${role === r ? 'selected' : ''}>${roleNames[r]}</option>`))}
+        </select></label
+      >`;
+const chevron = html`<svg class="disclosure-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="m8 10 4 4 4-4" />
+</svg>`;
 function scopeHint(scope, scopes) {
   if (scope.id === 'servicio')
     return 'Incluye Barra, Línea / Armado, Copería, Mercadito, Vitrina y todas las zonas de Garzones.';
@@ -44,64 +56,152 @@ function assignments(u, scopes) {
   const render = (scope) => {
     const children = scopes.filter((s) => s.parent === scope.id);
     const hint = scopeHint(scope, scopes);
-    const checkbox = `<label class="scope-assignment"><input type="checkbox" name="grants" value="${esc(scope.id)}" ${u.grants.includes(scope.id) ? 'checked' : ''}><span>${children.length ? (scope.id.endsWith(':garzones') ? 'Todas las zonas de Garzones' : `Todo ${esc(scope.name)}`) : esc(scope.name)}${hint ? `<small>${esc(hint)}</small>` : ''}</span></label>`;
+    const checkbox = html`<label class="scope-assignment"
+      ><input
+        type="checkbox"
+        name="grants"
+        value="${scope.id}"
+        ${u.grants.includes(scope.id) ? 'checked' : ''}
+      /><span
+        >${children.length ? (scope.id.endsWith(':garzones') ? 'Todas las zonas de Garzones' : `Todo ${scope.name}`) : scope.name}${hint ? html`<small>${hint}</small>` : ''}</span
+      ></label
+    >`;
     if (!children.length) return checkbox;
-    return `<details class="scope-group" data-scope="${esc(scope.id)}"><summary><span>${esc(scope.name)}</span><small data-scope-count></small>${chevron}</summary><div class="scope-group-content">${checkbox}<div class="scope-children">${children.map(render).join('')}</div></div></details>`;
+    return html`<details class="scope-group" data-scope="${scope.id}">
+      <summary><span>${scope.name}</span><small data-scope-count></small>${chevron}</summary>
+      <div class="scope-group-content">
+        ${checkbox}
+        <div class="scope-children">${joinHTML(children.map(render))}</div>
+      </div>
+    </details>`;
   };
-  return `<fieldset class="scope-tree"><legend class="visually-hidden">Áreas y zonas asignadas</legend>${scopes
-    .filter((s) => !s.parent || !scopes.some((p) => p.id === s.parent))
-    .map(render)
-    .join('')}</fieldset>`;
+  return html`<fieldset class="scope-tree">
+    <legend class="visually-hidden">Áreas y zonas asignadas</legend>
+    ${joinHTML(scopes.filter((s) => !s.parent || !scopes.some((p) => p.id === s.parent)).map(render))}
+  </fieldset>`;
 }
 function tabs(u) {
-  return `<div class="account-tabs" role="tablist" aria-label="Opciones de ${esc(u.username)}">${[
-    ['account', 'Cuenta'],
-    ['access', 'Accesos'],
-    ['security', 'Seguridad'],
-  ]
-    .map(
-      ([id, label], i) =>
-        `<button type="button" role="tab" id="tab-${u.id}-${id}" aria-controls="panel-${u.id}-${id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-account-tab="${id}">${label}</button>`,
-    )
-    .join('')}</div>`;
+  return html`<div class="account-tabs" role="tablist" aria-label="Opciones de ${u.username}">
+    ${joinHTML(
+      [
+        ['account', 'Cuenta'],
+        ['access', 'Accesos'],
+        ['security', 'Seguridad'],
+      ].map(
+        ([id, label], i) =>
+          html`<button
+            type="button"
+            role="tab"
+            id="tab-${u.id}-${id}"
+            aria-controls="panel-${u.id}-${id}"
+            aria-selected="${i === 0}"
+            tabindex="${i === 0 ? 0 : -1}"
+            data-account-tab="${id}"
+          >
+            ${label}
+          </button>`,
+      ),
+    )}
+  </div>`;
 }
 function panelAttributes(u, id) {
-  return `id="panel-${u.id}-${id}" data-account-panel="${id}"${u.limited ? '' : ` role="tabpanel" aria-labelledby="tab-${u.id}-${id}" tabindex="0"`}${id !== 'account' && !u.limited ? ' hidden' : ''}`;
+  return html`id="panel-${u.id}-${id}"
+  data-account-panel="${id}"${u.limited ? '' : html` role="tabpanel" aria-labelledby="tab-${u.id}-${id}" tabindex="0"`}${id !== 'account' && !u.limited ? ' hidden' : ''}`;
 }
 function card(u, scopes) {
   const summary = u.limited
     ? 'Solo puedes cambiar sus accesos de Servicio. La cuenta queda a cargo del Administrador.'
     : '';
-  return `<article class="user-card" data-id="${u.id}" data-search="${esc((u.name + ' ' + u.username).toLowerCase())}">
-    <details class="user-details"><summary><span class="user-card-name"><strong>${esc(u.name)}</strong><small>${esc(u.username)}</small></span><span class="user-card-meta"><span class="role-chip">${roleNames[u.role]}</span><span class="state-chip ${u.active ? 'is-active' : 'is-inactive'}">${u.active ? 'Activo' : 'Inactivo'}</span></span>${chevron}</summary>
-      <div class="user-editor">${summary ? `<p class="user-access-summary">${summary}</p>` : tabs(u)}
+  return html`<article
+    class="user-card"
+    data-id="${u.id}"
+    data-search="${(u.name + ' ' + u.username).toLowerCase()}"
+  >
+    <details class="user-details">
+      <summary>
+        <span class="user-card-name"><strong>${u.name}</strong><small>${u.username}</small></span
+        ><span class="user-card-meta"
+          ><span class="role-chip">${roleNames[u.role]}</span
+          ><span class="state-chip ${u.active ? 'is-active' : 'is-inactive'}"
+            >${u.active ? 'Activo' : 'Inactivo'}</span
+          ></span
+        >${chevron}
+      </summary>
+      <div class="user-editor">
+        ${summary ? html`<p class="user-access-summary">${summary}</p>` : tabs(u)}
         <form data-user="${u.id}" data-revision="${u.revision}">
           ${
             u.limited
               ? ''
-              : `<div class="editor-panel account-fields" ${panelAttributes(u, 'account')}>
-            <label class="username-field">Usuario<input name="username" value="${esc(u.username)}" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"><small class="field-hint">Cambiar el usuario cierra sus sesiones.</small></label>
-            ${roleSelect(u.role, actor.role)}
-            <label class="account-active"><span>Cuenta activa<small>Permite iniciar sesión.</small></span><input type="checkbox" name="active" ${u.active ? 'checked' : ''}></label>
-            <p class="field-hint profile-hint">Cada persona cambia su nombre visible en Mi perfil.</p>
-          </div>`
+              : html`<div class="editor-panel account-fields" ${panelAttributes(u, 'account')}>
+                  <label class="username-field"
+                    >Usuario<input
+                      name="username"
+                      value="${u.username}"
+                      required
+                      pattern="(?:[a-z0-9._]|-){3,40}"
+                      autocomplete="off"
+                      autocapitalize="none"
+                      spellcheck="false"
+                    /><small class="field-hint"
+                      >Cambiar el usuario cierra sus sesiones.</small
+                    ></label
+                  >
+                  ${roleSelect(u.role, actor.role)}
+                  <label class="account-active"
+                    ><span>Cuenta activa<small>Permite iniciar sesión.</small></span
+                    ><input type="checkbox" name="active" ${u.active ? 'checked' : ''}
+                  /></label>
+                  <p class="field-hint profile-hint">
+                    Cada persona cambia su nombre visible en Mi perfil.
+                  </p>
+                </div>`
           }
           <div class="editor-panel access-panel" ${panelAttributes(u, 'access')}>
-            <div class="access-heading"><h3>Áreas y zonas</h3><span class="assignment-count" data-assignment-count></span></div>
-            <p class="field-hint" data-access-hint>Selecciona áreas, subáreas o zonas. Sin asignaciones no hay acceso al inventario.</p>
+            <div class="access-heading">
+              <h3>Áreas y zonas</h3>
+              <span class="assignment-count" data-assignment-count></span>
+            </div>
+            <p class="field-hint" data-access-hint>
+              Selecciona áreas, subáreas o zonas. Sin asignaciones no hay acceso al inventario.
+            </p>
             ${assignments(u, scopes)}
           </div>
-          <div class="editor-save"><button class="button button-primary">Guardar cuenta y accesos</button></div>
+          <div class="editor-save">
+            <button class="button button-primary">Guardar cuenta y accesos</button>
+          </div>
         </form>
         ${
           u.limited
             ? ''
-            : `<div class="editor-panel security-panel" ${panelAttributes(u, 'security')}>
-          <section class="security-section"><h3>Restablecer contraseña</h3><p class="field-hint">Cierra sus sesiones. Deberá cambiar la contraseña temporal al ingresar.</p>
-            <form class="reset-form" data-reset="${u.id}" data-revision="${u.revision}">${temporaryField()}<button class="button button-secondary">Restablecer contraseña</button></form>
-          </section>
-          <section class="security-section delete-account"><h3>Eliminar usuario</h3><p class="field-hint">Acción irreversible. Los conteos y el historial se conservan.</p><button class="button button-danger" type="button" data-delete="${u.id}" data-revision="${u.revision}" data-username="${esc(u.username)}">Eliminar usuario</button></section>
-        </div>`
+            : html`<div class="editor-panel security-panel" ${panelAttributes(u, 'security')}>
+                <section class="security-section">
+                  <h3>Restablecer contraseña</h3>
+                  <p class="field-hint">
+                    Cierra sus sesiones. Deberá cambiar la contraseña temporal al ingresar.
+                  </p>
+                  <form class="reset-form" data-reset="${u.id}" data-revision="${u.revision}">
+                    ${temporaryField()}<button class="button button-secondary">
+                      Restablecer contraseña
+                    </button>
+                  </form>
+                </section>
+                <section class="security-section delete-account">
+                  <h3>Eliminar usuario</h3>
+                  <p class="field-hint">
+                    Acción irreversible. Los conteos y el historial se conservan.
+                  </p>
+                  <button
+                    class="button button-danger"
+                    type="button"
+                    data-delete="${u.id}"
+                    data-revision="${u.revision}"
+                    data-username="${u.username}"
+                  >
+                    Eliminar usuario
+                  </button>
+                </section>
+              </div>`
         }
       </div>
     </details>
@@ -179,7 +279,24 @@ function confirmation(title, text, label, danger = false) {
   return new Promise((resolve) => {
     const el = dialog(
       title,
-      `<p>${text}</p><div class="dialog-actions"><button type="button" id="${danger ? 'cancel-delete' : 'cancel-reset'}" data-cancel autofocus>Cancelar</button><button type="button" id="${danger ? 'confirm-delete' : 'confirm-reset'}" data-confirm class="${danger ? 'button-danger' : ''}">${esc(label)}</button></div>`,
+      html`<p>${text}</p>
+        <div class="dialog-actions">
+          <button
+            type="button"
+            id="${danger ? 'cancel-delete' : 'cancel-reset'}"
+            data-cancel
+            autofocus
+          >
+            Cancelar</button
+          ><button
+            type="button"
+            id="${danger ? 'confirm-delete' : 'confirm-reset'}"
+            data-confirm
+            class="${danger ? 'button-danger' : ''}"
+          >
+            ${label}
+          </button>
+        </div>`,
     );
     let confirmed = false;
     el.querySelector('[data-cancel]').onclick = () => el.close();
@@ -208,7 +325,29 @@ function credentials(username, password) {
   const text = `Acceso al inventario\nUsuario: ${username}\nContraseña temporal: ${password}\nAl ingresar deberás cambiar tu contraseña.`;
   const el = dialog(
     'Acceso preparado',
-    `<p>Comparte estas credenciales con la persona. Deberá cambiar la contraseña al ingresar.</p><dl class="credentials"><dt>Usuario</dt><dd>${esc(username)}</dd><dt>Contraseña temporal</dt><dd class="credential-secret">${esc(password)}</dd></dl><p class="field-hint">La clave solo se muestra aquí. Para recuperarla después, genera una nueva.</p><p class="credential-feedback" role="status"></p><div class="dialog-actions"><button type="button" data-copy class="button-secondary">Copiar accesos</button>${navigator.share ? '<button type="button" data-share>Compartir</button>' : ''}<button type="button" data-close class="button-secondary">Cerrar</button></div>`,
+    html`<p>
+        Comparte estas credenciales con la persona. Deberá cambiar la contraseña al ingresar.
+      </p>
+      <dl class="credentials">
+        <dt>Usuario</dt>
+        <dd>${username}</dd>
+        <dt>Contraseña temporal</dt>
+        <dd class="credential-secret">${password}</dd>
+      </dl>
+      <p class="field-hint">
+        La clave solo se muestra aquí. Para recuperarla después, genera una nueva.
+      </p>
+      <p class="credential-feedback" role="status"></p>
+      <div class="dialog-actions">
+        <button type="button" data-copy class="button-secondary">Copiar accesos</button
+        >${navigator.share ? html`<button type="button" data-share>Compartir</button>` : ''}<button
+          type="button"
+          data-close
+          class="button-secondary"
+        >
+          Cerrar
+        </button>
+      </div>`,
   );
   el.classList.add('account-credentials');
   const feedback = el.querySelector('.credential-feedback');
@@ -251,7 +390,44 @@ function createAccount(scopes) {
   createDraft = draft;
   const el = dialog(
     'Crear usuario',
-    `<form id="create" novalidate><nav class="create-steps" aria-label="Pasos del alta">${['Cuenta', 'Accesos', 'Confirmar'].map((name, i) => `<span data-step-label="${i}">${i + 1}. ${name}</span>`).join('')}</nav><p class="create-feedback" role="status"></p><section data-create-step="0"><label>Usuario<input name="username" value="${esc(draft.username)}" required pattern="(?:[a-z0-9._]|-){3,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>Nombre visible<input name="name" value="${esc(draft.name)}" maxlength="80" required autocomplete="off"></label>${roleSelect(draft.role, actor.role)}</section><section data-create-step="1"><p class="field-hint" data-create-scope-hint></p>${assignments(draft, scopes)}</section><section data-create-step="2"><p class="create-confirmation"></p>${temporaryField()}<p class="field-hint">Se exigirá cambiarla al ingresar.</p></section><div class="dialog-actions"><button type="button" class="button-secondary" data-create-back>Atrás</button><button type="submit" data-create-next>Continuar</button></div></form>`,
+    html`<form id="create" novalidate>
+      <nav class="create-steps" aria-label="Pasos del alta">
+        ${joinHTML(['Cuenta', 'Accesos', 'Confirmar'].map((name, i) => html`<span data-step-label="${i}">${i + 1}. ${name}</span>`))}
+      </nav>
+      <p class="create-feedback" role="status"></p>
+      <section data-create-step="0">
+        <label
+          >Usuario<input
+            name="username"
+            value="${draft.username}"
+            required
+            pattern="(?:[a-z0-9._]|-){3,40}"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false" /></label
+        ><label
+          >Nombre visible<input
+            name="name"
+            value="${draft.name}"
+            maxlength="80"
+            required
+            autocomplete="off" /></label
+        >${roleSelect(draft.role, actor.role)}
+      </section>
+      <section data-create-step="1">
+        <p class="field-hint" data-create-scope-hint></p>
+        ${assignments(draft, scopes)}
+      </section>
+      <section data-create-step="2">
+        <p class="create-confirmation"></p>
+        ${temporaryField()}
+        <p class="field-hint">Se exigirá cambiarla al ingresar.</p>
+      </section>
+      <div class="dialog-actions">
+        <button type="button" class="button-secondary" data-create-back>Atrás</button
+        ><button type="submit" data-create-next>Continuar</button>
+      </div>
+    </form>`,
   );
   el.classList.add('account-create');
   const form = el.querySelector('form'),
@@ -365,7 +541,26 @@ async function load() {
     const { users, scopes, user } = await authenticated('/api/admin/users');
     actor = user;
     identityBar(user);
-    host.innerHTML = `<div class="users-toolbar"><div class="users-heading"><h2>Cuentas</h2><p id="user-results" role="status" aria-live="polite"></p></div><button type="button" class="button button-primary create-user-trigger">Crear usuario</button><label class="users-search"><span class="visually-hidden">Buscar cuenta</span><input id="user-search" type="search" placeholder="Buscar nombre o usuario" autocomplete="off"></label></div><div class="users-list">${users.map((u) => card(u, scopes)).join('')}</div>`;
+    setHTML(
+      host,
+      html`<div class="users-toolbar">
+          <div class="users-heading">
+            <h2>Cuentas</h2>
+            <p id="user-results" role="status" aria-live="polite"></p>
+          </div>
+          <button type="button" class="button button-primary create-user-trigger">
+            Crear usuario</button
+          ><label class="users-search"
+            ><span class="visually-hidden">Buscar cuenta</span
+            ><input
+              id="user-search"
+              type="search"
+              placeholder="Buscar nombre o usuario"
+              autocomplete="off"
+          /></label>
+        </div>
+        <div class="users-list">${joinHTML(users.map((u) => card(u, scopes)))}</div>`,
+    );
     bindTemporaryFields(host);
     reveal(host, crypto.randomUUID());
     host.querySelector('.create-user-trigger').onclick = () => createAccount(scopes);
@@ -454,7 +649,8 @@ async function load() {
           if (
             !(await confirmation(
               'Eliminar usuario',
-              `Vas a eliminar <strong>${esc(button.dataset.username)}</strong>. Esta acción es irreversible. Se conservan sus conteos e historial.`,
+              html`Vas a eliminar <strong>${button.dataset.username}</strong>. Esta acción es
+                irreversible. Se conservan sus conteos e historial.`,
               'Eliminar definitivamente',
               true,
             ))

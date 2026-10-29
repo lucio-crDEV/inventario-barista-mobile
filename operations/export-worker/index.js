@@ -333,20 +333,43 @@ export class InventoryExport {
     }
   }
 }
+export const RESOURCE_MONITOR_CRON = '*/15 * * * *';
+export const AUTH_METADATA_PURGE_CRON = '43 5 * * *';
+
+export async function dispatchResourceMonitor(env) {
+  if (!env.RESOURCES?.idFromName || !env.RESOURCES?.get)
+    throw Error('Private resource monitor binding missing.');
+  const stub = env.RESOURCES.get(env.RESOURCES.idFromName('account-resource-monitor'));
+  const response = await stub.fetch('https://resources.internal/resources/sample', {
+    method: 'POST',
+  });
+  if (!response.ok && response.status !== 429) throw Error('Private resource monitor failed.');
+  const result = await response.json();
+  return {
+    status: response.status === 429 ? 'rate_limited' : result.ok ? 'sampled' : 'unavailable',
+  };
+}
+
 // Never attach a public route, workers.dev address, or R2 public domain.
 export default {
   fetch() {
     return new Response('Not found', { status: 404 });
   },
-  scheduled(_event, env, ctx) {
-    ctx.waitUntil(
-      env.DB.batch(
-        cleanupSQL
-          .split(';')
-          .map((sql) => sql.trim())
-          .filter(Boolean)
-          .map((sql) => env.DB.prepare(sql)),
-      ),
-    );
+  scheduled(event, env, ctx) {
+    if (event?.cron === RESOURCE_MONITOR_CRON) {
+      ctx.waitUntil(dispatchResourceMonitor(env).catch(() => ({ status: 'unavailable' })));
+      return;
+    }
+    if (event?.cron === AUTH_METADATA_PURGE_CRON) {
+      ctx.waitUntil(
+        env.DB.batch(
+          cleanupSQL
+            .split(';')
+            .map((sql) => sql.trim())
+            .filter(Boolean)
+            .map((sql) => env.DB.prepare(sql)),
+        ),
+      );
+    }
   },
 };

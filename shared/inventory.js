@@ -1,3 +1,5 @@
+import { cacheRealtimeRecords } from './offline-cache.js';
+import { html, setHTML } from './html.js';
 import { startRealtime } from './realtime.js';
 import { startPolling } from './polling.js';
 import { openProductHistory } from './product-history.js';
@@ -10,7 +12,6 @@ import {
   setSync,
   draftsFor,
   dialog,
-  escapeHtml as esc,
   loginRedirect,
 } from './client.js';
 export class SharedInventory {
@@ -43,10 +44,95 @@ export class SharedInventory {
     if (data.cycle?.id) sessionStorage.setItem(cycleKey, data.cycle.id);
     this.drafts = draftsFor(user.id, this.cycleId);
     this.cursor = data.cursor;
+    this.resetRecordVersions();
     this.busy = false;
     this.editVersion = 0;
     this.modal = null;
     this.lastSyncAt = 0;
+  }
+  resetRecordVersions() {
+    this.visibleItems = new Set(
+      this.data.items.map((item) => JSON.stringify([item.id, item.locationId])),
+    );
+    this.recordVersions = new Map(
+      this.data.counts.map((record) => [
+        JSON.stringify([record.itemId, record.locationId]),
+        record.version,
+      ]),
+    );
+  }
+  acceptRecord(record, itemId = record?.itemId) {
+    if (!record) return false;
+    const key = JSON.stringify([itemId, record.locationId]);
+    if (
+      !this.visibleItems.has(key) ||
+      !Number.isSafeInteger(record.version) ||
+      record.version <= (this.recordVersions.get(key) ?? -1)
+    )
+      return false;
+    this.recordVersions.set(key, record.version);
+    const index = this.data.counts.findIndex(
+      (old) => old.itemId === itemId && old.locationId === record.locationId,
+    );
+    if (index < 0) this.data.counts.push(record);
+    else this.data.counts[index] = record;
+    this.onRecord?.(record, itemId);
+    return true;
+  }
+  renderSyncedRecords(changed) {
+    // A push changes counts/progress, never a live field, draft or dialog.
+    if (
+      changed &&
+      !this.modal &&
+      !document.querySelector('#quantity') &&
+      !this.busy &&
+      !document.querySelector('.item-drawer.is-open') &&
+      !document.activeElement?.matches('input,textarea,select')
+    )
+      this.onRender?.();
+  }
+  async catchup(throughCursor) {
+    if (this.syncing) await this.syncing;
+    return this.sync({ force: true, drain: true, throughCursor });
+  }
+  async realtimeRecords(frame) {
+    const valid =
+      frame &&
+      frame.cycleId === this.cycleId &&
+      Number.isSafeInteger(frame.fromCursor) &&
+      frame.fromCursor >= 0 &&
+      Number.isSafeInteger(frame.toCursor) &&
+      frame.toCursor > frame.fromCursor &&
+      Array.isArray(frame.records) &&
+      frame.records.length <= 250 &&
+      frame.records.every(
+        (record) =>
+          record &&
+          typeof record.itemId === 'string' &&
+          typeof record.locationId === 'string' &&
+          Number.isSafeInteger(record.version) &&
+          record.version >= 0,
+      );
+    if (!valid) {
+      await this.catchup();
+      return;
+    }
+    if (this.syncing) await this.syncing;
+    if (frame.toCursor <= this.cursor) return;
+    if (frame.fromCursor > this.cursor) {
+      await this.catchup(frame.toCursor);
+      return;
+    }
+    const changed = frame.records.filter((record) => this.acceptRecord(record));
+    this.cursor = Math.max(this.cursor, frame.toCursor);
+    await cacheRealtimeRecords({
+      cycleId: this.cycleId,
+      records: changed,
+      cursor: this.cursor,
+      userId: this.user.id,
+      revision: this.user.revision,
+    });
+    this.renderSyncedRecords(changed.length);
   }
   state(text) {
     setSync(text);
@@ -110,11 +196,18 @@ export class SharedInventory {
     info.textContent = count.version ? `Registrado por ${count.authorName}.` : '';
     if (info.textContent) q?.closest('.field')?.before(info);
     const controls = document.createElement('div');
-    controls.innerHTML =
-      '<button type="button" class="button button-ghost" id="record-history">Ver historial de este producto</button>' +
-      (d?.operation
-        ? '<button type="button" class="button button-secondary" id="retry-operation">Reintentar envío pendiente</button>'
-        : '');
+    setHTML(
+      controls,
+      html`<button type="button" class="button button-ghost" id="record-history">
+          Ver historial de este producto</button
+        >${
+          d?.operation
+            ? html`<button type="button" class="button button-secondary" id="retry-operation">
+                Reintentar envío pendiente
+              </button>`
+            : ''
+        }`,
+    );
     if (info.isConnected) info.after(controls);
     else q?.closest('.field')?.before(controls);
     controls.querySelector('#record-history').onclick = () => openProductHistory(this, item);
@@ -229,7 +322,7 @@ export class SharedInventory {
       const record = revalidate
         ? (await api(this.recordURL('/api/record', item))).record
         : accepted.record;
-      this.onRecord?.(record, item.id);
+      this.acceptRecord(record, item.id);
       this.drafts.remove(item.id);
       this.modal?.close();
       this.modal = null;
@@ -242,7 +335,7 @@ export class SharedInventory {
     } catch (e) {
       if (e.status === 409 && ['STALE', 'FOREIGN_RECORD'].includes(e.code)) {
         this.drafts.set(item.id, { ...d, operation: undefined });
-        this.onRecord?.(e.current, item.id);
+        this.acceptRecord(e.current, item.id);
         if (e.current?.authorId !== this.user.id && e.current && e.current.status !== 'pending') {
           this.resolve(item, d, e.current);
         } else {
@@ -282,14 +375,49 @@ export class SharedInventory {
     const label = (r) => describeCountValue(r, item.unit);
     const el = dialog(
       'Revisar registro de otra persona',
-      `<p><strong>${esc(item.name)}</strong> · ${esc(this.locationName(item))}</p><p>Último autor: ${esc(current.authorName)} · versión ${current.version}</p><table><thead><tr><th>Dato</th><th>Vigente</th><th>Tu propuesta</th></tr></thead><tbody><tr><th>Cantidad</th><td>${esc(label(current))}</td><td>${esc(label({ ...d, quantity: Number(d.quantity) }))}</td></tr><tr><th>Estado</th><td>${current.status === 'partial' ? 'Avance' : 'Contado'}</td><td>${d.status === 'partial' ? 'Avance' : 'Contado'}</td></tr><tr><th>Nota</th><td>${esc(current.note || 'Sin nota')}</td><td>${esc(d.note || 'Sin nota')}</td></tr></tbody></table><button type="button" id="discard">Descartar mi cambio</button><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? 'disabled' : ''}>Sumar mi cantidad</button><button type="button" id="choose-overwrite">Sobrescribir</button>${d.outOfStock ? '<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>' : !item.unit ? '<p>La unidad está pendiente de confirmar. No se puede sumar.</p>' : ''}<p id="result-preview" role="status"></p><button type="button" id="confirm-choice" hidden>Confirmar resultado</button><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
+      html`<p><strong>${item.name}</strong> · ${this.locationName(item)}</p>
+        <p>Último autor: ${current.authorName} · versión ${current.version}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Dato</th>
+              <th>Vigente</th>
+              <th>Tu propuesta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Cantidad</th>
+              <td>${label(current)}</td>
+              <td>${label({ ...d, quantity: Number(d.quantity) })}</td>
+            </tr>
+            <tr>
+              <th>Estado</th>
+              <td>${current.status === 'partial' ? 'Avance' : 'Contado'}</td>
+              <td>${d.status === 'partial' ? 'Avance' : 'Contado'}</td>
+            </tr>
+            <tr>
+              <th>Nota</th>
+              <td>${current.note || 'Sin nota'}</td>
+              <td>${d.note || 'Sin nota'}</td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" id="discard">Descartar mi cambio</button
+        ><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? 'disabled' : ''}>
+          Sumar mi cantidad</button
+        ><button type="button" id="choose-overwrite">Sobrescribir</button
+        >${d.outOfStock ? html`<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>` : !item.unit ? html`<p>La unidad está pendiente de confirmar. No se puede sumar.</p>` : ''}
+        <p id="result-preview" role="status"></p>
+        <button type="button" id="confirm-choice" hidden>Confirmar resultado</button
+        ><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
     );
     this.modal = el;
     let action = null;
     el.querySelector('#discard').onclick = async () => {
       try {
         const { record } = await api(this.recordURL('/api/record', item));
-        this.onRecord?.(record, item.id);
+        this.acceptRecord(record, item.id);
         this.drafts.remove(item.id);
         el.close();
         this.modal = null;
@@ -352,9 +480,11 @@ export class SharedInventory {
     }
     this.modal?.close();
     this.data = data;
+    this.cursor = data.cursor;
+    this.resetRecordVersions();
     this.onPermissions?.(data);
   }
-  sync({ manual = false, force = false } = {}) {
+  sync({ manual = false, force = false, drain = false, throughCursor } = {}) {
     // Manual refresh and polling share one in-flight read. Neither sends drafts.
     if (this.syncing) return this.syncing;
     if (Date.now() < (this.retrySyncAt || 0))
@@ -367,42 +497,54 @@ export class SharedInventory {
     if (manual && !force && Date.now() - this.lastSyncAt < 5000) return Promise.resolve();
     this.syncing = (async () => {
       try {
-        const r = await api(
-          `/api/sync?cycle=${encodeURIComponent(this.cycleId)}&cursor=${this.cursor}`,
-        );
-        if (r.user.id !== this.user.id) {
-          loginRedirect();
-          return;
-        }
-        if (
-          r.user.revision !== this.user.revision ||
-          (r.cycleRevision !== undefined && r.cycleRevision !== this.data.cycle?.revision)
-        ) {
-          const pending = Object.keys(this.drafts.all()).length > 0;
-          // Keep drafts under the old identity; never replay them after a permission change.
-          this.state(
-            pending
-              ? 'Tus accesos cambiaron. Conservamos tus cambios pendientes.'
-              : 'Tus accesos cambiaron.',
+        let pages = 0;
+        do {
+          const before = this.cursor;
+          const r = await api(
+            `/api/sync?cycle=${encodeURIComponent(this.cycleId)}&cursor=${before}`,
           );
-          await this.refreshPermissions();
-          this.user = r.user;
-          return;
+          if (r.user.id !== this.user.id) {
+            loginRedirect();
+            return;
+          }
+          if (
+            r.user.revision !== this.user.revision ||
+            (r.cycleRevision !== undefined && r.cycleRevision !== this.data.cycle?.revision)
+          ) {
+            const pending = Object.keys(this.drafts.all()).length > 0;
+            // Keep drafts under the old identity; never replay them after a permission change.
+            this.state(
+              pending
+                ? 'Tus accesos cambiaron. Conservamos tus cambios pendientes.'
+                : 'Tus accesos cambiaron.',
+            );
+            await this.refreshPermissions();
+            this.user = r.user;
+            return;
+          }
+          let changed = false;
+          for (const record of r.changes) changed = this.acceptRecord(record) || changed;
+          this.cursor = Math.max(this.cursor, r.cursor);
+          this.lastSyncAt = Date.now();
+          this.syncFailures = 0;
+          this.retrySyncAt = 0;
+          this.renderSyncedRecords(changed);
+          if (!(drain && r.changes.length === 250)) break;
+          if (this.cursor <= before || ++pages >= 20)
+            throw Error('La sincronización continúa. Vuelve a comprobar.');
+        } while (true);
+        // This trusted WS head predates this complete HTTP catch-up. Covering
+        // journal gaps from other cycles/scopes cannot skip an authorized count.
+        if (Number.isSafeInteger(throughCursor)) {
+          this.cursor = Math.max(this.cursor, throughCursor);
+          await cacheRealtimeRecords({
+            cycleId: this.cycleId,
+            records: [],
+            cursor: this.cursor,
+            userId: this.user.id,
+            revision: this.user.revision,
+          });
         }
-        for (const record of r.changes) this.onRecord?.(record, record.itemId);
-        this.cursor = r.cursor;
-        this.lastSyncAt = Date.now();
-        this.syncFailures = 0;
-        this.retrySyncAt = 0;
-        if (
-          r.changes.length &&
-          !this.modal &&
-          !document.querySelector('#quantity') &&
-          !this.busy &&
-          !document.querySelector('.item-drawer.is-open') &&
-          !document.activeElement?.matches('input,textarea,select')
-        )
-          this.onRender?.();
       } catch (e) {
         this.syncFailures = Math.min(6, (this.syncFailures || 0) + 1);
         this.retrySyncAt =
@@ -420,11 +562,20 @@ export class SharedInventory {
     this.pollTick?.stop();
     // sync presents failures and keeps drafts isolated. The scheduler handles
     // visibility and overlap without changing the accepted cursor.
-    this.pollTick = startPolling(() => this.sync({ force: true }));
+    // A disconnected socket falls back every 30s; healthy sockets suppress polls.
+    // Manual refresh keeps its existing 30s user cooldown.
+    this.pollTick = startPolling(() => this.sync({ force: true }), {
+      interval: this.data.realtime ? 30000 : 5000,
+    });
     this.realtime = startRealtime({
       enabled: this.data.realtime,
       cycleId: this.cycleId,
       polling: this.pollTick,
+      onChange: (type, message) =>
+        this.catchup(
+          type === 'ready' && message?.cycleId === this.cycleId ? message.cursor : undefined,
+        ),
+      onRecords: (frame) => this.realtimeRecords(frame),
     });
     return this.pollTick;
   }

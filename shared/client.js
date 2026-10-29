@@ -1,12 +1,15 @@
+import { startOffline, offlineActive } from './offline.js';
+import { html, setHTML } from './html.js';
 import { createAPI } from './api-request.js';
 import { homeURL } from './navigation.js';
 import { startClientTelemetry } from './telemetry-client.js';
 startClientTelemetry();
+startOffline();
 import { mountInventoryContext } from './inventory-context.js';
 import { settingsAccount } from './settings.js';
 import { refreshLimit } from './refresh-limit.js';
 import { roleNames, managesUsers } from './roles.js';
-import { escapeHtml } from './html.js';
+
 export { escapeHtml } from './html.js';
 export const api = createAPI();
 export function loginRedirect() {
@@ -41,7 +44,7 @@ export async function requireUser() {
   }
 }
 export async function logout() {
-  await api('/api/logout', {});
+  await api('/api/logout', {}).catch(() => {});
   localStorage.setItem('inventory-logout-event', crypto.randomUUID());
   sessionStorage.removeItem('inventory-user');
   loginRedirect();
@@ -55,7 +58,33 @@ export function identityBar(user, refresh, scopes) {
   const bar = document.createElement('section');
   bar.className = 'identity-bar';
   bar.setAttribute('aria-label', 'Cuenta y sincronización');
-  bar.innerHTML = `<div class="identity-person"><span class="identity-name"><strong>${escapeHtml(user.name)}</strong><small>${escapeHtml(roleNames[user.role] || user.role)}</small></span>${!user.mustChange ? '<a class="identity-profile" href="/pages/cuenta/?profile=1">Mi perfil</a>' : ''}</div><div class="sync-controls"><span id="sync-state" role="status" data-state="synced">Sincronizado</span><button class="sync-refresh" type="button" aria-label="Actualizar sincronización" title="Actualizar sincronización"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7"/></svg></button></div><div class="settings-actions">${!user.mustChange ? '<a class="settings-action" data-go-home href="/">Inicio</a>' : ''}${!user.mustChange && managesUsers(user) ? '<a class="settings-action" href="/pages/admin/">Gestionar usuarios y accesos</a><a class="settings-action" href="/pages/admin/supervision.html">Panel de supervisión</a>' : ''}</div><button class="settings-action account-logout" type="button" id="logout">Cerrar sesión</button>`;
+  setHTML(
+    bar,
+    html`<div class="identity-person">
+        <span class="identity-name"
+          ><strong>${user.name}</strong><small>${roleNames[user.role] || user.role}</small></span
+        >${!user.mustChange ? html`<a class="identity-profile" href="/pages/cuenta/?profile=1">Mi perfil</a>` : ''}
+      </div>
+      <div class="sync-controls">
+        <span id="sync-state" role="status" data-state="synced">Sincronizado</span
+        ><button
+          class="sync-refresh"
+          type="button"
+          aria-label="Actualizar sincronización"
+          title="Actualizar sincronización"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0-2.3 6M20 4v7h-7" />
+          </svg>
+        </button>
+      </div>
+      <div class="settings-actions">
+        ${!user.mustChange ? html`<a class="settings-action" data-go-home href="/">Inicio</a>` : ''}${!user.mustChange && managesUsers(user) ? html`<a class="settings-action" href="/pages/admin/">Gestionar usuarios y accesos</a><a class="settings-action" href="/pages/admin/supervision.html">Panel de supervisión</a>` : ''}
+      </div>
+      <button class="settings-action account-logout" type="button" id="logout">
+        Cerrar sesión
+      </button>`,
+  );
   const selectedInventory = new URLSearchParams(location.search).get('inventory');
   if (selectedInventory)
     for (const link of bar.querySelectorAll('a[href]')) {
@@ -130,21 +159,27 @@ export function identityBar(user, refresh, scopes) {
   bar.querySelector('#logout').onclick = () => logout().catch((e) => alert(e.message));
   sessionStorage.setItem('inventory-user', user.id);
   mountInventoryContext(user);
+  if (offlineActive()) setSync('Sin conexión');
   return bar;
 }
 export function setSync(text, state) {
   const el = document.querySelector('#sync-state');
   if (!el) return;
   const value = String(text || '');
-  const resolved =
+  let resolved =
     state ||
     (/^Sincronizado/i.test(value)
       ? 'synced'
       : /guardando|actualizando/i.test(value)
         ? 'syncing'
-        : /^(?:Pendiente de enviar|Cambios pendientes)/i.test(value)
+        : /^(?:Pendiente de enviar|Cambios pendientes)/i.test(value) ||
+            /^Sin conexión(?: · datos del último acceso)?$/i.test(value)
           ? 'pending'
           : 'error');
+  // A cached offline view is pending, but a failed operation must keep its
+  // explicit error and retry guidance even while the device has no connection.
+  const showOffline = offlineActive() && resolved !== 'error';
+  if (showOffline) resolved = 'pending';
   el.dataset.state = resolved;
   let feedback = document.querySelector('#sync-feedback');
   if (resolved === 'error') {
@@ -158,8 +193,9 @@ export function setSync(text, state) {
     }
     feedback.textContent = value.replace(/ · borrador(?:es)? conservado(?:s)?[.]?$/i, '');
   } else feedback?.remove();
-  el.textContent =
-    resolved === 'synced'
+  el.textContent = showOffline
+    ? 'Sin conexión'
+    : resolved === 'synced'
       ? 'Sincronizado'
       : resolved === 'pending'
         ? 'Cambios pendientes'
@@ -196,7 +232,11 @@ export function dialog(title, content) {
   el.className = 'shared-dialog';
   const titleId = `dialog-${crypto.randomUUID()}`;
   el.setAttribute('aria-labelledby', titleId);
-  el.innerHTML = `<h2 id="${titleId}">${escapeHtml(title)}</h2>${content}`;
+  setHTML(
+    el,
+    html`<h2 id="${titleId}">${title}</h2>
+      ${content}`,
+  );
   document.body.append(el);
   const previous = document.activeElement;
   // A dialog opens for review; tapping a field is what opens the mobile keyboard.

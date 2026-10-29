@@ -1,0 +1,266 @@
+{
+  "recordedAt": "2026-10-28T16:21:24.282057+00:00",
+  "baseline": "e2f757a",
+  "branch": "inventory-v3",
+  "validation": {
+    "unit": {
+      "passed": 204,
+      "failed": 0
+    },
+    "python": {
+      "passed": 14,
+      "failed": 0
+    },
+    "isolated": {
+      "passed": 29,
+      "total": 29,
+      "finishedAt": "2026-10-28T16:11:46.741Z",
+      "suites": [
+        "scripts/build-pages.mjs",
+        "scripts/prepare-tests.mjs",
+        "scripts/preflight.mjs",
+        "tests/shared/preflight-negative.mjs",
+        "tests/shared/integration.mjs",
+        "tests/shared/extended.mjs",
+        "tests/shared/users-service.mjs",
+        "tests/shared/load.mjs",
+        "tests/shared/sync.mjs",
+        "tests/shared/backoff.mjs",
+        "tests/shared/users-service-browser.mjs",
+        "tests/shared/security-live.mjs",
+        "tests/shared/supervision-live.mjs",
+        "tests/shared/supervision-browser.mjs",
+        "tests/shared/revision-browser.mjs",
+        "tests/shared/ux.mjs",
+        "tests/shared/refresh.mjs",
+        "tests/shared/admin-layout.mjs",
+        "tests/shared/browser.mjs",
+        "tests/shared/views.mjs",
+        "tests/shared/migration-service.mjs",
+        "tests/shared/operations.mjs",
+        "tests/shared/package-security.mjs",
+        "tests/shared/export-ui.mjs",
+        "tests/shared/html-browser.mjs",
+        "tests/shared/offline-browser.mjs",
+        "tests/shared/realtime-runtime.mjs",
+        "tests/shared/realtime-browser.mjs",
+        "tests/shared/pages.mjs"
+      ]
+    },
+    "format": true,
+    "htmlLint": true,
+    "excelPrivateRuntime": {
+      "passed": true,
+      "realAlarmRetry": true,
+      "independentFidelity": true,
+      "stableRedownload": true,
+      "productionCPUCertified": false
+    },
+    "resourceMonitorNativeMock": true,
+    "realtimeNativePeers": 30
+  },
+  "originalWorkbook": {
+    "sha256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9",
+    "changed": false
+  },
+  "remote": {
+    "d1": {
+      "migration": "0016_catalog_lookup_index.sql",
+      "applied": true,
+      "preflightBefore": {
+        "ready": true,
+        "readOnly": true,
+        "cycle": "piloto-v3-servicio",
+        "schemaContract": "runtime-capabilities-0015",
+        "telemetryRequired": false,
+        "exportSnapshotsReady": true,
+        "note": "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU."
+      },
+      "preflightAfter": {
+        "ready": true,
+        "readOnly": true,
+        "cycle": "piloto-v3-servicio",
+        "schemaContract": "runtime-capabilities-0015",
+        "telemetryRequired": false,
+        "exportSnapshotsReady": true,
+        "note": "Verify effective Pages bindings/origin/environment separately; this does not authenticate or certify remote CPU."
+      }
+    },
+    "realtimeWorkerVersion": "0eaef4dd-4fae-4fd0-836c-8fcb6337c9d3",
+    "privateExportMonitorVersion": "e9a48eb4-73d1-4d1e-87bb-be0a1424a954",
+    "privateRoutes": true,
+    "monitor": {
+      "intervalMinutes": 15,
+      "analyticsTokenReadOnly": true,
+      "tokenExpiryDate": "2027-10-28",
+      "secretStored": true,
+      "notificationEnabled": true,
+      "emailDeliveryTest": "confirmed-by-user",
+      "notificationPolicyId": "56d7fae7262b428c80c994508913918d",
+      "firstScheduledSample": {
+        "sampleSeen": true,
+        "at": "2026-10-28T16:30:22.506Z",
+        "health": "available",
+        "states": {
+          "d1": "available",
+          "pages": "available",
+          "r2Operations": "available",
+          "r2Storage": "available"
+        }
+      },
+      "invocationLogs": false,
+      "customLogs": "aggregate-only"
+    },
+    "usageObservation": {
+      "verifiedAt": "2026-10-28T16:15:55.857Z",
+      "metrics": {
+        "d1": {
+          "state": "available",
+          "day": "2026-10-28",
+          "rowsRead": 1212564,
+          "rowsWritten": 5706,
+          "readQueries": 4894,
+          "writeQueries": 561,
+          "databases": 1
+        },
+        "workers": {
+          "state": "available",
+          "day": "2026-10-28",
+          "requests": 528,
+          "errors": 42,
+          "statuses": {
+            "internalError": {
+              "requests": 42,
+              "errors": 42
+            },
+            "success": {
+              "requests": 432,
+              "errors": 0
+            },
+            "other": {
+              "requests": 54,
+              "errors": 0
+            }
+          },
+          "cpuTimeByStatus": {
+            "internalError": {
+              "p50Us": 4713,
+              "p99Us": 25943
+            },
+            "success": {
+              "p50Us": 2715,
+              "p99Us": 22687
+            },
+            "other": {
+              "p50Us": 3605,
+              "p99Us": 14056
+            }
+          }
+        },
+        "r2Operations": {
+          "state": "available",
+          "month": "2026-10",
+          "requests": 130,
+          "actionTypes": {
+            "GetObject": 43,
+            "GetBucketNotificationConfiguration": 1,
+            "ListMultipartUploads": 5,
+            "PutObject": 5,
+            "PutBucket": 2,
+            "ListObjects": 6,
+            "HeadBucket": 43,
+            "ListBuckets": 16,
+            "GetBucketSippyConfiguration": 1,
+            "GetBucketCors": 1,
+            "HeadObject": 2,
+            "DeleteObject": 4,
+            "GetBucketLifecycleConfiguration": 1
+          },
+          "classification": "unclassified-class-A-upper-bound"
+        },
+        "r2Storage": {
+          "state": "available",
+          "buckets": 2,
+          "windowStart": "2026-10-27T16:15:53.361Z",
+          "windowEnd": "2026-10-28T16:15:53.361Z",
+          "boundProjection": "per-bucket-maximum-over-24h",
+          "objectCount": 3,
+          "payloadSize": 846688,
+          "metadataSize": 232
+        }
+      }
+    },
+    "pagesErrorWindows": {
+      "at": "2026-10-28T16:16:54.881Z",
+      "scopes": {
+        "recentHour": [],
+        "sinceDeployment": [
+          {
+            "dimensions": {
+              "status": "success"
+            },
+            "quantiles": {
+              "cpuTimeP50": 1917,
+              "cpuTimeP99": 5537
+            },
+            "sum": {
+              "errors": 0,
+              "requests": 28
+            }
+          },
+          {
+            "dimensions": {
+              "status": "clientDisconnected"
+            },
+            "quantiles": {
+              "cpuTimeP50": 3783,
+              "cpuTimeP99": 5950
+            },
+            "sum": {
+              "errors": 0,
+              "requests": 5
+            }
+          },
+          {
+            "dimensions": {
+              "status": "internalError"
+            },
+            "quantiles": {
+              "cpuTimeP50": 3209,
+              "cpuTimeP99": 3421
+            },
+            "sum": {
+              "errors": 2,
+              "requests": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  "localCapacityProfile": "free-capacity-profile-2026-10-28.json",
+  "notPerformed": [
+    "git push",
+    "Pages deployment for this revision",
+    "GitHub-hosted CI first run",
+    "physical phone acceptance",
+    "Microsoft Excel acceptance",
+    "production load test or CPU certification"
+  ],
+  "pendingByUserDecision": [
+    "Dependabot",
+    "TOTP",
+    "new password and inactivity policies",
+    "close other sessions"
+  ],
+  "limitations": [
+    "Missing catalog units/conversions/references remain explicit blockers when needed by counted quantities.",
+    "Healthy RTv2 avoids per-phone HTTP sync fanout; prolonged fallback can consume D1 Free quota.",
+    "Generic internalError totals do not identify error 1102.",
+    "The four Analytics series do not cover billed Durable Objects duration."
+  ],
+  "remainingImplementation": [
+    "Improve bounded password-work concurrency for 25–30 simultaneous logins sharing one public IP; existing per-IP queue remains unchanged in this delivery."
+  ],
+  "deliveryScope": "Validated offline, safe views, catalog import, realtime optimization and private resource monitoring. Shared-network login concurrency improvement follows separately."
+}

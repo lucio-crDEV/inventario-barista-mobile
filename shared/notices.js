@@ -1,6 +1,8 @@
+import { html, setHTML } from './html.js';
 let timer, current, viewportCleanup;
-const closeIcon =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+const closeIcon = html`<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="m6 6 12 12M18 6 6 18" />
+</svg>`;
 export function dismissNotice() {
   clearTimeout(timer);
   viewportCleanup?.();
@@ -23,7 +25,7 @@ export function showNotice(message, tone = 'counted') {
   const close = document.createElement('button');
   close.type = 'button';
   close.setAttribute('aria-label', 'Descartar aviso');
-  close.innerHTML = closeIcon;
+  setHTML(close, closeIcon);
   close.onclick = dismissNotice;
   el.append(text, close);
   document.body.append(el);

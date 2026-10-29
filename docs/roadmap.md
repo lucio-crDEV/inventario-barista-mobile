@@ -8,9 +8,10 @@
 - 4B: captura coherente, versionada, idempotente e inmutable del inventario finalizado.
 - 4C: consolidación exacta, redondeo final y motor XLSX que modifica únicamente lo autorizado.
 - 4D: revisión y exportación desde el perfil del Administrador, proceso privado, almacenamiento, recuperación y descarga autorizada.
+- Offline real, instantánea privada por sesión/área, HTML con escape automático, vistas separadas, importador transaccional y RTv2 sin consultas por teléfono ante cada cambio.
 - Rendimiento y mantenimiento: paquetes con hash/caché/precarga, redirección de ingreso anticipada, consultas SQL, índice de área, contrato ligero de esquema, errores centrales, cuota de ingreso revisada, bcrypt privado, limpieza acotada y CI.
 
-El código de Pages de esta entrega queda pendiente del push del usuario. Las migraciones y la infraestructura privada ya están preparadas; consultar [evidencia de 4D](etapa-4d-verificacion-2026-10-28.json).
+El código de Pages de esta entrega queda pendiente del push del usuario. Las migraciones y la infraestructura privada ya están preparadas; consultar [evidencia de esta revisión](operacion-free-verificacion-2026-10-28.json).
 
 ## Siguiente: aceptación posterior a publicación
 
@@ -24,7 +25,7 @@ El código de Pages de esta entrega queda pendiente del push del usuario. Las mi
 
 Resolver los datos de catálogo que bloqueen una cantidad contada: cinco unidades de Pastelería, equivalencias Rinza/Chocolate líquido y referencias antiguas de Barra. No alterar esos productos sin decisión explícita.
 
-Evaluar después: offline completo y privacidad por teléfono, TOTP/recuperación, inactividad/cierre de otras sesiones, importador de catálogo separado de DDL, refactor de vistas y plantilla HTML con escape automático. Dependabot sigue pendiente; Paid queda descartado por ahora. [Análisis y prioridades](arquitectura-y-operacion.md).
+Siguen pendientes por decisión del usuario: TOTP/recuperación, nuevas políticas de contraseña e inactividad, cierre de otras sesiones y Dependabot. Offline, importador, vistas y HTML seguro ya están implementados. Paid queda descartado por ahora. [Análisis y prioridades](arquitectura-y-operacion.md).
 
 ## Fase 5
 
