@@ -69,6 +69,12 @@ Con una conexión sana, un registro recibido actualiza conteos y progreso sin pr
 
 Si la conexión de conteo cae, la consulta de respaldo pasa a treinta segundos cuando el servidor ofrece tiempo real; sin esa capacidad se mantiene el intervalo anterior de cinco segundos. El refresco manual conserva su límite de treinta segundos. Esta degradación aumenta la demora de actualización y no garantiza permanecer bajo las cuotas Free durante veinticuatro horas de uso continuo: depende de usuarios, roles, actividad y costo real de las consultas. La prueba nativa con treinta conexiones demuestra el reparto compartido y sus guardas; no certifica CPU ni consumo facturado de producción.
 
+## Ingresos desde una red compartida
+
+El ingreso reparte la verificación en cuatro carriles privados fijos por IP, elegidos mediante el digest del par IP/cuenta ya usado para la cuota. No crea un objeto por nombre arbitrario. Las cuotas transaccionales siguen siendo 100 por IP y 10 por IP/usuario en quince minutos; solo un ingreso aceptado devuelve su propia reserva. Cada carril serializa bcrypt12 y admite hasta dieciséis trabajos, contando el activo. Los trabajos que esperaron ocho segundos no empiezan bcrypt; el solicitante conserva un límite de diez segundos, sin reintento automático. Saturación o indisponibilidad fallan con 503 genérico y no crean sesión. La comprobación atómica del hash/usuario/actividad sigue protegiendo la admisión tras verificar.
+
+No se añaden clases, bindings, tablas, secretos ni suscripciones. La implementación y límites de aceptación del servicio privado están en [ingresos compartidos](ingresos-compartidos.md).
+
 ## Entrega y operación
 
 GitHub Actions usa Node 24, `npm ci`, verificación de formato, pruebas unitarias —incluido el lint HTML— y la batería aislada con navegador/base ficticios. Esa batería incluye HTML seguro, apertura offline y RTv2 con navegador y entorno nativo. No recibe credenciales de producción ni despliega. Publicar sigue siendo un push del usuario; un fallo del workflow informa del problema, pero no bloquea por sí solo un despliegue Git integrado de Pages. Una regla de protección o publicación condicionada a CI es una decisión separada.

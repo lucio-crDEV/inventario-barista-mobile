@@ -58,15 +58,20 @@ export class PasswordWork {
     } catch {
       return reply({ code: 'INVALID_PASSWORD_WORK' }, 400);
     }
-    // Bound work per hashed-IP partition. Serialized bcrypt avoids a CPU burst;
+    // Bound work per fixed hashed-IP lane. Serialized bcrypt avoids a CPU burst;
     // excess requests fail closed instead of retaining an unbounded credential queue.
     if (this.pending >= 16) return reply({ code: 'PASSWORD_WORK_BUSY' }, 503);
     this.pending++;
-    const task = this.tail.then(async () =>
-      path === '/verify'
+    const expires = Date.now() + 8000;
+    const task = this.tail.then(async () => {
+      // Do not start stale bcrypt work after the caller's ten-second deadline.
+      // Cancellation across a private binding is not assumed to propagate.
+      if (request.signal.aborted || Date.now() >= expires)
+        return reply({ code: 'PASSWORD_WORK_EXPIRED' }, 503);
+      return path === '/verify'
         ? reply({ match: await checkPassword(input.password, input.hash) })
-        : reply({ hash: await hashPassword(input.password) }),
-    );
+        : reply({ hash: await hashPassword(input.password) });
+    });
     this.tail = task.then(
       () => {},
       () => {},

@@ -1,6 +1,6 @@
 # Verificación vigente
 
-Entrega de etapa 4D, offline real, HTML seguro y sincronización RTv2. El [registro de evidencia 4D](etapa-4d-verificacion-2026-10-28.json) conserva los resultados de esa etapa; las cifras finales y el estado remoto constan en [la evidencia de esta revisión](operacion-free-verificacion-2026-10-28.json). Una prueba local no acredita publicación ni alertas activas.
+Entrega de etapa 4D, offline real, HTML seguro, sincronización RTv2 y revisión de Supervisión/ingreso compartido. La evidencia de esta revisión está en [supervision-acceso-verificacion-2026-10-29.json](supervision-acceso-verificacion-2026-10-29.json). El [registro de evidencia 4D](etapa-4d-verificacion-2026-10-28.json) conserva los resultados de esa etapa; las cifras finales y el estado remoto constan en [la evidencia de esta revisión](operacion-free-verificacion-2026-10-28.json). Una prueba local no acredita publicación ni alertas activas.
 
 ## Validación automática
 
@@ -87,4 +87,14 @@ El índice 0016 y los Workers privados de tiempo real/monitoreo quedaron prepara
 
 La primera muestra programada real se observó el 28-10-2026 a las 16:30:22 UTC: monitor disponible y las cuatro series disponibles. El canal de correo también fue confirmado por el usuario.
 
-Pendiente para la siguiente entrega: mejorar la concurrencia de la verificación privada de contraseñas cuando 25–30 personas ingresan simultáneamente desde una misma IP pública. Esta entrega conserva la cola existente y no incluye esa corrección; la prueba local de treinta personas no certifica ese escenario de ingreso privado. Si se satura, algunos ingresos pueden requerir un reintento.
+## Revisión del 29-10: Supervisión e ingreso compartido
+
+Exportar Excel se trasladó a Supervisión, exclusivamente para Administrador. El diálogo usa el inventario seleccionado y el historial conserva ese filtro al paginar. Mi perfil ya no carga exportación. Las cuatro regresiones `tests/export-context.test.mjs` ejecutan el componente con un puerto DOM/API mínimo: permisos, historial contextual, respuesta incierta y cierre, actualización del mismo inventario sin cambiar de destino. No certifican diseño ni un navegador. La batería `tests/shared/export-ui.mjs` cubre 320/390/1024 px, claro/oscuro, foco, controles de 44 px, navegación/filtros, permisos, cierre de una captura incierta, bloqueos, generación, descarga, historial y reaperturas. Debe ejecutarse en un entorno con Chromium permitido; una revisión estática no certifica estas comprobaciones visuales.
+
+La corrección del ingreso está en [ingresos compartidos](ingresos-compartidos.md). `npm run test:login:runtime` ejecuta treinta ingresos por el servicio privado nativo, cuotas, errores, saturación y recuperación. La batería aislada lo incluye sin recibir credenciales productivas. `npm run test:login:core` permite verificar el handler, SQLite y bcrypt12 real en memoria cuando no se permiten servidores; no sustituye Workerd/Durable Objects.
+
+El workflow remoto de `879428b` aprobó `unit` y falló en la instalación de Chromium, antes de ejecutar la batería aislada. La vista pública no proporcionó el log detallado. GitHub avisó del cambio de `ubuntu-latest` a Ubuntu 26; se fija Ubuntu 24.04, compatible con la versión fijada de Playwright. Es una corrección del entorno basada en ese diagnóstico; su éxito remoto exige otro workflow tras el push. No se declara Pages publicado: la consulta no pudo completarse. No se modificaron recursos remotos, migraciones ni secretos.
+
+Persisten las aceptaciones de teléfono físico y Microsoft Excel. Tampoco se certifica carga o CPU de Cloudflare. Consultar cifras, bloqueos de ejecución y próximos pasos exactos en la evidencia JSON del 29-10.
+
+Resultado en esta sesión restringida: la ejecución completa de unitarias tuvo 206 pruebas, 204 aprobadas y dos bloqueadas por `listen EPERM` (D1 nativa y contraseñas nativas). Las cuatro nuevas regresiones de contexto aprobaron; la ejecución dirigida posterior de contexto/empaquetado/capturas/trabajos aprobó 25/25. Python aprobó 14/14, al igual que formato, lint, build y guard independiente del original. El escenario privado en proceso aprobó 30/30 (8.374 ms de ráfaga, p95 8.279 ms), con cuotas, timeout y revocación durante verificación. No presentar estos números como aprobación de la batería nativa ni del navegador.

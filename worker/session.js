@@ -9,6 +9,15 @@ const hex = (bytes) =>
   Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, '0')).join('');
 export const digest = async (s) =>
   hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)));
+// Four fixed lanes per hashed IP, selected by the existing IP/account digest.
+// Arbitrary usernames cannot create an object per account or split durable quotas.
+export const LOGIN_PASSWORD_LANES = 4;
+export async function loginPasswordPartition(ipDigest, accountDigest) {
+  if (![ipDigest, accountDigest].every((value) => /^[a-f0-9]{64}$/.test(value || '')))
+    throw Error('Invalid password partition');
+  const lane = parseInt(accountDigest.slice(0, 2), 16) % LOGIN_PASSWORD_LANES;
+  return digest(`login-password-v1:${ipDigest}:${lane}`);
+}
 const token = () => hex(crypto.getRandomValues(new Uint8Array(32)));
 const now = () => Math.floor(Date.now() / 1000);
 const cookieName = (env) =>
@@ -77,7 +86,7 @@ export async function login(req, env, event, modernCycles) {
     env,
     valid ? b.password : 'invalid-password',
     u?.password_hash || dummyHash,
-    ipKey.slice(3),
+    await loginPasswordPartition(ipKey.slice(3), accountKey.slice('login-ip-user:'.length)),
   );
   if (!u || !match || !u.active || !valid)
     fail(401, 'INVALID_LOGIN', 'Usuario o contraseña incorrectos.');

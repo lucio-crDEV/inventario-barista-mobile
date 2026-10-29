@@ -44,7 +44,9 @@
     "format:check": "prettier --check \"worker/**/*.js\" \"shared/*.js\" \"pages/**/*.{js,css,html}\" \"operations/**/*.js\" \"scripts/**/*.mjs\" theme.js theme.css index.html",
     "resources:profile": "node tests/shared/free-capacity-profile.mjs",
     "test:resource-monitor": "node tests/shared/resource-monitor-runtime.mjs",
-    "catalog:data": "node scripts/catalog-data.mjs"
+    "catalog:data": "node scripts/catalog-data.mjs",
+    "test:login:core": "node tests/shared/password-concurrency-core.mjs",
+    "test:login:runtime": "node tests/shared/password-concurrency-runtime.mjs"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

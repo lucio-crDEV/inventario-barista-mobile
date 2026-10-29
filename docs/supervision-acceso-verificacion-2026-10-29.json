@@ -1,0 +1,156 @@
+{
+  "recordedAt": "2026-10-29T18:36:39.253257+00:00",
+  "baseline": "879428b0080f6b37dae838b174f743cc04e6f805",
+  "branch": "inventory-v3",
+  "scope": [
+    "Move administrator-only export from profile into selected supervision inventory",
+    "Four bounded password lanes per public IP",
+    "Pin CI runner for fixed Playwright version"
+  ],
+  "checkout": {
+    "isolatedCopy": true,
+    "originalRepositoryUnchanged": true,
+    "reason": "The original repository is outside this session writable roots."
+  },
+  "remote": {
+    "githubActions": {
+      "url": "https://github.com/lucio-crDEV/inventario-barista-mobile/actions/runs/40919955589",
+      "commit": "879428b",
+      "conclusion": "failure",
+      "unit": "success",
+      "isolatedSecurity": "failure",
+      "failingStep": "npx playwright install --with-deps chromium",
+      "detailedLogAvailable": false,
+      "annotation": "ubuntu-latest migration to Ubuntu 26; Node 20 action-runtime warning",
+      "preparedCorrection": "Pin ubuntu-24.04 for compatibility with the locked Playwright version",
+      "correctionSuccessVerified": false
+    },
+    "pages": {
+      "verified": false,
+      "reason": "CLI DNS unavailable; browser navigation did not complete. No deployment success assumed."
+    },
+    "resourcesModified": false,
+    "migrationsApplied": false,
+    "templateUploaded": false,
+    "monitorKeyCreated": false
+  },
+  "validation": {
+    "fullUnitRun": {
+      "command": "npm test",
+      "total": 206,
+      "passed": 204,
+      "failed": 2,
+      "environmentBlocked": [
+        {
+          "test": "native local D1 rolls back the full bounded import when its final statement fails",
+          "code": "listen EPERM 127.0.0.1"
+        },
+        {
+          "test": "Native SQLite Durable Object hashes and verifies bcrypt12 while the public Worker stays closed",
+          "code": "listen EPERM 127.0.0.1"
+        }
+      ]
+    },
+    "addedExportContextTests": {
+      "passed": 4,
+      "failed": 0,
+      "scope": "Production component with minimal DOM/API port; not browser/layout acceptance"
+    },
+    "targetedFinal": {
+      "passed": 25,
+      "failed": 0,
+      "suites": [
+        "tests/export-context.test.mjs",
+        "tests/build-assets.test.mjs",
+        "tests/export-snapshots.test.mjs",
+        "tests/export-jobs.test.mjs"
+      ]
+    },
+    "python": {
+      "passed": 14,
+      "failed": 0
+    },
+    "passwordCore": {
+      "runner": "in-process-private-core",
+      "people": 30,
+      "statuses": {
+        "200": 30
+      },
+      "burstMs": 8374,
+      "p50Ms": 4911,
+      "p95Ms": 8279,
+      "fixedLanesPerIP": 4,
+      "incorrectAndAbsentRejected": true,
+      "sharedIPAndPairQuotas": true,
+      "recovery": true,
+      "timeoutFailsClosed": true,
+      "disabledDuringVerificationRejected": true,
+      "productionCPUCertified": false
+    },
+    "passwordQueueAndPartitions": {
+      "passed": 2,
+      "failed": 0,
+      "arbitraryNames": 2048,
+      "maxLanesPerIP": 4,
+      "maxPendingPerLane": 16,
+      "expiryAndCancellation": true,
+      "recovery": true
+    },
+    "passwordNativeRuntime": {
+      "executed": false,
+      "attempted": true,
+      "blockedBy": "listen EPERM 127.0.0.1",
+      "command": "npm run test:login:runtime",
+      "addedToIsolatedBattery": true
+    },
+    "browser": {
+      "executed": false,
+      "launchAttempted": true,
+      "blockedBy": "Chromium bootstrap_check_in MachPort permission denied",
+      "updatedExportSuite": "tests/shared/export-ui.mjs",
+      "preparedViewports": [
+        320,
+        390,
+        1024
+      ],
+      "preparedThemes": [
+        "light",
+        "dark"
+      ],
+      "visualAcceptanceCertified": false
+    },
+    "isolatedBattery": {
+      "executed": false,
+      "reason": "Known server and Chromium restrictions; not repeated after diagnostic failures."
+    },
+    "format": true,
+    "htmlLint": true,
+    "buildPages": true,
+    "publicHashedAssets": 17,
+    "independentTemplateGuard": true,
+    "originalWorkbookSHA256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9"
+  },
+  "remainingBeforeRelease": [
+    "In the original writable checkout, run full npm test and isolated battery including native thirty-person private binding and browser export suite.",
+    "Review then deploy the updated private inventory-exports Worker before publishing Pages; no new migration/class/secret/template.",
+    "User push, GitHub-hosted CI result and effective Pages revision/bindings need verification.",
+    "Physical phone and Microsoft Excel acceptance remain distinct from automated tests."
+  ],
+  "notPerformed": [
+    "git push",
+    "Pages publish",
+    "private Worker publish",
+    "production account/credential tests",
+    "production fixtures or load test",
+    "migration 0016",
+    "template upload",
+    "monitor key creation"
+  ],
+  "pendingByUserDecision": [
+    "Dependabot",
+    "TOTP",
+    "new password/inactivity policies",
+    "close other sessions"
+  ],
+  "productionCPUCertified": false
+}
