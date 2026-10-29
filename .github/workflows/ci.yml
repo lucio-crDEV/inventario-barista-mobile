@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       CI: 'true'
@@ -34,7 +34,7 @@ jobs:
       - run: node tests/shared/export-jobs-runtime.mjs
       - run: node tests/shared/resource-monitor-runtime.mjs
   isolated-security:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       CI: 'true'
