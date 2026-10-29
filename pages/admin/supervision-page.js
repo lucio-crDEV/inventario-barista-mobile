@@ -362,8 +362,47 @@ function renderManagement(cycles) {
     el,
     html`<button type="button" class="supervision-text-action" id="manage-inventory">
       Opciones del inventario
-    </button>`,
+    </button>
+    <button type="button" class="supervision-text-action" id="export-inventory" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H5v18h14V8Z M14 3v5h5 M8 12h8 M8 16h8" /></svg>Exportar Excel</button>`,
   );
+  $('#export-inventory').onclick = () => {
+    if (!cycle || pendingCommand || sending) return;
+    const el = dialog(
+      'Exportar Excel',
+      html`<div data-export-content></div><div class="supervision-dialog-actions"><button type="button" class="button button-secondary" data-close>Cerrar</button></div>`,
+    );
+    el.classList.add('supervision-modal', 'export-dialog');
+    const host = el.querySelector('[data-export-content]');
+    const selectedCycle = structuredClone(cycle);
+    let disposed = false,
+      dispose = () => {};
+    el.querySelector('[data-close]').onclick = () => el.close();
+    el.addEventListener(
+      'close',
+      () => {
+        disposed = true;
+        dispose();
+      },
+      { once: true },
+    );
+    const load = async () => {
+      setHTML(host, html`<p role="status">Cargando exportación…</p>`);
+      try {
+        const { mountExports } = await import('./exports.js');
+        if (disposed) return;
+        host.replaceChildren();
+        dispose = mountExports(host, user, selectedCycle);
+      } catch {
+        if (disposed) return;
+        setHTML(
+          host,
+          html`<p role="alert">No pudimos cargar la exportación.</p><button type="button" class="button" data-retry-export>Reintentar</button>`,
+        );
+        host.querySelector('[data-retry-export]').onclick = () => location.reload();
+      }
+    };
+    load();
+  };
   $('#manage-inventory').onclick = () =>
     inventoryDialog(user, cycles, cycle || cycles.find((c) => c.id === state.cycleId));
 }
@@ -626,6 +665,8 @@ function restoreFocus(saved) {
   target?.focus({ preventScroll: true });
 }
 function renderCycleActions() {
+  const exportButton = $('#export-inventory');
+  if (exportButton) exportButton.disabled = !!pendingCommand || sending;
   const scopesToShow =
     cycle.lifecycle === 'prepared' ? [] : user.role === 'admin' ? ['', 'servicio'] : ['servicio'];
   setHTML(

@@ -1,16 +1,18 @@
 # Etapa 4D: revisión, generación y descarga
 
-La etapa integra las capturas de 4B y el motor de 4C con el perfil del Administrador. El estado remoto y las pruebas de esta entrega se registran en `etapa-4d-verificacion-2026-10-28.json`. No confundir preparación remota con publicación de Pages: el push queda al usuario.
+La etapa integra las capturas de 4B y el motor de 4C con Supervisión para el Administrador. El estado remoto y las pruebas de esta entrega se registran en `etapa-4d-verificacion-2026-10-28.json`. No confundir preparación remota con publicación de Pages: el push queda al usuario.
 
 ## Uso
 
-Mi perfil → Exportar Excel → elegir inventario finalizado → Revisar Excel → Generar Excel → Descargar Excel.
+Panel de supervisión → inventario seleccionado → Exportar Excel → Revisar Excel → Generar Excel → Descargar Excel.
+
+La acción aparece junto a Opciones del inventario y abre un diálogo compacto. Conserva el contexto del panel, sus filtros y borradores al cerrar. El diálogo identifica el inventario y aclara «Inventario global · todas las áreas»: un filtro de área no reduce el libro. Para elegir otro inventario se usa el selector existente del menú; no hay una segunda selección dentro de la exportación. Si todavía no está globalmente finalizado, Revisar Excel permanece deshabilitado y se explica el requisito; las copias anteriores siguen disponibles.
 
 Solo aparece para Administrador y todas las rutas vuelven a exigir ese rol en el servidor. La revisión muestra destinos con conteo, blancos, sumas parciales, redondeos a cero y productos que bloquean la generación. No permite generar mientras falte resolver una cantidad contada sin destino o conversión.
 
 La captura usa las revisiones mostradas. Si el inventario cambia, se pide actualizar. Una respuesta incierta conserva el ID del comando en esa pestaña: el reintento recupera la captura aceptada. No se guarda el contenido del conteo en ese estado de interfaz.
 
-Copias anteriores conserva el acceso a capturas históricas, incluso después de reabrir el inventario. Se paginan de veinte en veinte. Reabrir no modifica una captura ni su archivo; una captura nueva exige volver a finalizar.
+Copias anteriores conserva el acceso a capturas históricas, incluso después de reabrir el inventario. Se filtran por el inventario seleccionado y se paginan de veinte en veinte, conservando ese filtro en cada página. Reabrir no modifica una captura ni su archivo; una captura nueva exige volver a finalizar.
 
 ## Dónde se genera y guarda
 
@@ -66,4 +68,6 @@ La cuota de ingreso reserva intentos por IP y por par IP/usuario; devuelve solo 
 
 La limpieza diaria de autenticación usa la política ya existente: vencido desde hace dos días, máximo mil filas por tabla. No cambia el respaldo de noventa días. La configuración y límites operativos están en [arquitectura y operación](arquitectura-y-operacion.md).
 
-Después del push, esperar el build de Pages y comprobar con una sesión real: ingreso, perfil admin, revisión, generación y descarga; confirmar que un trabajador no puede acceder. Las pruebas locales y los bindings preparados no sustituyen esa comprobación productiva. CI valida automáticamente, pero la integración Git actual de Pages no espera por sí sola el resultado del workflow.
+Después del push, esperar el build de Pages y comprobar con una sesión real: ingreso, Supervisión como administrador, revisión, generación y descarga; confirmar que un trabajador no puede acceder. Las pruebas locales y los bindings preparados no sustituyen esa comprobación productiva. CI valida automáticamente, pero la integración Git actual de Pages no espera por sí sola el resultado del workflow.
+
+La corrección de ingresos desde una Wi-Fi compartida usa cuatro carriles privados fijos por IP, sin dividir las cuotas. Ver [contrato y validación](ingresos-compartidos.md). El cambio del servicio privado requiere desplegar su código revisado antes de Pages; no requiere migrar D1, cargar otra plantilla ni crear secretos. En esta entrega no se publica ningún Worker.

@@ -4,6 +4,8 @@ Aplicación web móvil para contar inventarios compartidos y exportar una copia 
 
 **Regla de oro:** el original es de solo lectura. La salida conserva hojas, filas, referencias, unidades y formatos; solo cambia el STOCK autorizado. La excepción de cocina!C74 está [documentada y es reversible](docs/excepcion-stock-cocina-c74.md).
 
+El Administrador exporta desde **Panel de supervisión → Exportar Excel**, usando el inventario seleccionado. Solo los inventarios globalmente finalizados admiten una captura nueva; las copias anteriores siguen accesibles al reabrir.
+
 ## Desarrollo local
 
 Requiere Node 24. Los siguientes pasos crean exclusivamente datos ficticios locales:

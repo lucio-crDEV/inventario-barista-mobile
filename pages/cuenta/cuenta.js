@@ -79,23 +79,6 @@ if (unavailable) {
       ></a>
     </section>`,
   );
-  if (user.role === 'admin') {
-    // Loading the optional export screen must not prevent editing the profile.
-    import('./exports.js')
-      .then(({ mountExports }) => mountExports(content, user))
-      .catch(() => {
-        const fallback = document.createElement('section');
-        fallback.className = 'account-card export-card';
-        setHTML(
-          fallback,
-          html`<h2>Exportar Excel</h2>
-            <p class="field-hint">No pudimos cargar la exportación.</p>
-            <button class="button" type="button">Reintentar exportación</button>`,
-        );
-        fallback.querySelector('button').onclick = () => location.reload();
-        content.append(fallback);
-      });
-  }
   content.querySelector('form').onsubmit = async (e) => {
     e.preventDefault();
     const form = e.target,

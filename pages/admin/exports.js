@@ -1,4 +1,5 @@
 import { html, setHTML, joinHTML } from '/shared/html.js';
+import { cycleLabel } from '/shared/cycles.js';
 import { api, loginRedirect } from '/shared/client.js';
 
 const date = (value) =>
@@ -7,18 +8,16 @@ const date = (value) =>
   );
 const rootPath = (id) => '/api/admin/export-snapshots/' + encodeURIComponent(id);
 
-export function mountExports(parent, user) {
+export function mountExports(parent, user, initialCycle) {
+  if (user.role !== 'admin' || !initialCycle?.id) return () => {};
   const section = document.createElement('section');
-  section.className = 'account-card export-card';
+  section.className = 'export-card';
   setHTML(
     section,
-    html`<h2>Exportar Excel</h2>
+    html`<p class="export-context"><strong>${cycleLabel(initialCycle)}</strong><span>Inventario global · todas las áreas</span></p>
       <form class="export-form">
-        <label
-          >Inventario finalizado<select name="cycle" required aria-label="Inventario finalizado">
-            <option value="">Cargando…</option>
-          </select></label
-        ><button class="button button-primary" type="submit" disabled>Revisar Excel</button>
+        <p class="export-eligibility field-hint"></p>
+        <button class="button button-primary" type="submit" disabled>Revisar Excel</button>
       </form>
       <p class="export-feedback" role="status" aria-live="polite"></p>
       <div class="export-review"></div>
@@ -29,12 +28,15 @@ export function mountExports(parent, user) {
   );
   parent.append(section);
   const form = section.querySelector('form'),
-    select = form.elements.cycle,
     prepare = form.querySelector('button');
   const feedback = section.querySelector('.export-feedback'),
     review = section.querySelector('.export-review');
   const history = section.querySelector('.export-history > div');
-  let cycles = [],
+  let cycles = [initialCycle],
+    disposed = false,
+    historyLoading = false,
+    historyGeneration = 0,
+    historyLoaded = false,
     capture,
     job,
     command,
@@ -49,6 +51,7 @@ export function mountExports(parent, user) {
     feedback.setAttribute('role', error ? 'alert' : 'status');
   }
   function handle(error) {
+    if (disposed) return;
     if (
       error.status === 401 ||
       ['PASSWORD_CHANGE_REQUIRED', 'IDENTITY_CHANGED'].includes(error.code)
@@ -58,8 +61,7 @@ export function mountExports(parent, user) {
   }
   function locked(value) {
     busy = value;
-    select.disabled = value;
-    prepare.disabled = value || !select.value;
+    prepare.disabled = value || !eligible();
     for (const button of review.querySelectorAll('button'))
       button.disabled = value || button.dataset.unavailable === 'true';
     section.setAttribute('aria-busy', String(value));
@@ -73,85 +75,111 @@ export function mountExports(parent, user) {
     review.replaceChildren();
     say('');
   }
-  select.onchange = () => {
-    reset();
-    command = null;
-    prepare.disabled = !select.value;
-  };
+  function eligible() {
+    const selected = cycles.find((c) => c.id === initialCycle.id);
+    return (
+      selected?.lifecycle === 'active' &&
+      selected.state === 'closed' &&
+      !(selected.scopeStates || []).some((scope) => scope.state !== 'closed')
+    );
+  }
+  function updateContext() {
+    prepare.disabled = busy || !eligible();
+    section.querySelector('.export-eligibility').textContent = eligible()
+      ? ''
+      : 'Finaliza el inventario global para crear una copia. Puedes consultar las anteriores.';
+  }
   async function loadCycles() {
     const result = await api('/api/cycles');
-    cycles = result.cycles.filter(
-      (c) =>
-        c.lifecycle === 'active' &&
-        c.state === 'closed' &&
-        !c.scopeStates.some((s) => s.state !== 'closed'),
-    );
-    setHTML(
-      select,
-      cycles.length
-        ? joinHTML(cycles.map((c) => html`<option value="${c.id}">${c.name}</option>`))
-        : html`<option value="">Sin inventarios finalizados</option>`,
-    );
-    const requested = new URLSearchParams(location.search).get('inventory');
-    if (cycles.some((c) => c.id === requested)) select.value = requested;
-    prepare.disabled = !select.value;
+    if (disposed) return;
+    cycles = result.cycles.filter((c) => c.id === initialCycle.id);
+    updateContext();
   }
   async function loadHistory() {
-    const result = await api('/api/admin/exports');
-    setHTML(
-      history,
-      result.snapshots.length
-        ? joinHTML(
-            result.snapshots.map(
-              (s) =>
-                html`<button type="button" class="export-history-item" data-snapshot="${s.id}">
+    if (historyLoading || disposed) return;
+    historyLoading = true;
+    const currentHistory = ++historyGeneration;
+    try {
+      const result = await api('/api/admin/exports?cycle=' + encodeURIComponent(initialCycle.id));
+      if (disposed) return;
+      historyLoaded = true;
+      setHTML(
+        history,
+        result.snapshots.length
+          ? joinHTML(
+              result.snapshots.map(
+                (s) =>
+                  html`<button type="button" class="export-history-item" data-snapshot="${s.id}">
                   <span
                     >${s.cycle_name || cycles.find((c) => c.id === s.cycle_id)?.name || 'Inventario'}<small
                       >${date(s.created_at)}</small
                     ></span
                   ><span aria-hidden="true">›</span>
                 </button>`,
-            ),
-          )
-        : html`<p class="field-hint">Aún no hay copias.</p>`,
-    );
-    nextCursor = result.nextCursor;
-    if (nextCursor) {
-      const more = document.createElement('button');
-      more.type = 'button';
-      more.className = 'button';
-      more.textContent = 'Ver más';
-      more.onclick = async () => {
-        more.disabled = true;
-        try {
-          const page = await api('/api/admin/exports?cursor=' + encodeURIComponent(nextCursor));
-          for (const s of page.snapshots) {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'export-history-item';
-            button.dataset.snapshot = s.id;
-            setHTML(
-              button,
-              html`<span
+              ),
+            )
+          : html`<p class="field-hint">Aún no hay copias.</p>`,
+      );
+      nextCursor = result.nextCursor;
+      if (nextCursor) {
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'button';
+        more.textContent = 'Ver más';
+        more.onclick = async () => {
+          if (busy || disposed || currentHistory !== historyGeneration) return;
+          more.disabled = true;
+          try {
+            const page = await api(
+              '/api/admin/exports?cycle=' +
+                encodeURIComponent(initialCycle.id) +
+                '&cursor=' +
+                encodeURIComponent(nextCursor),
+            );
+            if (disposed || currentHistory !== historyGeneration) return;
+            for (const s of page.snapshots) {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'export-history-item';
+              button.dataset.snapshot = s.id;
+              setHTML(
+                button,
+                html`<span
                   >${s.cycle_name || cycles.find((c) => c.id === s.cycle_id)?.name || 'Inventario'}<small
                     >${date(s.created_at)}</small
                   ></span
                 ><span aria-hidden="true">›</span>`,
-            );
-            more.before(button);
+              );
+              more.before(button);
+            }
+            nextCursor = page.nextCursor;
+            if (!nextCursor) more.remove();
+          } catch (error) {
+            handle(error);
+          } finally {
+            more.disabled = false;
           }
-          nextCursor = page.nextCursor;
-          if (!nextCursor) more.remove();
-        } catch (error) {
-          handle(error);
-        } finally {
-          more.disabled = false;
-        }
-      };
-      history.append(more);
+        };
+        history.append(more);
+      }
+    } finally {
+      historyLoading = false;
     }
   }
 
+  section.querySelector('.export-history').addEventListener('toggle', async (event) => {
+    if (!event.target.open || historyLoaded || disposed) return;
+    try {
+      await loadHistory();
+    } catch (error) {
+      handle(error);
+      setHTML(
+        history,
+        html`<button type="button" class="button" data-retry-history>Reintentar</button>`,
+      );
+      history.querySelector('[data-retry-history]').onclick = () => loadHistory().catch(handle);
+    }
+  });
   history.onclick = (event) => {
     const id = event.target.closest('[data-snapshot]')?.dataset.snapshot;
     if (id && !busy) {
@@ -161,6 +189,7 @@ export function mountExports(parent, user) {
   };
   function render() {
     if (!capture) return;
+    const focusAction = review.contains(document.activeElement);
     const summary = capture.review.summary,
       blocked = !capture.review.ready;
     const issues = joinHTML(
@@ -200,7 +229,10 @@ export function mountExports(parent, user) {
         </div>`,
     );
     const action = review.querySelector('[data-action]');
-    if (action) action.onclick = () => runAction(action.dataset.action).catch(handle);
+    if (action) {
+      action.onclick = () => runAction(action.dataset.action).catch(handle);
+      if (focusAction) action.focus({ preventScroll: true });
+    }
   }
   async function openCapture(id) {
     const current = epoch;
@@ -220,6 +252,7 @@ export function mountExports(parent, user) {
       if (current !== epoch) return;
       render();
       schedule(current);
+      if (job?.state === 'ready') say('Excel listo. Tu copia quedó guardada.');
       if (job?.state === 'failed')
         say(
           job.retryable
@@ -265,7 +298,7 @@ export function mountExports(parent, user) {
     else schedule(current);
   }
   async function runAction(action) {
-    if (busy) return;
+    if (busy || disposed) return;
     locked(true);
     const current = epoch;
     try {
@@ -296,6 +329,7 @@ export function mountExports(parent, user) {
         if (!response.headers.get('content-type')?.includes('spreadsheetml'))
           throw Error('La descarga no está disponible.');
         const blob = await response.blob();
+        if (current !== epoch) return;
         if (sessionStorage.getItem('inventory-user') !== user.id)
           throw Object.assign(Error('La cuenta cambió.'), { code: 'IDENTITY_CHANGED' });
         const url = URL.createObjectURL(blob),
@@ -316,11 +350,12 @@ export function mountExports(parent, user) {
   }
   form.onsubmit = async (event) => {
     event.preventDefault();
-    if (busy || !select.value) return;
+    if (busy || disposed || !eligible()) return;
     reset();
     locked(true);
     say('Preparando revisión…');
-    const cycle = cycles.find((c) => c.id === select.value);
+    const current = epoch;
+    const cycle = cycles.find((c) => c.id === initialCycle.id);
     const key = `inventory-export-command:${user.id}:${cycle.id}:${cycle.revision}:${cycle.completion_revision}`;
     try {
       if (!command) {
@@ -336,11 +371,13 @@ export function mountExports(parent, user) {
         sessionStorage.setItem(key, JSON.stringify(command));
       }
       const result = await api('/api/admin/export-snapshots', command);
+      if (current !== epoch) return;
       sessionStorage.removeItem(key);
       command = null;
       await openCapture(result.snapshotId);
-      await loadHistory();
+      if (current === epoch) await loadHistory();
     } catch (error) {
+      if (current !== epoch) return;
       handle(error);
       if (['EXPORT_SOURCE_CHANGED', 'INVENTORY_NOT_FINALIZED'].includes(error.code)) {
         command = null;
@@ -348,20 +385,13 @@ export function mountExports(parent, user) {
         await loadCycles().catch(handle);
       }
     } finally {
-      locked(false);
+      if (current === epoch) locked(false);
     }
   };
-  Promise.all([loadCycles(), loadHistory()]).catch((error) => {
-    handle(error);
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'button';
-    button.textContent = 'Reintentar';
-    button.onclick = () => {
-      button.remove();
-      say('');
-      Promise.all([loadCycles(), loadHistory()]).catch(handle);
-    };
-    feedback.after(button);
-  });
+  updateContext();
+  return () => {
+    disposed = true;
+    epoch++;
+    clearTimeout(timer);
+  };
 }

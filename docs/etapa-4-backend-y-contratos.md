@@ -78,7 +78,7 @@ No se sumará el historial para exportar: se usa el conteo vigente de cada ubica
 | Producto inactivo | Excluir su aporte de la suma, aunque conserve un conteo anterior |
 | Todas las ubicaciones excluidas | Celda en blanco |
 | Fórmula de STOCK cocina!C74 | Se autoriza sustituirla por el nuevo conteo o blanco en la copia |
-| Acceso | Botón únicamente en Mi perfil del Administrador, con autorización de servidor |
+| Acceso | Botón únicamente para Administrador en Supervisión, con autorización de servidor |
 | Original | Inmutable; mismas hojas, filas, referencias, unidades, estilos e impresión |
 
 Al existir ubicaciones activas pendientes junto a otras terminadas, la revisión previa debe advertir que algunas filas contienen una suma parcial. No se agregan etiquetas, hojas ni columnas al Excel para expresar esa advertencia.

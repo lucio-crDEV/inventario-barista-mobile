@@ -12,7 +12,7 @@ Conteo, borradores, conflictos, historial, actividad por área, supervisión y c
 
 ## Etapa 4
 
-4A separó responsabilidades del backend y fijó el contrato del original. 4B captura en D1 un inventario globalmente finalizado. 4C consolida y genera el XLSX. 4D integra revisión, trabajo privado, historial y descarga exclusivamente en Mi perfil del Administrador.
+4A separó responsabilidades del backend y fijó el contrato del original. 4B captura en D1 un inventario globalmente finalizado. 4C consolida y genera el XLSX. 4D integra revisión, trabajo privado, historial y descarga desde Supervisión, exclusivamente para Administrador.
 
 La [regla de oro y contratos](etapa-4d-exportacion.md) mantienen el original inmutable. Se suman solo ubicaciones terminadas, inactivos excluidos, cero explícito y blancos sin aporte. Redondeo final a tres decimales. Cocina C74 tiene una [excepción autorizada y reversible](excepcion-stock-cocina-c74.md). El usuario autorizó dos opciones para que las nuevas copias recalculen los resultados de sus fórmulas al abrir.
 

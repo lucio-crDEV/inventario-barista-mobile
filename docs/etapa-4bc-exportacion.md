@@ -126,7 +126,7 @@ Rollback de código: 4A conserva los datos/tablas de 0014 e ignora las rutas nue
 
 ## Trabajo restante: 4D
 
-Botón en Mi perfil del Administrador, selección y revisión previa, ejecución privada con presupuesto suficiente, archivo privado reutilizable, historial y descarga autorizada. Hay que acordar retención, resolver unidades/conversiones/destinos operativos y validar recálculo/impresión en Excel del negocio.
+Botón para Administrador en Supervisión, contexto del inventario seleccionado y revisión previa, ejecución privada con presupuesto suficiente, archivo privado reutilizable, historial y descarga autorizada. Hay que acordar retención, resolver unidades/conversiones/destinos operativos y validar recálculo/impresión en Excel del negocio.
 
 ## Referencias
 

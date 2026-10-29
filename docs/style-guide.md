@@ -2,7 +2,7 @@ Actualización local 28/10: diálogos con fondo compartido al 16 % en claro y 22
 
 # Guía de estilo UX/UI — inventory-v3
 
-Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación sigue pendiente.
+Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación está implementada; el recorrido vigente está en Supervisión.
 
 ## Revisión vigente — 25-10-2026
 
@@ -134,6 +134,10 @@ En ingreso y cambio de contraseña, el candado queda a la izquierda y a su derec
 Por decisión del usuario, las nuevas contraseñas requieren **8 caracteres**; la ayuda de pantalla dice «Al menos 8 caracteres», sin unidades técnicas. El servidor y el generador del primer administrador conservan el máximo técnico de 72 bytes UTF-8, bcrypt coste 12 y rechazo sin truncamiento. La publicación no requiere migraciones ni cambia credenciales existentes.
 
 
-## Exportación en Mi perfil
+## Exportación en Supervisión
 
-Solo Administración ve una tarjeta compacta debajo del perfil. Reutiliza superficies, botones y radios existentes. Un selector y Revisar Excel preparan la captura; la revisión concentra conteos/blancos y solo muestra advertencias aplicables. Los productos bloqueantes y las copias anteriores son plegables. Generación y descarga tienen una acción clara y mensajes breves, sin detalles internos. Controles de 44–48 px, texto de entrada de 16 px y foco suave. La tarjeta funciona en 320 px y en ambos temas sin ampliar sombras ni oscurecer fondos.
+Solo Administración ve «Exportar Excel», junto a Opciones del inventario. El diálogo reutiliza el inventario seleccionado del panel, muestra su nombre/fecha y «Inventario global · todas las áreas», sin otro selector. Un área filtrada no restringe el libro. Revisar Excel requiere finalización global; el texto de ayuda explica el bloqueo y las copias anteriores se mantienen accesibles al reabrir.
+
+La revisión concentra conteos/blancos y advertencias aplicables. Bloqueos y copias anteriores son plegables, con historial paginado del mismo inventario. Cada estado ofrece una acción principal: generar, comprobar o descargar. El cierre restaura foco y contexto del panel; la operación incierta conserva su identificador para reintento explícito y el trabajo admitido continúa en el servidor. Mi perfil conserva exclusivamente sus funciones de cuenta.
+
+Superficies y tokens compartidos, controles de al menos 44 px, foco suave, encabezado sin teclado automático, Escape y cierre exterior seguro. Ancho acotado al viewport, textos largos envolventes y temas crema/carbón; se conservan las preferencias de movimiento/transparencia reducidos. La carga opcional de exportación no impide usar Supervisión si falla.
