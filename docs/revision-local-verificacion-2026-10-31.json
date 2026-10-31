@@ -1,0 +1,276 @@
+{
+  "recordedAt": "2026-10-31T15:11:26.584026+00:00",
+  "branch": "inventory-v3",
+  "repository": "/Users/lucio/workspace/inventario_brioche",
+  "sourceChat": "Mover Exportar Excel Supervisión",
+  "previousLocalHead": "879428b0080f6b37dae838b174f743cc04e6f805",
+  "recoveredHead": "01b406b",
+  "recoveredCommits": [
+    "e5e1fe1",
+    "f7c1c1f",
+    "6772d7d",
+    "01b406b"
+  ],
+  "integration": {
+    "fastForwardOnly": true,
+    "previousWorkingTreeClean": true,
+    "originalCheckoutUpdated": true
+  },
+  "review": {
+    "functionalFindings": [],
+    "correctedTest": "Scope the export Close locator to its dialog; reopened inventories also expose Close actions on the page.",
+    "isolatedExportTestUpdatedBeforeExecution": true
+  },
+  "validation": {
+    "node": "24.21.0",
+    "unit": {
+      "passed": 210,
+      "failed": 0,
+      "skipped": 0,
+      "nativeTestsIncluded": true
+    },
+    "python": {
+      "passed": 14,
+      "failed": 0
+    },
+    "isolatedBattery": {
+      "passed": 30,
+      "failed": 0,
+      "runs": [
+        {
+          "script": "scripts/build-pages.mjs",
+          "durationMs": 111,
+          "passed": true
+        },
+        {
+          "script": "scripts/prepare-tests.mjs",
+          "durationMs": 20671,
+          "passed": true
+        },
+        {
+          "script": "scripts/preflight.mjs",
+          "durationMs": 2857,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/preflight-negative.mjs",
+          "durationMs": 5486,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/integration.mjs",
+          "durationMs": 11418,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/extended.mjs",
+          "durationMs": 4922,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service.mjs",
+          "durationMs": 4853,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/load.mjs",
+          "durationMs": 6464,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/sync.mjs",
+          "durationMs": 2155,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/backoff.mjs",
+          "durationMs": 846,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service-browser.mjs",
+          "durationMs": 8744,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/security-live.mjs",
+          "durationMs": 1989,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-live.mjs",
+          "durationMs": 1394,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-browser.mjs",
+          "durationMs": 6821,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/revision-browser.mjs",
+          "durationMs": 4466,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/ux.mjs",
+          "durationMs": 17884,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/refresh.mjs",
+          "durationMs": 6848,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/admin-layout.mjs",
+          "durationMs": 3607,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/browser.mjs",
+          "durationMs": 27325,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/views.mjs",
+          "durationMs": 12004,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/migration-service.mjs",
+          "durationMs": 5939,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/operations.mjs",
+          "durationMs": 15542,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/package-security.mjs",
+          "durationMs": 200,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/export-ui.mjs",
+          "durationMs": 40733,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/password-concurrency-runtime.mjs",
+          "durationMs": 30789,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/html-browser.mjs",
+          "durationMs": 986,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/offline-browser.mjs",
+          "durationMs": 2516,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/realtime-runtime.mjs",
+          "durationMs": 7140,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/realtime-browser.mjs",
+          "durationMs": 988,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/pages.mjs",
+          "durationMs": 1301,
+          "passed": true
+        }
+      ]
+    },
+    "passwordNativeRuntime": {
+      "nativeSaturationRecovery": true,
+      "nativeQueueExpiry": true,
+      "nativeCallerTimeoutRecovery": true,
+      "passed": true,
+      "runner": "native-sqlite-durable-object",
+      "outboundRequests": 0,
+      "people": 30,
+      "statuses": {
+        "200": 30
+      },
+      "burstMs": 8511,
+      "p50Ms": 5173,
+      "p95Ms": 8312,
+      "fixedLanesPerIP": 4,
+      "incorrectAndAbsentRejected": true,
+      "sharedIPAndPairQuotas": true,
+      "recovery": true,
+      "timeoutFailsClosed": true,
+      "disabledDuringVerificationRejected": true,
+      "productionCPUCertified": false
+    },
+    "exportBrowser": {
+      "passed": true,
+      "viewports": [
+        320,
+        390,
+        1024
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "cases": 6,
+      "screenshotsInspected": [
+        "390-light",
+        "390-dark"
+      ]
+    },
+    "privateExportRuntime": {
+      "passed": true,
+      "simultaneousStarts": 5,
+      "stableRedownload": true,
+      "independentFidelityCheck": true,
+      "outboundRequests": 0
+    },
+    "resourceMonitorRuntime": {
+      "passed": true,
+      "analyticsMocked": true
+    },
+    "format": true,
+    "htmlLint": true,
+    "buildPages": true,
+    "publicHashedAssets": 17,
+    "privateWorkerDryRun": {
+      "passed": true,
+      "config": "wrangler.exports.production.jsonc",
+      "published": false
+    },
+    "independentTemplateGuard": true,
+    "originalWorkbookSHA256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9"
+  },
+  "remainingBeforeRelease": [
+    "Deploy the reviewed inventory-exports private Worker with its existing production configuration before the user pushes Pages.",
+    "User push, new GitHub Actions result, effective Pages revision and PASSWORDS binding verification.",
+    "Normal authenticated administrator/worker acceptance after publication; physical phone and Microsoft Excel acceptance."
+  ],
+  "notPerformed": [
+    "git push",
+    "Pages publish",
+    "private Worker publish",
+    "remote modifications",
+    "migrations",
+    "production fixtures",
+    "template upload",
+    "monitor key creation"
+  ],
+  "pendingByUserDecision": [
+    "Dependabot",
+    "TOTP",
+    "new password/inactivity policies",
+    "close other sessions"
+  ],
+  "productionCPUCertified": false
+}

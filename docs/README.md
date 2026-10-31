@@ -12,7 +12,7 @@ Las entradas vigentes son:
 | Tiempo real y límites de consumo | [RTv2](arquitectura-y-operacion.md#sincronización-rtv2), [recursos Cloudflare](recursos-cloudflare.md) |
 | Catálogo e índice 0016 | [Cambios de esquema y catálogo](arquitectura-y-operacion.md#cambiar-el-esquema-o-el-catálogo) |
 | Ingreso compartido y revisión 29-10 | [Contrato de carriles](ingresos-compartidos.md), [evidencia](supervision-acceso-verificacion-2026-10-29.json) |
-| Incorporar la recuperación y comprobar lo pendiente | [Continuación local](continuacion-local.md) |
+| Recuperación incorporada y publicación pendiente | [Continuación local](continuacion-local.md), [evidencia del 31-10](revision-local-verificacion-2026-10-31.json) |
 | Prioridades | [Roadmap](roadmap.md) |
 | Excepción de la plantilla | [Cocina C74 y reversión](excepcion-stock-cocina-c74.md) |
 

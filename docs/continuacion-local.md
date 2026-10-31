@@ -1,31 +1,26 @@
-# Continuación local de la revisión del 29-10
+# Continuación local — 31-10-2026
 
-La copia recuperada contiene los commits de CI, exportación en Supervisión e ingreso compartido, más la verificación final. Parte de `879428b` en `inventory-v3`. El repositorio original sigue intacto porque esta sesión solo puede leerlo. No se hizo push ni se publicaron Workers/Pages.
+Los cuatro commits recuperados (`e5e1fe1`, `f7c1c1f`, `6772d7d`, `01b406b`) ya están incorporados mediante avance directo en `/Users/lucio/workspace/inventario_brioche`, rama `inventory-v3`. La rama original estaba limpia en `879428b`; no hubo conflictos ni descarte de cambios. No hace falta volver a importar la copia o el bundle.
 
-## Incorporar sin descartar cambios
+La revisión conservó la implementación de exportación en Supervisión, los cuatro carriles de ingreso y el ajuste de CI. Se corrigió un selector ambiguo de la prueba de exportación: «Cerrar» se busca dentro del diálogo para distinguirlo de los controles de cierre del inventario.
 
-En la terminal local de la Mac, con el repositorio original limpio y en `inventory-v3`:
+## Validación local terminada
 
-```sh
-cd /Users/lucio/workspace/inventario_brioche
-git status --short --branch
-git fetch /Users/lucio/.codex/.chatgpt-projects/g-p-6a3c69a85dc8819186d67bd2c6064455/inventario_brioche inventory-v3
-git merge --ff-only FETCH_HEAD
-```
+Pasaron 210 pruebas unitarias sin exclusiones, 14 Python y la batería aislada completa. Esta vez se ejecutaron Workerd y Chromium: treinta ingresos desde una misma IP mediante el binding privado nativo, saturación, vencimiento real de cola, timeout real del solicitante y recuperación. La exportación pasó en 320/390/1024 px y ambos temas, con permisos, contexto, reintento incierto, historial, descarga y foco. Se inspeccionaron las capturas móviles clara y oscura.
 
-`fetch` es local y no requiere conexión a GitHub. `--ff-only` evita crear una combinación inesperada: si la rama avanzó por otro camino, detenerse y revisar; no usar reset, force ni sobrescribir cambios. También puede usarse el archivo `inventory-v3-recuperado.bundle` entregado como origen de `git fetch`, en lugar de la carpeta de la copia.
+También aprobaron formato, lint HTML, build de Pages, integridad del original, exportación privada nativa y monitor con Analytics simulado. La preparación `--dry-run` del Worker privado aprobó con la configuración productiva existente, sin publicar. Resultados exactos: [evidencia del 31-10](revision-local-verificacion-2026-10-31.json).
 
-## Comprobaciones pendientes antes de publicar
+## Orden pendiente de publicación
 
-Con Node 24 y dependencias del lockfile instaladas, ejecutar fuera de la sesión que bloquea servidores y Chromium:
+1. Actualizar el código revisado del Worker privado `inventory-exports`, desde la raíz del repositorio y con la configuración existente:
 
-```sh
-npm test
-npm run test:security:isolated
-```
+   ```sh
+   npx wrangler deploy --config wrangler.exports.production.jsonc
+   ```
 
-La batería incluye `tests/shared/password-concurrency-runtime.mjs` y `tests/shared/export-ui.mjs`; no hace falta repetirlos si ambos aprobaron allí. El primer ensayo usa treinta cuentas ficticias de la misma IP y un binding SQLite privado nativo; también comprueba colas, cuotas, vencimiento, timeout y recuperación. El segundo cubre la exportación en tres anchos y dos temas. Nunca usar fixtures productivos.
+2. Hacer el push del usuario a `inventory-v3`, esperar Actions y el despliegue de Pages. El push de Pages no actualiza por sí solo el Worker privado.
+3. Comprobar la revisión efectiva y el binding `PASSWORDS`; probar ingreso, Supervisión, revisión, generación y descarga con Administrador, y rechazo de exportación con Trabajador.
 
-Después de que aprueben, actualizar el código del Worker privado `inventory-exports` con su configuración existente antes del push del usuario que publica Pages. No añadir migraciones, plantilla, llaves ni recursos. La configuración privada y su comando se mantienen en [la guía de exportación](etapa-4d-exportacion.md); no publicar con una configuración de ejemplo.
+En esta revisión no se hizo push ni se publicó ningún Worker o Pages. No se necesitan migraciones, clases, plantilla ni secretos nuevos; no repetir 0016, fixtures ni aprovisionamiento.
 
-Tras el push del usuario, comprobar Actions y el commit efectivo en Pages, binding PASSWORDS, permisos de Administrador y flujo de exportación. La versión pública observada ahora es `879428b`, anterior a estos cambios. Siguen pendientes la aceptación en teléfono físico y Microsoft Excel, y la observación de CPU/errores en uso normal. El resultado de una simulación local no certifica capacidad productiva ni cuota Free.
+La prueba local no certifica CPU o cuotas productivas. Permanecen la aceptación en teléfono físico y Microsoft Excel, y los datos de catálogo no resueltos. Dependabot, TOTP, nuevas políticas de acceso/inactividad y «Cerrar otras sesiones» siguen pendientes por decisión del usuario.

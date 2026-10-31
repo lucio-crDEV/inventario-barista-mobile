@@ -1,6 +1,14 @@
 # Verificación vigente
 
-Entrega de etapa 4D, offline real, HTML seguro, sincronización RTv2 y revisión de Supervisión/ingreso compartido. La evidencia de esta revisión está en [supervision-acceso-verificacion-2026-10-29.json](supervision-acceso-verificacion-2026-10-29.json). El [registro de evidencia 4D](etapa-4d-verificacion-2026-10-28.json) conserva los resultados de esa etapa; las cifras finales y el estado remoto constan en [la evidencia de esta revisión](operacion-free-verificacion-2026-10-28.json). Una prueba local no acredita publicación ni alertas activas.
+## Cierre local del 31-10-2026
+
+Los cuatro commits recuperados ya están incorporados en el repositorio original, rama `inventory-v3`. Aprobaron 210 unitarias sin exclusiones, 14 Python y las 30 comprobaciones de la batería aislada, incluido el ingreso nativo de treinta personas, saturación, plazos reales de cola/solicitante y recuperación. La exportación aprobó seis combinaciones de ancho/tema en Chromium; se corrigió únicamente el selector ambiguo de «Cerrar» en esa prueba. Se inspeccionaron las capturas móviles de ambos temas.
+
+Formato, lint, build, guard del original, exportación privada nativa, monitor simulado y preparación del Worker privado mediante `--dry-run` aprobaron. [Evidencia completa](revision-local-verificacion-2026-10-31.json). Los bloqueos de puertos/Chromium descritos en el antecedente del 29-10 quedaron resueltos para esta ejecución. No hubo cambios remotos, migraciones, push ni publicaciones.
+
+Queda actualizar el Worker privado antes del push del usuario, comprobar Actions/Pages y completar aceptación física de teléfono/Excel. [Orden de publicación](continuacion-local.md). Las cifras y restricciones de producción conservan sus límites; los resultados anteriores quedan en sus archivos de evidencia.
+
+La evidencia vigente está en [la revisión local del 31-10](revision-local-verificacion-2026-10-31.json). Los registros fechados de etapas anteriores conservan resultados históricos; no sustituyen la comprobación del código publicado, los bindings ni las métricas reales.
 
 ## Validación automática
 
@@ -45,7 +53,7 @@ La segunda opción corresponde a nuevas copias autorizadas para actualizar total
 
 ## Evidencia y estado de entrega
 
-Las pruebas anteriores describen la cobertura actual. Registrar las cifras finales en la evidencia de la ejecución completa. Los siguientes antecedentes de 4D se conservan como referencia de esa etapa y no sustituyen una comprobación del estado remoto vigente:
+Las pruebas anteriores describen la cobertura actual; las cifras finales están en la evidencia del 31-10. Los siguientes antecedentes de 4D se conservan como referencia de esa etapa y no sustituyen una comprobación del estado remoto vigente:
 
 - Pruebas unitarias, fidelidad independiente Python y batería aislada: aprobadas según cifras exactas de la evidencia.
 - Generador nativo: trabajo SQLite, alarma real, cinco solicitudes simultáneas, recuperación de un fallo, objeto R2 único, descarga estable, sesión revocada y cero salidas a Internet en la simulación.
@@ -79,28 +87,10 @@ node scripts/preflight.mjs --remote --config wrangler.pages.production.jsonc --c
 
 No repetir primer administrador, fixtures ni migraciones ya aplicadas. Los informes fechados de etapas anteriores conservan resultados históricos, no pendientes vigentes; [índice](README.md).
 
-## Cierre del 28-10 (antecedente)
+## Antecedentes
 
-204 pruebas unitarias, 14 pruebas Python y 29 recorridos de la batería aislada aprobados; formato y lint aprobados. Las pruebas nativas cubren exportación privada, treinta conexiones de tiempo real y monitor con Analytics simulado, sin tocar datos productivos. El libro original conserva su SHA-256. Se corrigieron y cubrieron dos regresiones: estructura del panel de productos y errores de envío que el aviso offline ocultaba.
+- [Etapa 4D](etapa-4d-verificacion-2026-10-28.json): capturas, motor y almacenamiento privado.
+- [Operación Free del 28-10](operacion-free-verificacion-2026-10-28.json): offline, RTv2, índice y monitor.
+- [Supervisión e ingreso del 29-10](supervision-acceso-verificacion-2026-10-29.json): recuperación de commits y bloqueos históricos de puertos/Chromium, resueltos en la ejecución local del 31-10.
 
-El índice 0016 y los Workers privados de tiempo real/monitoreo quedaron preparados remotamente. La alerta de correo figura habilitada y el usuario confirmó la entrega del mensaje de prueba. La consulta real de Analytics validó las cuatro series; las métricas actuales no se confunden con el perfil local ni con un ensayo de carga productiva. Pages y el primer workflow de GitHub de esta revisión requieren el push del usuario.
-
-La primera muestra programada real se observó el 28-10-2026 a las 16:30:22 UTC: monitor disponible y las cuatro series disponibles. El canal de correo también fue confirmado por el usuario.
-
-## Revisión del 29-10: Supervisión e ingreso compartido
-
-Exportar Excel se trasladó a Supervisión, exclusivamente para Administrador. El diálogo usa el inventario seleccionado y el historial conserva ese filtro al paginar. Mi perfil ya no carga exportación. Las cuatro regresiones `tests/export-context.test.mjs` ejecutan el componente con un puerto DOM/API mínimo: permisos, historial contextual, respuesta incierta y cierre, actualización del mismo inventario sin cambiar de destino. No certifican diseño ni un navegador. La batería `tests/shared/export-ui.mjs` cubre 320/390/1024 px, claro/oscuro, foco, controles de 44 px, navegación/filtros, permisos, cierre de una captura incierta, bloqueos, generación, descarga, historial y reaperturas. Debe ejecutarse en un entorno con Chromium permitido; una revisión estática no certifica estas comprobaciones visuales.
-
-La corrección del ingreso está en [ingresos compartidos](ingresos-compartidos.md). `npm run test:login:runtime` ejecuta treinta ingresos por el servicio privado nativo, cuotas, errores, saturación y recuperación. La batería aislada lo incluye sin recibir credenciales productivas. `npm run test:login:core` permite verificar el handler, SQLite y bcrypt12 real en memoria cuando no se permiten servidores; no sustituye Workerd/Durable Objects.
-
-El workflow remoto de `879428b` aprobó `unit` y falló en la instalación de Chromium, antes de ejecutar la batería aislada. La vista pública no proporcionó el log detallado. GitHub avisó del cambio de `ubuntu-latest` a Ubuntu 26; se fija Ubuntu 24.04, compatible con la versión fijada de Playwright. Es una corrección del entorno basada en ese diagnóstico; su éxito remoto exige otro workflow tras el push.
-
-Al retomar se confirmó el ingreso público de Pages y la versión `879428b0080f.20261029171810` en `/assets/shared-RZ2MYGHY.js`, importado por la página de cuenta. Esto verifica los recursos efectivos de aquel push, aunque Actions haya fallado en paralelo. No verifica por sí solo el estado del panel de despliegues, todos los bindings ni una sesión autenticada. No se modificaron recursos remotos, migraciones ni secretos; los commits nuevos siguen sin publicar.
-
-Persisten las aceptaciones de teléfono físico y Microsoft Excel. Tampoco se certifica carga o CPU de Cloudflare. Consultar cifras, bloqueos de ejecución y próximos pasos exactos en la evidencia JSON del 29-10.
-
-Resultado en esta sesión restringida: la ejecución completa de unitarias tuvo 206 pruebas, 204 aprobadas y dos bloqueadas por `listen EPERM` (D1 nativa y contraseñas nativas). Las cuatro nuevas regresiones de contexto aprobaron; la ejecución dirigida posterior de contexto/empaquetado/capturas/trabajos aprobó 25/25. Python aprobó 14/14, al igual que formato, lint, build y guard independiente del original. El escenario privado en proceso aprobó 30/30 (8.374 ms de ráfaga, p95 8.279 ms), con cuotas, timeout y revocación durante verificación. No presentar estos números como aprobación de la batería nativa ni del navegador.
-
-Comprobación al retomar: 208 unitarias aprobadas al excluir explícitamente las dos pruebas nativas bloqueadas por la política de puertos. El núcleo privado volvió a aprobar 30/30 ingresos ficticios de una IP (8.370 ms, p95 8.264 ms), credenciales erróneas, cuotas, timeout y revocación; formato, lint, build y guard del original también aprobaron. Workerd volvió a fallar antes de ejecutar por `listen EPERM 127.0.0.1`; Chromium, por `MachPortRendezvousServer: Permission denied`. No se repitió la batería completa tras confirmar estos bloqueos.
-
-Se amplió el ensayo nativo para comprobar saturación, vencimiento real de ocho segundos, límite real de diez segundos del solicitante y recuperación por el binding privado, además de los treinta ingresos. Su sintaxis se comprobó; su ejecución continúa pendiente, sin sustituirla por el núcleo en proceso. Los pasos para incorporar los commits y ejecutar lo pendiente están en [continuación local](continuacion-local.md).
+La última observación pública registrada en esa evidencia fue `879428b`. La revisión del 31-10 fue local y no volvió a verificar producción. El siguiente push requiere comprobar Actions y Pages por separado.

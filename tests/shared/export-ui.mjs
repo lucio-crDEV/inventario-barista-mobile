@@ -232,7 +232,10 @@ try {
           ).toBeVisible();
         };
         const close = async () => {
-          await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+          await page
+            .getByRole('dialog', { name: 'Exportar Excel', exact: true })
+            .getByRole('button', { name: 'Cerrar', exact: true })
+            .click();
           await expect(page.locator('#export-inventory')).toBeFocused();
         };
         const layout = async () => {
