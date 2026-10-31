@@ -239,16 +239,24 @@
   },
   "privateWorker": {
     "name": "inventory-exports",
-    "currentObservedVersion": "e9a48eb4-73d1-4d1e-87bb-be0a1424a954",
-    "updated": false,
-    "deploymentAutomaticReviewRejected": true,
-    "reason": "Production publication requires explicit user authorization.",
-    "explicitApprovalRequested": true
+    "previousObservedVersion": "e9a48eb4-73d1-4d1e-87bb-be0a1424a954",
+    "currentObservedVersion": "64e66491-dfa4-4fdb-80c3-164cc248df85",
+    "updated": true,
+    "verifiedAt": "2026-10-31T15:36:37.502334+00:00",
+    "trafficPercent": 100,
+    "requiredBindingsPreserved": true,
+    "analyticsSecretPreserved": true,
+    "cronSchedules": [
+      "*/15 * * * *",
+      "43 5 * * *"
+    ],
+    "explicitUserApprovalReceived": true,
+    "initialAutomaticReviewRejectionResolved": true,
+    "newResourcesCreated": false
   },
   "notPerformed": [
     "git push",
     "Pages publish",
-    "private Worker publish",
     "migrations",
     "new users or sessions",
     "global item activity changes"

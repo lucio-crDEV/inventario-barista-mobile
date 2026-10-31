@@ -16,10 +16,10 @@ Se conservaron los dos ítems inactivos. Quedaron 24 pendientes activos por refe
 
 La creación usó comandos guardados/auditados e idempotentes de D1, validados antes en SQLite ficticio. Solo se añadieron el ciclo solicitado, sus conteos, transiciones y captura; no se crearon usuarios/sesiones ni se tocaron otros inventarios, el catálogo o las migraciones.
 
-## Pendiente para que solo reste el push
+## Listo para el push
 
-La actualización del Worker privado `inventory-exports` está preparada y probada. Se verificaron su versión y bindings actuales, pero la revisión automática rechazó publicarla por falta de autorización explícita para ese despliegue en producción. La autorización está solicitada al usuario. No afirmar que el Worker está actualizado ni que el push de Pages lo actualizará.
+El usuario autorizó expresamente la publicación de `inventory-exports`. Se publicó la versión `64e66491-dfa4-4fdb-80c3-164cc248df85` y se confirmó el 100 % del tráfico en ella. Conserva `PASSWORDS`, `EXPORTS`, `RESOURCES`, D1, R2 y el secreto de Analytics; los horarios siguen cada quince minutos y la purga diaria a las 05:43 UTC. No se crearon recursos ni se ejecutaron migraciones. El rechazo automático inicial quedó resuelto con esa autorización.
 
-Una vez autorizada y publicada esa actualización, el usuario hace su push a `inventory-v3`. Esperar Actions y Pages y comprobar la revisión efectiva, el binding `PASSWORDS`, el ingreso, permisos de Administrador/Trabajador y la exportación del inventario anterior. No repetir 0016, plantilla, secretos ni aprovisionamiento.
+Ahora solo resta el push del usuario a `inventory-v3`. Esperar Actions y Pages y comprobar la revisión efectiva, el binding `PASSWORDS`, el ingreso, permisos de Administrador/Trabajador y la exportación del inventario anterior. No repetir 0016, plantilla, secretos ni aprovisionamiento. La actualización del Worker privado ya está aplicada y no debe repetirse para este push.
 
 No se hizo push ni se publicó Pages. Permanecen la aceptación en teléfono físico y Microsoft Excel, los datos de catálogo no resueltos y las decisiones de Dependabot/TOTP/políticas de acceso/cierre de otras sesiones. Las pruebas locales no certifican CPU ni cuota productiva.

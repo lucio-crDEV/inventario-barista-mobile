@@ -6,7 +6,7 @@ La recuperación ya está incorporada; la nueva decisión de conteo guarda Sumar
 
 Se creó el inventario ficticio solicitado en producción: «Inventario semanal · 25/10/2026», globalmente finalizado, con 1.242 conteos, 24 pendientes de referencia y dos inactivos conservados. Su captura no tiene bloqueos de exportación. La copia Excel generada desde esa fuente remota aprobó el guard independiente con recálculo; el original permanece intacto. No se modificaron usuarios, sesiones, actividad global ni migraciones.
 
-Formato, lint y build aprobaron. [Evidencia vigente](conteo-compacto-verificacion-2026-10-31.json); [recuperación y comprobaciones anteriores](revision-local-verificacion-2026-10-31.json). La publicación del Worker privado fue rechazada por la revisión automática y está pendiente de autorización explícita. No hubo push ni publicación de Pages. [Estado y orden de publicación](continuacion-local.md).
+Formato, lint y build aprobaron. [Evidencia vigente](conteo-compacto-verificacion-2026-10-31.json); [recuperación y comprobaciones anteriores](revision-local-verificacion-2026-10-31.json). Tras la autorización explícita del usuario se publicó `inventory-exports`, versión `64e66491-dfa4-4fdb-80c3-164cc248df85`, y se verificó el 100 % del tráfico y la conservación de bindings, secreto de Analytics y horarios. El bloqueo automático inicial quedó resuelto. No hubo push ni publicación de Pages. [Estado y orden de publicación](continuacion-local.md).
 
 ## Validación automática
 
