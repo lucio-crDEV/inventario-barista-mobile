@@ -1,0 +1,257 @@
+{
+  "recordedAt": "2026-10-31T15:33:24.426769+00:00",
+  "branch": "inventory-v3",
+  "baseline": "679989d",
+  "changes": [
+    "One decision saves Add or Replace; result shown before choosing",
+    "Optional notes; no technical versions or empty note rows",
+    "Keep drafts on close; discard only the selected draft",
+    "Retry uncertain decisions with the same command and revalidate accepted record",
+    "Close an obsolete decision after another session of the same person writes"
+  ],
+  "validation": {
+    "unit": {
+      "passed": 210,
+      "failed": 0,
+      "skipped": 0
+    },
+    "isolatedBattery": {
+      "passed": 30,
+      "failed": 0,
+      "runs": [
+        {
+          "script": "scripts/build-pages.mjs",
+          "durationMs": 112,
+          "passed": true
+        },
+        {
+          "script": "scripts/prepare-tests.mjs",
+          "durationMs": 19507,
+          "passed": true
+        },
+        {
+          "script": "scripts/preflight.mjs",
+          "durationMs": 2399,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/preflight-negative.mjs",
+          "durationMs": 5069,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/integration.mjs",
+          "durationMs": 10845,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/extended.mjs",
+          "durationMs": 4739,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service.mjs",
+          "durationMs": 4797,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/load.mjs",
+          "durationMs": 6568,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/sync.mjs",
+          "durationMs": 2006,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/backoff.mjs",
+          "durationMs": 900,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/users-service-browser.mjs",
+          "durationMs": 8484,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/security-live.mjs",
+          "durationMs": 1955,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-live.mjs",
+          "durationMs": 1319,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/supervision-browser.mjs",
+          "durationMs": 5602,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/revision-browser.mjs",
+          "durationMs": 4312,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/ux.mjs",
+          "durationMs": 17800,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/refresh.mjs",
+          "durationMs": 6574,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/admin-layout.mjs",
+          "durationMs": 3357,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/browser.mjs",
+          "durationMs": 27142,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/views.mjs",
+          "durationMs": 11264,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/migration-service.mjs",
+          "durationMs": 5669,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/operations.mjs",
+          "durationMs": 15324,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/package-security.mjs",
+          "durationMs": 188,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/export-ui.mjs",
+          "durationMs": 40906,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/password-concurrency-runtime.mjs",
+          "durationMs": 30357,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/html-browser.mjs",
+          "durationMs": 764,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/offline-browser.mjs",
+          "durationMs": 2431,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/realtime-runtime.mjs",
+          "durationMs": 7110,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/realtime-browser.mjs",
+          "durationMs": 886,
+          "passed": true
+        },
+        {
+          "script": "tests/shared/pages.mjs",
+          "durationMs": 1164,
+          "passed": true
+        }
+      ]
+    },
+    "finalOwnSessionConflictFix": {
+      "unitRepeated": true,
+      "affectedBrowserSuiteRepeated": true,
+      "passed": true
+    },
+    "decisionLayout": {
+      "widths": [
+        320,
+        390,
+        1024
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "maxDialogHeight": 550,
+      "minimumControlHeight": 44,
+      "screenshotsInspected": [
+        "390-light",
+        "390-dark"
+      ]
+    },
+    "format": true,
+    "htmlLint": true,
+    "buildPages": true,
+    "exampleExcelFidelity": {
+      "template": "totalizado-11-10-v1",
+      "sha256": "9c123ce93a01df5167c80339451d2ffa94e5f29e9260a24519879fb1b78a14e9",
+      "sheets": 10,
+      "authorizedStockCells": 1151,
+      "changedStockCells": 1118,
+      "recalculateOnOpen": true,
+      "readOnly": true
+    }
+  },
+  "publishedExample": {
+    "cycle": {
+      "id": "bf18ea04-477e-4d5d-bd71-aabd2487cc87",
+      "name": "Inventario semanal",
+      "type": "weekly",
+      "period": "2026-10-25",
+      "lifecycle": "active",
+      "state": "closed",
+      "revision": 3,
+      "completion_revision": 1243
+    },
+    "counted": 1242,
+    "confirmedZero": 96,
+    "pending": 24,
+    "inactive": 2,
+    "activityUnchanged": true,
+    "snapshotId": "efe129c4-0319-4783-b8b6-115cb9417cc2",
+    "sourceSha256": "ec4a455c04704659c4eed414a258dbed744b9e19d337d2d87b2b2285d854acdc",
+    "review": {
+      "destinations": 1151,
+      "numeric": 1145,
+      "blank": 6,
+      "partial": 1,
+      "blockers": 0,
+      "roundedToZero": 0
+    },
+    "exportReady": true,
+    "fictitiousQuantities": true,
+    "productionAccountsCreated": false,
+    "migrationsApplied": false
+  },
+  "privateWorker": {
+    "name": "inventory-exports",
+    "currentObservedVersion": "e9a48eb4-73d1-4d1e-87bb-be0a1424a954",
+    "updated": false,
+    "deploymentAutomaticReviewRejected": true,
+    "reason": "Production publication requires explicit user authorization.",
+    "explicitApprovalRequested": true
+  },
+  "notPerformed": [
+    "git push",
+    "Pages publish",
+    "private Worker publish",
+    "migrations",
+    "new users or sessions",
+    "global item activity changes"
+  ],
+  "physicalPhoneAndMicrosoftExcelAcceptancePending": true
+}

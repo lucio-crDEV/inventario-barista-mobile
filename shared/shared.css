@@ -632,12 +632,27 @@ html[data-theme="dark"] .state-chip.is-inactive { color: #ffadbb; }
   width: 100%;
   margin-top: 10px;
 }
-.shared-dialog #result-preview:not(:empty) {
-  padding: 14px;
-  border-radius: 12px;
-  background: rgb(7 191 208 / 10%);
-  border: 1px solid var(--ui-border);
-}
+.resolution-dialog { width: min(calc(100vw - 24px), 440px); padding: 20px; box-sizing: border-box; }
+.resolution-dialog h2 { margin-bottom: 12px; }
+.resolution-product { margin: 0 0 12px; font-size: 14px; }
+.resolution-product small { display: block; color: var(--ui-muted); font-size: 12px; }
+.resolution-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.resolution-values > div { display: grid; align-content: start; gap: 3px; padding: 10px; border-radius: 12px; background: var(--ui-nav); overflow-wrap: anywhere; }
+.resolution-values span, .resolution-values small { color: var(--ui-muted); font-size: 12px; }
+.resolution-values strong { font-size: 16px; }
+.resolution-notes { margin-top: 6px; font-size: 12px; }
+.resolution-notes summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--ui-accent); }
+.resolution-notes summary::before { content: '›'; margin-right: 8px; }
+.resolution-notes[open] summary::before { transform: rotate(90deg); }
+.resolution-notes p { margin: 0 0 8px; white-space: pre-wrap; }
+.resolution-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.resolution-dialog .resolution-options button { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 8px; overflow-wrap: anywhere; }
+.resolution-options small { font-size: 12px; font-weight: 500; }
+.resolution-options #retry-resolution { grid-column: 1 / -1; }
+.resolution-feedback { margin: 8px 0 0; font-size: 12px; color: var(--ui-muted); }
+.resolution-footer { display: flex; gap: 8px; margin-top: 12px; }
+.resolution-footer button { flex: 1; min-width: 0; padding: 10px 8px; font-size: 14px; }
+.resolution-dialog .resolution-hint { font-size: 12px; margin: 8px 0 0; color: var(--ui-muted); }
 .dialog-actions {
   display: flex;
   flex-wrap: wrap;

@@ -1,26 +1,25 @@
 # Continuación local — 31-10-2026
 
-Los cuatro commits recuperados (`e5e1fe1`, `f7c1c1f`, `6772d7d`, `01b406b`) ya están incorporados mediante avance directo en `/Users/lucio/workspace/inventario_brioche`, rama `inventory-v3`. La rama original estaba limpia en `879428b`; no hubo conflictos ni descarte de cambios. No hace falta volver a importar la copia o el bundle.
+La recuperación de cuatro commits ya está incorporada en `/Users/lucio/workspace/inventario_brioche`, rama `inventory-v3`. No volver a importar la copia o el bundle.
 
-La revisión conservó la implementación de exportación en Supervisión, los cuatro carriles de ingreso y el ajuste de CI. Se corrigió un selector ambiguo de la prueba de exportación: «Cerrar» se busca dentro del diálogo para distinguirlo de los controles de cierre del inventario.
+## Cambios y validación
 
-## Validación local terminada
+El diálogo de conteos compartidos muestra actual/propuesto, notas opcionales y resultados junto a Sumar/Reemplazar. Elegir guarda directamente, sin otra confirmación. Escape/Volver conservan el borrador; la respuesta incierta solo permite reintentar el mismo comando. Un cambio desde otra sesión propia cierra la decisión obsoleta y mantiene el borrador.
 
-Pasaron 210 pruebas unitarias sin exclusiones, 14 Python y la batería aislada completa. Esta vez se ejecutaron Workerd y Chromium: treinta ingresos desde una misma IP mediante el binding privado nativo, saturación, vencimiento real de cola, timeout real del solicitante y recuperación. La exportación pasó en 320/390/1024 px y ambos temas, con permisos, contexto, reintento incierto, historial, descarga y foco. Se inspeccionaron las capturas móviles clara y oscura.
+Aprobaron 210 unitarias, las 30 comprobaciones aisladas y seis combinaciones de ancho/tema. Tras añadir el último caso de sesión propia se repitieron las unitarias y la prueba de navegador afectada. Formato, lint, build e integridad del Excel generado también aprobaron. [Evidencia vigente](conteo-compacto-verificacion-2026-10-31.json). Los resultados de recuperación y las 14 pruebas Python de la revisión previa siguen en [su evidencia](revision-local-verificacion-2026-10-31.json).
 
-También aprobaron formato, lint HTML, build de Pages, integridad del original, exportación privada nativa y monitor con Analytics simulado. La preparación `--dry-run` del Worker privado aprobó con la configuración productiva existente, sin publicar. Resultados exactos: [evidencia del 31-10](revision-local-verificacion-2026-10-31.json).
+## Inventario disponible en la app publicada
 
-## Orden pendiente de publicación
+**Inventario semanal · 25/10/2026**, ID `bf18ea04-477e-4d5d-bd71-aabd2487cc87`, está globalmente finalizado. Se creó por solicitud explícita del usuario con cantidades ficticias: 1.242 conteos, incluidos 96 ceros confirmados. No usarlo como inventario real del local.
 
-1. Actualizar el código revisado del Worker privado `inventory-exports`, desde la raíz del repositorio y con la configuración existente:
+Se conservaron los dos ítems inactivos. Quedaron 24 pendientes activos por referencias no resueltas, cerrados mediante el flujo vigente de finalización con advertencia de pendientes: no se inventaron unidades, conversiones o destinos ni se modificó la actividad global. La captura `efe129c4-0319-4783-b8b6-115cb9417cc2` admite exportación, sin bloqueos: 1.145 destinos numéricos y seis en blanco. La copia local `.exports/inventario-semanal-2026-10-25.xlsx` se generó desde esa captura remota y aprobó el guard independiente con recálculo al abrir. Captura y XLSX permanecen fuera de Git y del paquete público.
 
-   ```sh
-   npx wrangler deploy --config wrangler.exports.production.jsonc
-   ```
+La creación usó comandos guardados/auditados e idempotentes de D1, validados antes en SQLite ficticio. Solo se añadieron el ciclo solicitado, sus conteos, transiciones y captura; no se crearon usuarios/sesiones ni se tocaron otros inventarios, el catálogo o las migraciones.
 
-2. Hacer el push del usuario a `inventory-v3`, esperar Actions y el despliegue de Pages. El push de Pages no actualiza por sí solo el Worker privado.
-3. Comprobar la revisión efectiva y el binding `PASSWORDS`; probar ingreso, Supervisión, revisión, generación y descarga con Administrador, y rechazo de exportación con Trabajador.
+## Pendiente para que solo reste el push
 
-En esta revisión no se hizo push ni se publicó ningún Worker o Pages. No se necesitan migraciones, clases, plantilla ni secretos nuevos; no repetir 0016, fixtures ni aprovisionamiento.
+La actualización del Worker privado `inventory-exports` está preparada y probada. Se verificaron su versión y bindings actuales, pero la revisión automática rechazó publicarla por falta de autorización explícita para ese despliegue en producción. La autorización está solicitada al usuario. No afirmar que el Worker está actualizado ni que el push de Pages lo actualizará.
 
-La prueba local no certifica CPU o cuotas productivas. Permanecen la aceptación en teléfono físico y Microsoft Excel, y los datos de catálogo no resueltos. Dependabot, TOTP, nuevas políticas de acceso/inactividad y «Cerrar otras sesiones» siguen pendientes por decisión del usuario.
+Una vez autorizada y publicada esa actualización, el usuario hace su push a `inventory-v3`. Esperar Actions y Pages y comprobar la revisión efectiva, el binding `PASSWORDS`, el ingreso, permisos de Administrador/Trabajador y la exportación del inventario anterior. No repetir 0016, plantilla, secretos ni aprovisionamiento.
+
+No se hizo push ni se publicó Pages. Permanecen la aceptación en teléfono físico y Microsoft Excel, los datos de catálogo no resueltos y las decisiones de Dependabot/TOTP/políticas de acceso/cierre de otras sesiones. Las pruebas locales no certifican CPU ni cuota productiva.

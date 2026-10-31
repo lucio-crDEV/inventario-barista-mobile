@@ -109,6 +109,18 @@ try {
   await expect(B.page.locator("#discard")).toBeFocused();
   await expect(B.page.locator("#choose-add")).toBeVisible();
   await expect(B.page.locator("#choose-overwrite")).toBeVisible();
+  for (const theme of ["light", "dark"]) for (const width of [320, 390, 1024]) {
+    await B.page.setViewportSize({ width, height: 844 });
+    await B.page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+    const modal = B.page.locator("dialog[open]");
+    assert.equal(await modal.evaluate(el => el.scrollWidth <= el.clientWidth), true);
+    assert.ok((await modal.boundingBox()).height <= 550, "compact decision dialog");
+    for (const button of await modal.locator("button").all())
+      assert.ok((await button.boundingBox()).height >= 44, "44px decision target");
+    await B.page.screenshot({ path: `test-results/3a/decision-${theme}-${width}.png`, fullPage: true });
+  }
+  await B.page.setViewportSize({ width: 390, height: 844 });
+  await B.page.evaluate(() => document.documentElement.dataset.theme = "light");
   await B.page.keyboard.press("Shift+Tab");
   assert.equal(
     await B.page.evaluate(() => !!document.activeElement.closest("dialog")),
@@ -140,34 +152,57 @@ try {
     "Descartar recupera 4 y elimina solo el borrador afectado; foco inicial seguro",
   );
   await propose(B.page);
+  await expect(B.page.locator("#choose-add")).toContainText("4 + 3 = 7");
+  const commands = [];
+  await B.page.route("**/api/count", async route => {
+    commands.push(route.request().postDataJSON());
+    if (commands.length === 1) {
+      await route.fetch();
+      await route.abort("failed");
+    } else await route.continue();
+  });
   await B.page.locator("#choose-add").click();
-  await expect(B.page.locator("#result-preview")).toContainText("4 + 3 = 7");
-  await B.page.locator("#confirm-choice").click();
-  await expect(B.page.locator("dialog")).toHaveCount(0);
+  await expect(B.page.locator("#retry-resolution")).toBeVisible();
+  await expect(B.page.locator("#discard")).toBeDisabled();
   assert.equal((await record(aAPI, target)).quantity, 7);
-  checks.push("Sumar explícito confirma 4 + 3 = 7");
+  await B.page.locator("#retry-resolution").click();
+  await expect(B.page.locator("dialog")).toHaveCount(0);
+  await B.page.unroute("**/api/count");
+  assert.equal(commands.length, 2);
+  assert.deepEqual(commands[0], commands[1], "uncertain sum retries the exact command");
+  assert.equal((await record(aAPI, target)).quantity, 7);
+  checks.push("Sumar muestra el resultado y guarda con una decisión; respuesta incierta se reintenta sin duplicar");
   await seed4();
   await openItem(B.page, target);
   await propose(B.page);
+  await expect(B.page.locator("#choose-overwrite")).toContainText("3");
   await B.page.locator("#choose-overwrite").click();
-  await expect(B.page.locator("#result-preview")).toContainText("Resultado: 3");
-  await B.page.locator("#confirm-choice").click();
   await expect(B.page.locator("dialog")).toHaveCount(0);
   assert.equal((await record(aAPI, target)).quantity, 3);
   checks.push("Sobrescribir explícito reemplaza 4 por 3");
   await seed4();
   await openItem(B.page, target);
   await propose(B.page);
-  await B.page.locator("#choose-add").click();
   const current = await record(aAPI, target);
   await aAPI.save(target, 5, { expectedVersion: current.version });
-  await B.page.locator("#confirm-choice").click();
+  await B.page.locator("#choose-add").click();
   await expect(B.page.locator("dialog")).toContainText("5");
-  await expect(B.page.locator("#confirm-choice")).toBeHidden();
+  await expect(B.page.locator("#confirm-choice")).toHaveCount(0);
+  await expect(B.page.locator("#choose-add")).toContainText("5 + 3 = 8");
   assert.equal((await record(aAPI, target)).quantity, 5);
-  checks.push("Cambio remoto invalida la confirmación y exige nueva elección");
+  checks.push("Cambio remoto no guarda la elección obsoleta y muestra el nuevo resultado");
   await B.page.locator("#keep-draft").click();
   await expect(B.page.locator("#quantity")).toHaveValue("3");
+  await propose(B.page);
+  const bAPI = new Client();
+  await bAPI.login("bruno");
+  const beforeOwnChange = await record(aAPI, target);
+  assert.equal((await bAPI.save(target, 6, { expectedVersion: beforeOwnChange.version, action: "overwrite" })).status, 200);
+  await B.page.locator("#choose-add").click();
+  await expect(B.page.locator("dialog")).toHaveCount(0);
+  await expect(B.page.locator("#quantity")).toHaveValue("3");
+  assert.equal((await record(aAPI, target)).quantity, 6);
+  checks.push("Cambio desde otra sesión propia cierra la decisión obsoleta y conserva el borrador");
   await B.page.waitForTimeout(5200);
   await expect(B.page.locator("#quantity")).toHaveValue("3");
   checks.push("Sincronización remota conserva campos en edición");
@@ -181,10 +216,11 @@ try {
     .click();
   await expect(B.page.locator("#quantity")).toHaveValue("3");
   checks.push("Borrador recuperado después de recarga");
+  await seed4();
   await B.page.locator("#save-out-of-stock").click();
   await expect(B.page.locator("#choose-add")).toBeDisabled();
   await expect(B.page.locator("dialog")).toContainText(
-    "Sin stock no es un aporte sumable",
+    "Para guardar sin stock, elige Reemplazar",
   );
   await B.page.locator("#keep-draft").click();
   await B.page.locator("[data-settings-toggle]").click();

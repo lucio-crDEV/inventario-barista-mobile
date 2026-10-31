@@ -304,7 +304,7 @@ export class SharedInventory {
     ];
     const active = buttons.includes(document.activeElement)
       ? document.activeElement
-      : document.querySelector('#confirm-choice:not([hidden]), #retry-operation') ||
+      : document.querySelector('#retry-operation') ||
         document.querySelector(
           op.outOfStock
             ? '#save-out-of-stock'
@@ -344,6 +344,8 @@ export class SharedInventory {
             operation: undefined,
             baseVersion: e.current?.version || 0,
           });
+          this.modal?.close();
+          this.modal = null;
           this.state(
             'El conteo cambió. Conservamos tu borrador; revisa el último registro antes de guardar.',
           );
@@ -373,50 +375,41 @@ export class SharedInventory {
   resolve(item, d, current) {
     this.modal?.close();
     const label = (r) => describeCountValue(r, item.unit);
+    const proposed = { ...d, quantity: Number(String(d.quantity).replace(',', '.')) };
+    const total = Math.round((current.quantity + proposed.quantity) * 1000) / 1000;
+    const canAdd = !d.outOfStock && !!item.unit;
+    const state = (r) => (r.status === 'partial' ? 'Avance' : 'Contado');
     const el = dialog(
-      'Revisar registro de otra persona',
-      html`<p><strong>${item.name}</strong> · ${this.locationName(item)}</p>
-        <p>Último autor: ${current.authorName} · versión ${current.version}</p>
-        <table>
-          <thead>
-            <tr>
-              <th>Dato</th>
-              <th>Vigente</th>
-              <th>Tu propuesta</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>Cantidad</th>
-              <td>${label(current)}</td>
-              <td>${label({ ...d, quantity: Number(d.quantity) })}</td>
-            </tr>
-            <tr>
-              <th>Estado</th>
-              <td>${current.status === 'partial' ? 'Avance' : 'Contado'}</td>
-              <td>${d.status === 'partial' ? 'Avance' : 'Contado'}</td>
-            </tr>
-            <tr>
-              <th>Nota</th>
-              <td>${current.note || 'Sin nota'}</td>
-              <td>${d.note || 'Sin nota'}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button type="button" id="discard">Descartar mi cambio</button
-        ><button type="button" id="choose-add" ${d.outOfStock || !item.unit ? 'disabled' : ''}>
-          Sumar mi cantidad</button
-        ><button type="button" id="choose-overwrite">Sobrescribir</button
-        >${d.outOfStock ? html`<p>Sin stock no es un aporte sumable. Para confirmar cero utiliza Sobrescribir.</p>` : !item.unit ? html`<p>La unidad está pendiente de confirmar. No se puede sumar.</p>` : ''}
-        <p id="result-preview" role="status"></p>
-        <button type="button" id="confirm-choice" hidden>Confirmar resultado</button
-        ><button type="button" id="keep-draft">Volver y conservar borrador</button>`,
+      '¿Cómo guardar tu conteo?',
+      html`<p class="resolution-product"><strong>${item.name}</strong><small>${this.locationName(item)}</small></p>
+        <div class="resolution-values">
+          <div><span>Actual · ${current.authorName}</span><strong>${label(current)}</strong><small>${state(current)}</small></div>
+          <div><span>Tu conteo</span><strong>${label(proposed)}</strong><small>${state(d)}</small></div>
+        </div>
+        ${current.note || d.note ? html`<details class="resolution-notes"><summary>Ver notas</summary>${current.note ? html`<p><strong>Actual</strong><br />${current.note}</p>` : ''}${d.note ? html`<p><strong>Tu nota</strong><br />${d.note}</p>` : ''}</details>` : ''}
+        <div class="resolution-options">
+          <button type="button" id="choose-add" ${!canAdd ? 'disabled' : ''}><span>Sumar</span><small>${canAdd ? `${current.quantity} + ${proposed.quantity} = ${total} ${item.unit}` : 'No disponible'}${canAdd && (current.status === 'partial' || d.status === 'partial') ? ' · Avance' : ''}</small></button>
+          <button type="button" id="choose-overwrite"><span>Reemplazar</span><small>${label(proposed)}</small>${current.note && current.note !== d.note ? html`<small>Reemplaza también la nota</small>` : ''}</button>
+        </div>
+        <p class="resolution-feedback" role="status" hidden></p>
+        ${d.outOfStock ? html`<p class="resolution-hint">Para guardar sin stock, elige Reemplazar.</p>` : !item.unit ? html`<p class="resolution-hint">Falta confirmar la unidad para sumar.</p>` : ''}
+        <div class="resolution-footer"><button type="button" id="discard">Descartar cambio</button><button type="button" id="keep-draft">Volver</button></div>`,
     );
+    el.classList.add('resolution-dialog');
     this.modal = el;
-    let action = null;
+    el.addEventListener('close', () => {
+      if (this.modal === el) this.modal = null;
+    });
     el.querySelector('#discard').onclick = async () => {
+      if (this.busy || this.draft(item)?.operation) return;
+      this.busy = true;
+      const buttons = [...el.querySelectorAll('button')];
+      const disabled = buttons.map((button) => [button, button.disabled]);
+      const restore = pendingButton(el.querySelector('#discard'), 'Descartando…');
+      for (const button of buttons) button.disabled = true;
       try {
         const { record } = await api(this.recordURL('/api/record', item));
+        if (!el.open) return;
         this.acceptRecord(record, item.id);
         this.drafts.remove(item.id);
         el.close();
@@ -429,36 +422,39 @@ export class SharedInventory {
         this.onRender?.();
       } catch (e) {
         this.handleError(e);
+      } finally {
+        restore();
+        for (const [button, wasDisabled] of disabled) button.disabled = wasDisabled;
+        this.busy = false;
       }
     };
-    const choose = (a) => {
-      action = a;
-      const total = Math.round((current.quantity + Number(d.quantity)) * 1000) / 1000;
-      const status =
-        a === 'add' && (current.status === 'partial' || d.status === 'partial')
-          ? 'Avance'
-          : d.status === 'partial'
-            ? 'Avance'
-            : 'Contado';
-      el.querySelector('#result-preview').textContent =
-        a === 'add'
-          ? `${current.quantity} + ${Number(d.quantity)} = ${total} ${item.unit}. ${status}. Suma solo existencias que todavía no estén incluidas en el conteo actual. Se conservan las notas previas y se añade tu nota con tu nombre.`
-          : `Resultado: ${label({ ...d, quantity: Number(d.quantity) })} · ${status}. Nota: ${d.note || 'Sin nota'}. Reemplaza la versión ${current.version}.`;
-      el.querySelector('#confirm-choice').hidden = false;
-    };
-    el.querySelector('#choose-add').onclick = () => choose('add');
-    el.querySelector('#choose-overwrite').onclick = () => choose('overwrite');
-    el.querySelector('#confirm-choice').onclick = async () => {
-      if (!action || this.busy) return;
-      const op = this.operation(item, d, action, current.version);
+    const choose = async (action) => {
+      if (this.busy || (action === 'add' && !canAdd)) return;
+      const pending = this.draft(item)?.operation;
+      if (pending && pending.action !== action) return;
+      const op = pending || this.operation(item, d, action, current.version);
       try {
         this.drafts.set(item.id, { ...d, operation: op });
       } catch {
         this.state('No se envió: no se pudo conservar el borrador en este dispositivo.');
         return;
       }
-      if (await this.send(item, d, op)) this.onRender?.();
+      if (await this.send(item, d, op, !!pending)) this.onRender?.();
+      else if (this.modal === el && this.draft(item)?.operation) {
+        const feedback = el.querySelector('.resolution-feedback');
+        feedback.hidden = false;
+        feedback.textContent = 'No pudimos confirmar el envío. Reintenta sin duplicarlo.';
+        const options = el.querySelector('.resolution-options');
+        setHTML(
+          options,
+          html`<button type="button" id="retry-resolution">Reintentar envío</button>`,
+        );
+        options.querySelector('button').onclick = () => choose(action);
+        el.querySelector('#discard').disabled = true;
+      }
     };
+    el.querySelector('#choose-add').onclick = () => choose('add');
+    el.querySelector('#choose-overwrite').onclick = () => choose('overwrite');
     el.querySelector('#keep-draft').onclick = () => {
       el.close();
       this.modal = null;

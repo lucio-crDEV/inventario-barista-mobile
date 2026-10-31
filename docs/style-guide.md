@@ -2,6 +2,10 @@ Actualización local 28/10: diálogos con fondo compartido al 16 % en claro y 22
 
 # Guía de estilo UX/UI — inventory-v3
 
+## Conteos compartidos — 31-10-2026
+
+El diálogo de decisión es compacto: conteo actual y propio en dos columnas, notas opcionales bajo demanda y resultado visible junto a Sumar/Reemplazar. Elegir una acción guarda directamente; no se pide otra confirmación. Descartar conserva el registro vigente y Volver conserva el borrador. No se muestran versiones técnicas ni filas «Sin nota». Se mantiene el foco inicial seguro, los controles de 44 px y la comprobación transaccional de versión. Si cambió el conteo, se muestra la nueva comparación; si la respuesta es incierta, solo se permite reintentar el mismo envío, sin duplicar cantidades. Esta decisión sustituye el recorrido anterior de elección y confirmación de resultado.
+
 Actualización 26/10: [finalización con pendientes y opciones de inventario](finalizacion-con-pendientes-2026-10-26.md). Requiere 0012 después de 0011. Se permite continuar tras advertencia; pendientes/avances se reservan como blanco para el futuro Excel, conservando ceros confirmados y todos los registros. Esta decisión sustituye el requisito anterior de completar todos los activos. La exportación está implementada; el recorrido vigente está en Supervisión.
 
 ## Revisión vigente — 25-10-2026
@@ -84,7 +88,7 @@ El cian identifica navegación, progreso y acciones generales. **Rojo** señala 
 - **Conteo:** cabecera con regreso, título, barra de progreso y menú. La navegación mantiene «Anterior / Ver ítems / Siguiente» con acceso central al panel flotante. La ficha separa categoría, nombre, estado, cantidad y nota. Las acciones conservan el orden «Sin stock / Guardar avance / Listo» y los colores funcionales. Los campos usan fondo sólido y foco visible.
 - **Panel de ítems:** conserva búsqueda por nombre, agrupación y acceso a ítems contados. Al abrirlo, solo queda desplegada la categoría del producto actual y la lista se sitúa en ese producto; las demás categorías empiezan cerradas, pero pueden abrirse manualmente. Desde una vista sin producto seleccionado, todas empiezan cerradas. La búsqueda despliega los grupos coincidentes y al limpiarla recupera los grupos abiertos manualmente. «Ver ítems» no enfoca el buscador; la lupa del encabezado sí. El campo permanece integrado en la superficie del panel, sin contorno de reposo. El ítem actual lleva una marca cian discreta.
 - **Resumen:** el contrato vigente sustituye la barra, responsable y acciones antiguas por anillo combinado, estados y categorías.
-- **Confirmación:** registros ajenos se resuelven mediante Descartar/Sumar/Sobrescribir, revisión de resultado y confirmación; no existe borrado compartido de progreso. Rojo se reserva para acciones destructivas explícitas, como eliminar cuenta conservando conteos/historial. La referencia visual no autoriza «Finalizar inventario» ni flujo de cierre todavía pendiente de 3B.
+- **Confirmación:** registros ajenos se resuelven en un diálogo compacto mediante Descartar/Sumar/Reemplazar, con el resultado visible antes de elegir y sin otra confirmación; no existe borrado compartido de progreso. Rojo se reserva para acciones destructivas explícitas, como eliminar cuenta conservando conteos/historial. La referencia visual no autoriza «Finalizar inventario» ni flujo de cierre todavía pendiente de 3B.
 
 ## Interacción, accesibilidad y tamaños
 
@@ -99,7 +103,7 @@ Esta guía no cambia productos, cantidades, ID, filas ni categorías de exportac
 
 ## Etapa 3A — cuenta y colaboración
 
-Se conserva el diseño de inventario. El panel derecho identifica persona, rol y sincronización. Reúne cambio de contraseña, cierre de sesión, tema y, para administradores, Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación legible, último autor, versión y tabla vigente/propuesto de cantidad, estado y nota. Cada acción de escritura exige revisar su resultado y confirmarlo. Sin stock no ofrece suma válida.
+Se conserva el diseño de inventario. El panel derecho identifica persona, rol y sincronización. Reúne cambio de contraseña, cierre de sesión, tema y, para administradores, Usuarios y accesos. Formularios y diálogo usan superficies crema/carbón, cian, radios y foco visible. El diálogo nativo conserva Tab dentro, permite Escape conservando borrador y empieza en Descartar; ninguna suma/sobrescritura está preseleccionada. Muestra producto, ubicación, autor y comparación breve de cantidades. Las notas se despliegan bajo demanda; elegir Sumar o Reemplazar confirma y guarda el resultado visible en el propio botón. Sin stock no ofrece suma válida.
 
 La fila de sincronización muestra primero el punto verde y «Sincronizado» y, al extremo derecho, un icono cian de actualizar de **18 px, sin fondo ni pastilla**. Su área táctil invisible conserva 44 × 44 px. Mientras consulta, el icono gira; movimiento reducido omite el giro. El punto pasa a cian durante la consulta, ámbar si hay borradores pendientes y rojo si falla; siempre se conserva una etiqueta de texto. El botón permite una comprobación manual cada **30 segundos por usuario en ese navegador**, compartida entre páginas y pestañas. Queda deshabilitado durante la consulta y la espera; el título informa cuándo podrá usarse. La espera no dispara una nueva consulta y también se aplica después de un error.
 
@@ -114,7 +118,7 @@ Ingreso, cambio de contraseña y Usuarios y accesos reutilizan los tokens `--ui-
 
 La contraseña puede mostrarse u ocultarse; el cambio exige repetirla y los errores reciben foco. La administración presenta cuentas plegables, búsqueda y alta separada. Cada asignación explica sus descendientes; restablecer contraseña requiere una confirmación que permite cancelar conservando el campo. Un envío en curso deshabilita la acción para evitar dobles toques.
 
-La comparación distingue «Sin conteo», cero en avance, cero contado y «Sin stock». Antes de Sumar muestra operación y total; antes de Sobrescribir muestra el resultado. El historial usa etiquetas y fechas en español, preservando notas multilínea con autor. Verificación ejecutada a 320, 390 y 1024 px en ambos temas, sin desborde horizontal; Android físico, lector de pantalla y teclado virtual siguen pendientes.
+La comparación distingue «Sin conteo», cero en avance, cero contado y «Sin stock». Sumar muestra operación y total; Reemplazar muestra el valor que se guardará. Una sola elección envía el cambio. El historial usa etiquetas y fechas en español, preservando notas multilínea con autor. Verificación ejecutada a 320, 390 y 1024 px en ambos temas, sin desborde horizontal; Android físico, lector de pantalla y teclado virtual siguen pendientes.
 
 
 ### Carga y transiciones — 21-10-2026

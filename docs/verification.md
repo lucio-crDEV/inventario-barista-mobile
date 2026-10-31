@@ -1,14 +1,12 @@
 # Verificación vigente
 
-## Cierre local del 31-10-2026
+## Conteo compacto y ejemplo publicado — 31-10-2026
 
-Los cuatro commits recuperados ya están incorporados en el repositorio original, rama `inventory-v3`. Aprobaron 210 unitarias sin exclusiones, 14 Python y las 30 comprobaciones de la batería aislada, incluido el ingreso nativo de treinta personas, saturación, plazos reales de cola/solicitante y recuperación. La exportación aprobó seis combinaciones de ancho/tema en Chromium; se corrigió únicamente el selector ambiguo de «Cerrar» en esa prueba. Se inspeccionaron las capturas móviles de ambos temas.
+La recuperación ya está incorporada; la nueva decisión de conteo guarda Sumar/Reemplazar en un paso, conserva borradores y reintenta respuestas inciertas sin duplicar. Aprobaron 210 unitarias y las 30 comprobaciones aisladas. Se repitieron unitarias y navegador tras el último caso de conflicto desde otra sesión propia. Chromium comprobó 320/390/1024 px, ambos temas, controles de 44 px y diálogo compacto sin desborde; se inspeccionaron las capturas móviles.
 
-Formato, lint, build, guard del original, exportación privada nativa, monitor simulado y preparación del Worker privado mediante `--dry-run` aprobaron. [Evidencia completa](revision-local-verificacion-2026-10-31.json). Los bloqueos de puertos/Chromium descritos en el antecedente del 29-10 quedaron resueltos para esta ejecución. No hubo cambios remotos, migraciones, push ni publicaciones.
+Se creó el inventario ficticio solicitado en producción: «Inventario semanal · 25/10/2026», globalmente finalizado, con 1.242 conteos, 24 pendientes de referencia y dos inactivos conservados. Su captura no tiene bloqueos de exportación. La copia Excel generada desde esa fuente remota aprobó el guard independiente con recálculo; el original permanece intacto. No se modificaron usuarios, sesiones, actividad global ni migraciones.
 
-Queda actualizar el Worker privado antes del push del usuario, comprobar Actions/Pages y completar aceptación física de teléfono/Excel. [Orden de publicación](continuacion-local.md). Las cifras y restricciones de producción conservan sus límites; los resultados anteriores quedan en sus archivos de evidencia.
-
-La evidencia vigente está en [la revisión local del 31-10](revision-local-verificacion-2026-10-31.json). Los registros fechados de etapas anteriores conservan resultados históricos; no sustituyen la comprobación del código publicado, los bindings ni las métricas reales.
+Formato, lint y build aprobaron. [Evidencia vigente](conteo-compacto-verificacion-2026-10-31.json); [recuperación y comprobaciones anteriores](revision-local-verificacion-2026-10-31.json). La publicación del Worker privado fue rechazada por la revisión automática y está pendiente de autorización explícita. No hubo push ni publicación de Pages. [Estado y orden de publicación](continuacion-local.md).
 
 ## Validación automática
 
